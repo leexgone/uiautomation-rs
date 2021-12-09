@@ -22,7 +22,7 @@ unsafe fn print_element(walker: &IUIAutomationTreeWalker, element: &IUIAutomatio
     for _ in 0..level {
         print!("  ");
     }
-    println!("{}", element.CurrentName().unwrap());
+    println!("{} - {}", element.CurrentClassName().unwrap(), element.CurrentName().unwrap());
 
     if let Ok(child) = walker.GetFirstChildElement(element) {
         print_element(walker, &child, level + 1)?;
