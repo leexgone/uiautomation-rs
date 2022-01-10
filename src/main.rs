@@ -9,6 +9,7 @@ fn main() {
         let automation: IUIAutomation = CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL).unwrap();
         let condition = automation.CreateTrueCondition().unwrap();
         let walker = automation.CreateTreeWalker(condition).unwrap();
+        
 
         let root = automation.GetRootElement().unwrap(); //walker.GetFirstChildElement(None).unwrap();
 

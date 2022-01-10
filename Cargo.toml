@@ -7,11 +7,14 @@ edition = "2021"
 
 [dependencies]
 
+failure = "0.1"
+
 [dependencies.windows]
-version = "0.29.0"
+version = "0.29"
 features = [
-    "Win32_System_Com",
     "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Ole",
     "Win32_UI_Accessibility",
     "UI_UIAutomation"
 ]
