@@ -24,11 +24,11 @@ impl Value {
         }
     }
 
-    pub fn as_string(&self) -> Option<String>{
+    pub fn as_string(&self) -> String{
         match self {
-            Value::INT(value) => Option::Some(format!("{}", value)),
-            Value::LONG(value) => Option::Some(format!("{}", value)),
-            Value::STR(value) => Option::Some(value.clone()),
+            Value::INT(value) => format!("{}", value),
+            Value::LONG(value) => format!("{}", value),
+            Value::STR(value) => value.clone(),
         }
     }
 }
