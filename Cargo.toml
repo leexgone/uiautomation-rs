@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 
-failure = "0.1"
+clap = "2.33"
 
 [dependencies.windows]
 version = "0.29"

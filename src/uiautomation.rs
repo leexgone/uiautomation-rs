@@ -9,11 +9,29 @@ use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::core::Result;
 
+use crate::errors::Error;
+
+pub type Result<T> = core::result::Result<T, Error>;
+
+impl From<windows::core::Error> for Error {
+    fn from(_: windows::core::Error) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Clone)]
 pub struct UIAutomation {
     automation: IUIAutomation
 }
+
+// impl Clone for UIAutomation {
+//     fn clone(&self) -> Self {
+//         Self { 
+//             automation: self.automation.clone() 
+//         }
+//     }
+// }
 
 impl UIAutomation {
     pub fn new() -> Result<UIAutomation> {
@@ -46,8 +64,18 @@ impl UIAutomation {
 
         Ok(UITreeWalker::new(tree_walker))
     }
+
+    pub fn create_matcher(&self) -> UIMatcher {
+        UIMatcher {
+            automation: self.clone(),
+            depth: 5,
+            from: None,
+            condition: None
+        }
+    }
 }
 
+#[derive(Clone)]
 pub struct UIElement {
     element: IUIAutomationElement
 }
@@ -78,6 +106,7 @@ impl UIElement {
     }
 }
 
+#[derive(Clone)]
 pub struct UITreeWalker {
     tree_walker: IUIAutomationTreeWalker
 }
@@ -132,5 +161,27 @@ impl UITreeWalker {
         }
 
         Ok(UIElement::new(sibling))
+    }
+}
+
+pub trait Condition {
+    fn judge(&self, element: &UIElement) -> Result<bool>;
+}
+pub struct UIMatcher {
+    automation: UIAutomation,
+    depth: u32,
+    from: Option<UIElement>,
+    condition: Option<Box<dyn Condition>>
+}
+
+impl UIMatcher {
+    pub fn from(mut self, element: UIElement) -> Self {
+        self.from = Some(element);
+        self
+    }
+
+    pub fn depth(mut self, depth: u32) -> Self {
+        self.depth = depth;
+        self
     }
 }

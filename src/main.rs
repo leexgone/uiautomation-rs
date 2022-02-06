@@ -1,9 +1,31 @@
+use clap::App;
+use clap::Arg;
 use uiautomation_rs::uiautomation::UIAutomation;
 use uiautomation_rs::uiautomation::UIElement;
 use uiautomation_rs::uiautomation::UITreeWalker;
 use windows::core::Result;
 
 fn main() {
+    let matches = App::new("ui automation")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author("Steven Lee")
+        .arg(Arg::with_name("print").short("p").long("print"))
+        .get_matches();
+    
+    if matches.is_present("print") {
+        print_tree();
+    }
+
+    find_by_name();
+}
+
+fn find_by_name() {
+    let automation = UIAutomation::new().unwrap();
+    let root = automation.get_root_element().unwrap();
+    let matcher = automation.create_matcher().from(root);
+}
+
+fn print_tree() {
     let automation = UIAutomation::new().unwrap();
     let walker = automation.create_tree_walker().unwrap();
     let root = automation.get_root_element().unwrap();
