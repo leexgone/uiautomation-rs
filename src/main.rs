@@ -1,9 +1,9 @@
 use clap::App;
 use clap::Arg;
+use uiautomation_rs::uiautomation::Result;
 use uiautomation_rs::uiautomation::UIAutomation;
 use uiautomation_rs::uiautomation::UIElement;
 use uiautomation_rs::uiautomation::UITreeWalker;
-use windows::core::Result;
 
 fn main() {
     let matches = App::new("ui automation")
@@ -22,7 +22,10 @@ fn main() {
 fn find_by_name() {
     let automation = UIAutomation::new().unwrap();
     let root = automation.get_root_element().unwrap();
-    let matcher = automation.create_matcher().from(root);
+    let matcher = automation.create_matcher().from(root).contains_name("记事本");
+    if let Ok(notpad) = matcher.find() {
+        println!("Found: {} - {}", notpad.get_name().unwrap(), notpad.get_classname().unwrap());
+    }
 }
 
 fn print_tree() {

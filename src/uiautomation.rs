@@ -14,24 +14,10 @@ use crate::errors::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-impl From<windows::core::Error> for Error {
-    fn from(_: windows::core::Error) -> Self {
-        todo!()
-    }
-}
-
 #[derive(Clone)]
 pub struct UIAutomation {
     automation: IUIAutomation
 }
-
-// impl Clone for UIAutomation {
-//     fn clone(&self) -> Self {
-//         Self { 
-//             automation: self.automation.clone() 
-//         }
-//     }
-// }
 
 impl UIAutomation {
     pub fn new() -> Result<UIAutomation> {
@@ -66,12 +52,7 @@ impl UIAutomation {
     }
 
     pub fn create_matcher(&self) -> UIMatcher {
-        UIMatcher {
-            automation: self.clone(),
-            depth: 5,
-            from: None,
-            condition: None
-        }
+        UIMatcher::new(self.clone())
     }
 }
 
@@ -163,10 +144,6 @@ impl UITreeWalker {
         Ok(UIElement::new(sibling))
     }
 }
-
-pub trait Condition {
-    fn judge(&self, element: &UIElement) -> Result<bool>;
-}
 pub struct UIMatcher {
     automation: UIAutomation,
     depth: u32,
@@ -175,6 +152,15 @@ pub struct UIMatcher {
 }
 
 impl UIMatcher {
+    pub fn new(automation: UIAutomation) -> Self {
+        UIMatcher {
+            automation,
+            depth: 5,
+            from: None,
+            condition: None
+        }
+    }
+
     pub fn from(mut self, element: UIElement) -> Self {
         self.from = Some(element);
         self
@@ -183,5 +169,115 @@ impl UIMatcher {
     pub fn depth(mut self, depth: u32) -> Self {
         self.depth = depth;
         self
+    }
+
+    pub fn filter(mut self, condition: Box<dyn Condition>) -> Self {
+        self.condition = Some(condition);
+        self
+    }
+
+    pub fn contains_name<S: Into<String>>(self, name: S) -> Self {
+        let condition = NameCondition {
+            value: name.into(),
+            casesensitive: false,
+            partial: true
+        };
+        self.filter(Box::new(condition))
+    }
+
+    pub fn match_name<S: Into<String>>(self, name: S) -> Self {
+        let condition = NameCondition {
+            value: name.into(),
+            casesensitive: false,
+            partial: false
+        };
+        self.filter(Box::new(condition))
+    }
+
+    pub fn find(&self) -> Result<UIElement> {
+        let root = if let Some(ref from) = self.from {
+            from.clone()
+        } else {
+            self.automation.get_root_element()?
+        };
+        let walker = self.automation.create_tree_walker()?;
+
+        let mut elements: Vec<UIElement> = Vec::new();
+        self.search(&walker, &root, &mut elements, 1, true)?;
+
+        if elements.is_empty() {
+            Err(Error::from("NOTFOUND"))
+        } else {
+            Ok(elements.remove(0))
+        }
+    }
+
+    fn search(&self, walker: &UITreeWalker, element: &UIElement, elements: &mut Vec<UIElement>, depth: u32, first_only: bool) -> Result<()> {
+        if self.is_matched(element)? {
+            elements.push(element.clone());
+
+            if first_only {
+                return Ok(());
+            }
+        }
+
+        if depth < self.depth {
+            let mut next = walker.get_first_child(element);
+            while let Ok(ref child) = next {
+                self.search(walker, child, elements, depth + 1, first_only)?;
+                if first_only && !elements.is_empty() {
+                    return Ok(());
+                }
+
+                next = walker.get_next_sibling(child);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn is_matched(&self, element: &UIElement) -> Result<bool> {
+        if let Some(ref condition) = self.condition {
+            condition.judge(element)
+        } else {
+            Ok(true)
+        }
+    }
+}
+
+pub trait Condition {
+    fn judge(&self, element: &UIElement) -> Result<bool>;
+}
+
+struct NameCondition {
+    value: String,
+    casesensitive: bool,
+    partial: bool
+}
+
+impl Condition for NameCondition {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        let element_name = element.get_name()?;
+        let element_name = element_name.as_str();
+        let condition_name = self.value.as_str();
+
+        Ok(
+            if self.partial {
+                if self.casesensitive {
+                    element_name.contains(condition_name)
+                } else {
+                    let element_name = element_name.to_lowercase();
+                    let condition_name = condition_name.to_lowercase();
+
+                    element_name.contains(&condition_name)
+                }
+            } else {
+                if self.casesensitive {
+                    element_name == condition_name
+                } else {
+                    element_name.eq_ignore_ascii_case(condition_name)
+                }
+            }
+        )
     }
 }

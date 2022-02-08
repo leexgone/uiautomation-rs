@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Error {
     message: String
 }
@@ -11,4 +11,27 @@ impl Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for Error {
+}
+
+impl From<windows::core::Error> for Error {
+    fn from(e: windows::core::Error) -> Self {
+        e.to_string().into()
+    }
+}
+
+impl From<String> for Error {
+    fn from(message: String) -> Self {
+        Error {
+            message
+        }
+    }
+}
+
+impl From<&str> for Error {
+    fn from(message: &str) -> Self {
+        Error {
+            message: String::from(message)
+        }
+    }
+}
