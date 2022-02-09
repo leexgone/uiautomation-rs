@@ -14,12 +14,12 @@ fn main() {
     
     if matches.is_present("print") {
         print_tree();
+    } else {
+        classpath_fix();
     }
-
-    find_by_name();
 }
 
-fn find_by_name() {
+fn classpath_fix() {
     let automation = UIAutomation::new().unwrap();
     let root = automation.get_root_element().unwrap();
     let matcher = automation.create_matcher().from(root).contains_name("记事本");
