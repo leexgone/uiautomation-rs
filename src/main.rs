@@ -23,8 +23,15 @@ fn classpath_fix() {
     let automation = UIAutomation::new().unwrap();
     let root = automation.get_root_element().unwrap();
     let matcher = automation.create_matcher().from(root).contains_name("记事本");
-    if let Ok(notpad) = matcher.find() {
+    if let Ok(notpad) = matcher.find_first() {
         println!("Found: {} - {}", notpad.get_name().unwrap(), notpad.get_classname().unwrap());
+    }
+
+    if let Ok(notepads) = matcher.find_all() {
+        for notepad in notepads {
+            println!("Found in all: {} - {}", notepad.get_name().unwrap(), notepad.get_classname().unwrap());
+            notepad.set_focus().unwrap();
+        }
     }
 }
 

@@ -38,7 +38,7 @@ impl UIAutomation {
             element = self.automation.GetRootElement()?;
         }
 
-        Ok(UIElement::new(element))
+        Ok(UIElement::from(element))
     }
 
     pub fn create_tree_walker(&self) -> Result<UITreeWalker> {
@@ -48,11 +48,31 @@ impl UIAutomation {
             tree_walker = self.automation.CreateTreeWalker(condition)?;
         }
 
-        Ok(UITreeWalker::new(tree_walker))
+        Ok(UITreeWalker::from(tree_walker))
     }
 
     pub fn create_matcher(&self) -> UIMatcher {
         UIMatcher::new(self.clone())
+    }
+}
+
+impl From<IUIAutomation> for UIAutomation {
+    fn from(automation: IUIAutomation) -> Self {
+        UIAutomation {
+            automation
+        }
+    }
+}
+
+impl Into<IUIAutomation> for UIAutomation {
+    fn into(self) -> IUIAutomation {
+        self.automation
+    }
+}
+
+impl AsRef<IUIAutomation> for UIAutomation {
+    fn as_ref(&self) -> &IUIAutomation {
+        &self.automation
     }
 }
 
@@ -62,12 +82,6 @@ pub struct UIElement {
 }
 
 impl UIElement {
-    pub fn new(element: IUIAutomationElement) -> UIElement {
-        UIElement {
-            element
-        }
-    }
-
     pub fn get_name(&self) -> Result<String> {
         let name: BSTR;
         unsafe {
@@ -85,6 +99,34 @@ impl UIElement {
 
         Ok(classname.to_string())
     }
+
+    pub fn set_focus(&self) -> Result<()> {
+        unsafe {
+            self.element.SetFocus()?;
+        }
+
+        Ok(())
+    }
+}
+
+impl From<IUIAutomationElement> for UIElement {
+    fn from(element: IUIAutomationElement) -> Self {
+        UIElement {
+            element
+        }
+    }
+}
+
+impl Into<IUIAutomationElement> for UIElement {
+    fn into(self) -> IUIAutomationElement {
+        self.element
+    }
+}
+
+impl AsRef<IUIAutomationElement> for UIElement {
+    fn as_ref(&self) -> &IUIAutomationElement {
+        &self.element
+    }
 }
 
 #[derive(Clone)]
@@ -93,19 +135,13 @@ pub struct UITreeWalker {
 }
 
 impl UITreeWalker {
-    pub fn new(tree_walker: IUIAutomationTreeWalker) -> UITreeWalker {
-        UITreeWalker {
-            tree_walker
-        }
-    }
-
     pub fn get_parent(&self, element: &UIElement) -> Result<UIElement> {
         let parent: IUIAutomationElement;
         unsafe {
             parent = self.tree_walker.GetParentElement(&element.element)?;
         }
 
-        Ok(UIElement::new(parent))
+        Ok(UIElement::from(parent))
     }
 
     pub fn get_first_child(&self, element: &UIElement) -> Result<UIElement> {
@@ -114,7 +150,7 @@ impl UITreeWalker {
             child = self.tree_walker.GetFirstChildElement(&element.element)?;
         }
 
-        Ok(UIElement::new(child))
+        Ok(UIElement::from(child))
     }
 
     pub fn get_last_child(&self, element: &UIElement) -> Result<UIElement> {
@@ -123,7 +159,7 @@ impl UITreeWalker {
             child = self.tree_walker.GetLastChildElement(&element.element)?;
         }
 
-        Ok(UIElement::new(child))
+        Ok(UIElement::from(child))
     }
 
     pub fn get_next_sibling(&self, element: &UIElement) -> Result<UIElement> {
@@ -132,7 +168,7 @@ impl UITreeWalker {
             sibling = self.tree_walker.GetNextSiblingElement(&element.element)?;
         }
 
-        Ok(UIElement::new(sibling))
+        Ok(UIElement::from(sibling))
     }
 
     pub fn get_previous_sibling(&self, element: &UIElement) -> Result<UIElement> {
@@ -141,9 +177,30 @@ impl UITreeWalker {
             sibling = self.tree_walker.GetPreviousSiblingElement(&element.element)?;
         }
 
-        Ok(UIElement::new(sibling))
+        Ok(UIElement::from(sibling))
     }
 }
+
+impl From<IUIAutomationTreeWalker> for UITreeWalker {
+    fn from(tree_walker: IUIAutomationTreeWalker) -> Self {
+        UITreeWalker {
+            tree_walker
+        }
+    }
+}
+
+impl Into<IUIAutomationTreeWalker> for UITreeWalker {
+    fn into(self) -> IUIAutomationTreeWalker {
+        self.tree_walker
+    }
+}
+
+impl AsRef<IUIAutomationTreeWalker> for UITreeWalker {
+    fn as_ref(&self) -> &IUIAutomationTreeWalker {
+        &self.tree_walker
+    }
+}
+
 pub struct UIMatcher {
     automation: UIAutomation,
     depth: u32,
@@ -194,13 +251,14 @@ impl UIMatcher {
         self.filter(Box::new(condition))
     }
 
-    pub fn find(&self) -> Result<UIElement> {
-        let root = if let Some(ref from) = self.from {
-            from.clone()
-        } else {
-            self.automation.get_root_element()?
-        };
-        let walker = self.automation.create_tree_walker()?;
+    pub fn find_first(&self) -> Result<UIElement> {
+        // let root = if let Some(ref from) = self.from {
+        //     from.clone()
+        // } else {
+        //     self.automation.get_root_element()?
+        // };
+        // let walker = self.automation.create_tree_walker()?;
+        let (root, walker) = self.prepare()?;
 
         let mut elements: Vec<UIElement> = Vec::new();
         self.search(&walker, &root, &mut elements, 1, true)?;
@@ -210,6 +268,30 @@ impl UIMatcher {
         } else {
             Ok(elements.remove(0))
         }
+    }
+
+    pub fn find_all(&self) -> Result<Vec<UIElement>> {
+        let (root, walker) = self.prepare()?;
+
+        let mut elements: Vec<UIElement> = Vec::new();
+        self.search(&walker, &root, &mut elements, 1, false)?;
+
+        if elements.is_empty() {
+            Err(Error::from("NOTFOUND"))
+        } else {
+            Ok(elements)
+        }
+    }
+
+    fn prepare(&self) -> Result<(UIElement, UITreeWalker)> {
+        let root = if let Some(ref from) = self.from {
+            from.clone()
+        } else {
+            self.automation.get_root_element()?
+        };
+        let walker = self.automation.create_tree_walker()?;
+        
+        Ok((root, walker))
     }
 
     fn search(&self, walker: &UITreeWalker, element: &UIElement, elements: &mut Vec<UIElement>, depth: u32, first_only: bool) -> Result<()> {
