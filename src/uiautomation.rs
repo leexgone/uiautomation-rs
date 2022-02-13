@@ -1,6 +1,8 @@
 use std::ptr::null_mut;
 
 use windows::Win32::Foundation::BSTR;
+use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::POINT;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -30,6 +32,38 @@ impl UIAutomation {
         Ok(UIAutomation {
             automation
         })
+    }
+
+    pub fn compare_elements(&self, element1: &UIElement, element2: &UIElement) -> Result<bool> {
+        let same;
+        unsafe {
+            same = self.automation.CompareElements(element1.as_ref(), element2.as_ref())?;
+        }
+        Ok(same.as_bool())
+    }
+
+    pub fn element_from_handle(&self, hwnd: HWND) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.ElementFromHandle(hwnd)?
+        };
+
+        Ok(UIElement::from(element))
+    }
+
+    pub fn element_from_point(&self, point: POINT) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.ElementFromPoint(point)?
+        };
+
+        Ok(UIElement::from(element))
+    }
+
+    pub fn get_focused_element(&self) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.GetFocusedElement()?
+        };
+
+        Ok(UIElement::from(element))
     }
 
     pub fn get_root_element(&self) -> Result<UIElement> {
