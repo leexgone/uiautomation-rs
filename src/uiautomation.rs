@@ -116,6 +116,14 @@ pub struct UIElement {
 }
 
 impl UIElement {
+    pub fn get_process_id(&self) -> Result<i32> {
+        let id = unsafe {
+            self.element.CurrentProcessId()?
+        };
+
+        Ok(id)
+    }
+
     pub fn get_name(&self) -> Result<String> {
         let name: BSTR;
         unsafe {
