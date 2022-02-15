@@ -3,6 +3,7 @@ use std::ptr::null_mut;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
+use windows::Win32::Foundation::RECT;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -10,7 +11,9 @@ use windows::Win32::System::Com::CoInitializeEx;
 use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
+use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
+use windows::Win32::UI::Accessibility::OrientationType;
 
 use crate::errors::Error;
 
@@ -116,14 +119,6 @@ pub struct UIElement {
 }
 
 impl UIElement {
-    pub fn get_process_id(&self) -> Result<i32> {
-        let id = unsafe {
-            self.element.CurrentProcessId()?
-        };
-
-        Ok(id)
-    }
-
     pub fn get_name(&self) -> Result<String> {
         let name: BSTR;
         unsafe {
@@ -133,13 +128,237 @@ impl UIElement {
         Ok(name.to_string())
     }
 
-    pub fn get_classname(&self) -> Result<String> {
+    pub fn get_automation_id(&self) -> Result<String> {
+        let automation_id = unsafe {
+            self.element.CurrentAutomationId()?
+        };
+
+        Ok(automation_id.to_string())
+    }
+
+    pub fn get_process_id(&self) -> Result<i32> {
+        let id = unsafe {
+            self.element.CurrentProcessId()?
+        };
+
+        Ok(id)
+    }
+
+   pub fn get_classname(&self) -> Result<String> {
         let classname: BSTR;
         unsafe {
             classname = self.element.CurrentClassName()?;
         }
 
         Ok(classname.to_string())
+    }
+
+    pub fn get_control_type(&self) -> Result<i32> {
+        let control_type = unsafe {
+            self.element.CurrentControlType()?
+        };
+
+        Ok(control_type)
+    }
+
+    pub fn get_localized_control_type(&self) -> Result<String> {
+        let control_type = unsafe {
+            self.element.CurrentLocalizedControlType()?
+        };
+
+        Ok(control_type.to_string())
+    }
+
+    pub fn get_accelerator_key(&self) -> Result<String> {
+        let accelerator_key = unsafe {
+            self.element.CurrentAcceleratorKey()?
+        };
+
+        Ok(accelerator_key.to_string())
+    }
+
+    pub fn get_access_key(&self) -> Result<String> {
+        let access_key = unsafe {
+            self.element.CurrentAccessKey()?
+        };
+
+        Ok(access_key.to_string())
+    }
+
+    pub fn has_keyboard_focus(&self) -> Result<bool> {
+        let has_focus = unsafe {
+            self.element.CurrentHasKeyboardFocus()?
+        };
+
+        Ok(has_focus.as_bool())
+    }
+
+    pub fn is_keyboard_focusable(&self) -> Result<bool> {
+        let focusable = unsafe {
+            self.element.CurrentIsKeyboardFocusable()?
+        };
+
+        Ok(focusable.as_bool())
+    }
+
+    pub fn is_enabled(&self) -> Result<bool> {
+        let enabled = unsafe {
+            self.element.CurrentIsEnabled()?
+        };
+
+        Ok(enabled.as_bool())
+    }
+
+    pub fn get_help_text(&self) -> Result<String> {
+        let text = unsafe {
+            self.element.CurrentHelpText()?
+        };
+
+        Ok(text.to_string())
+    }
+
+    pub fn get_culture(&self) -> Result<i32> {
+        let culture = unsafe {
+            self.element.CurrentCulture()?
+        };
+
+        Ok(culture)
+    }
+
+    pub fn is_control_element(&self) -> Result<bool> {
+        let is_control = unsafe {
+            self.element.CurrentIsControlElement()?
+        };
+
+        Ok(is_control.as_bool())
+    }
+
+    pub fn is_content_element(&self) -> Result<bool> {
+        let is_content = unsafe {
+            self.element.CurrentIsContentElement()?
+        };
+
+        Ok(is_content.as_bool())
+    }
+
+    pub fn is_password(&self) -> Result<bool> {
+        let is_password = unsafe {
+            self.element.CurrentIsPassword()?
+        };
+
+        Ok(is_password.as_bool())
+    }
+
+    pub fn get_native_window_handle(&self) -> Result<HWND> {
+        let handle = unsafe {
+            self.element.CurrentNativeWindowHandle()?
+        };
+
+        Ok(handle)
+    }
+
+    pub fn get_item_type(&self) -> Result<String> {
+        let item_type = unsafe {
+            self.element.CurrentItemType()?
+        };
+
+        Ok(item_type.to_string())
+    }
+
+    pub fn is_off_screen(&self) -> Result<bool> {
+        let off_screen = unsafe {
+            self.element.CurrentIsOffscreen()?
+        };
+
+        Ok(off_screen.as_bool())
+    }
+
+    pub fn get_orientation_type(&self) -> Result<OrientationType> {
+        let orientation = unsafe {
+            self.element.CurrentOrientation()?
+        };
+
+        Ok(orientation)
+    }
+
+    pub fn get_framework_id(&self) -> Result<String> {
+        let id = unsafe {
+            self.element.CurrentFrameworkId()?
+        };
+
+        Ok(id.to_string())
+    }
+
+    pub fn is_required_for_form(&self) -> Result<bool> {
+        let required = unsafe {
+            self.element.CurrentIsRequiredForForm()?
+        };
+
+        Ok(required.as_bool())
+    }
+
+    pub fn is_data_valid_for_form(&self) -> Result<bool> {
+        let valid = unsafe {
+            self.element.CurrentIsDataValidForForm()?
+        };
+
+        Ok(valid.as_bool())
+    }
+
+    pub fn get_item_status(&self) -> Result<String> {
+        let status = unsafe {
+            self.element.CurrentItemStatus()?
+        };
+
+        Ok(status.to_string())
+    }
+
+    pub fn get_bounding_rectangle(&self) -> Result<RECT> {
+        let rect = unsafe {
+            self.element.CurrentBoundingRectangle()?
+        };
+
+        Ok(rect)
+    }
+
+    pub fn get_labeled_by(&self) -> Result<UIElement> {
+        let labeled_by = unsafe {
+            self.element.CurrentLabeledBy()?
+        };
+
+        Ok(UIElement::from(labeled_by))
+    }
+
+    pub fn get_controller_for(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.CurrentControllerFor()?
+        };
+
+        to_elements(elements)
+    }
+
+    pub fn get_described_by(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.CurrentDescribedBy()?
+        };
+
+        to_elements(elements)
+    }
+
+    pub fn get_flows_to(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.CurrentFlowsTo()?
+        };
+
+        to_elements(elements)
+    }
+
+    pub fn get_provider_description(&self) -> Result<String> {
+        let descr = unsafe {
+            self.element.CurrentProviderDescription()?
+        };
+
+        Ok(descr.to_string())
     }
 
     pub fn set_focus(&self) -> Result<()> {
@@ -149,6 +368,19 @@ impl UIElement {
 
         Ok(())
     }
+}
+
+fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
+    let mut arr: Vec<UIElement> = Vec::new();
+    unsafe {
+        for i in 0..elements.Length()? {
+            let elem = UIElement::from(elements.GetElement(i)?);
+            arr.push(elem);
+        }
+    }
+
+    Ok(arr)
+
 }
 
 impl From<IUIAutomationElement> for UIElement {
