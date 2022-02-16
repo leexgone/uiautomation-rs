@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 
-clap = "2.33"
+clap = "3.0"
 
 [dependencies.windows]
-version = "0.29"
+version = "0.32"
 features = [
     "Win32_Foundation",
     "Win32_System_Com",
