@@ -9,7 +9,7 @@ fn main() {
     let matches = App::new("ui automation")
         .version(env!("CARGO_PKG_VERSION"))
         .author("Steven Lee")
-        .arg(Arg::with_name("print").short("p").long("print"))
+        .arg(Arg::new("print").short('p').long("print"))
         .get_matches();
     
     if matches.is_present("print") {
