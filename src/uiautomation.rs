@@ -15,6 +15,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 
+use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -538,7 +539,7 @@ impl UIMatcher {
         self.search(&walker, &root, &mut elements, 1, true)?;
 
         if elements.is_empty() {
-            Err(Error::from("NOTFOUND"))
+            Err(Error::new(ERR_NOTFOUND, "can not find element"))
         } else {
             Ok(elements.remove(0))
         }
@@ -551,7 +552,7 @@ impl UIMatcher {
         self.search(&walker, &root, &mut elements, 1, false)?;
 
         if elements.is_empty() {
-            Err(Error::from("NOTFOUND"))
+            Err(Error::new(ERR_NOTFOUND, "can not find element"))
         } else {
             Ok(elements)
         }
