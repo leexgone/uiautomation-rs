@@ -374,7 +374,7 @@ impl UIElement {
         Ok(())
     }
 
-    pub fn get_pattern<T: IUIPattern>(&self) -> Result<T> {
+    pub fn get_pattern<T: UIPattern>(&self) -> Result<T> {
         let pattern = unsafe {
             self.element.GetCurrentPattern(T::pattern_id())?
         };
@@ -516,7 +516,12 @@ impl UIMatcher {
     }
 
     pub fn filter(mut self, condition: Box<dyn Condition>) -> Self {
-        self.condition = Some(condition);
+        let filter = if let Some(raw) = self.condition {
+            Box::new(AndCondition::new(raw, condition))
+        } else {
+            condition
+        };
+        self.condition = Some(filter);
         self
     }
 
@@ -539,12 +544,6 @@ impl UIMatcher {
     }
 
     pub fn find_first(&self) -> Result<UIElement> {
-        // let root = if let Some(ref from) = self.from {
-        //     from.clone()
-        // } else {
-        //     self.automation.get_root_element()?
-        // };
-        // let walker = self.automation.create_tree_walker()?;
         let (root, walker) = self.prepare()?;
 
         let mut elements: Vec<UIElement> = Vec::new();
@@ -618,10 +617,63 @@ pub trait Condition {
     fn judge(&self, element: &UIElement) -> Result<bool>;
 }
 
-struct NameCondition {
-    value: String,
-    casesensitive: bool,
-    partial: bool
+pub struct AndCondition {
+    pub left: Box<dyn Condition>,
+    pub right: Box<dyn Condition>
+}
+
+impl AndCondition {
+    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
+        Self {
+            left,
+            right
+        }
+    }
+}
+
+impl Condition for AndCondition {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        let ret = self.left.judge(element)? && self.right.judge(element)?;
+
+        Ok(ret)
+    }
+}
+
+pub struct OrCondition {
+    pub left: Box<dyn Condition>,
+    pub right: Box<dyn Condition>
+}
+
+impl OrCondition {
+    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
+        Self {
+            left,
+            right
+        }
+    }
+}
+
+impl Condition for OrCondition {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        let ret = self.left.judge(element)? || self.right.judge(element)?;
+        Ok(ret)
+    }
+}
+
+pub struct NameCondition {
+    pub value: String,
+    pub casesensitive: bool,
+    pub partial: bool
+}
+
+impl Default for NameCondition {
+    fn default() -> Self {
+        Self { 
+            value: Default::default(), 
+            casesensitive: false, 
+            partial: true
+        }
+    }
 }
 
 impl Condition for NameCondition {
@@ -651,7 +703,7 @@ impl Condition for NameCondition {
     }
 }
 
-pub trait IUIPattern : Sized {
+pub trait UIPattern : Sized {
     fn pattern_id() -> i32;
     fn new(pattern: IUnknown) -> Result<Self>;
 }
@@ -669,7 +721,7 @@ impl UIInvokePattern {
     }
 }
 
-impl IUIPattern for UIInvokePattern {
+impl UIPattern for UIInvokePattern {
     fn pattern_id() -> i32 {
         UIA_InvokePatternId
     }
