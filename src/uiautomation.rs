@@ -12,8 +12,12 @@ use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
+use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
+use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
+use windows::core::IUnknown;
+use windows::core::Interface;
 
 use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
@@ -369,6 +373,14 @@ impl UIElement {
 
         Ok(())
     }
+
+    pub fn get_pattern<T: IUIPattern>(&self) -> Result<T> {
+        let pattern = unsafe {
+            self.element.GetCurrentPattern(T::pattern_id())?
+        };
+
+        T::new(pattern)
+    }
 }
 
 fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
@@ -636,5 +648,64 @@ impl Condition for NameCondition {
                 }
             }
         )
+    }
+}
+
+pub trait IUIPattern : Sized {
+    fn pattern_id() -> i32;
+    fn new(pattern: IUnknown) -> Result<Self>;
+}
+
+pub struct UIInvokePattern {
+    pattern: IUIAutomationInvokePattern
+}
+
+impl UIInvokePattern {
+    pub fn invoke(&self) -> Result<()> {
+        unsafe {
+            self.pattern.Invoke()?;
+        }
+        Ok(())
+    }
+}
+
+impl IUIPattern for UIInvokePattern {
+    fn pattern_id() -> i32 {
+        UIA_InvokePatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIInvokePattern::try_from(pattern)
+    }
+}
+
+impl From<IUIAutomationInvokePattern> for UIInvokePattern {
+    fn from(pattern: IUIAutomationInvokePattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl TryFrom<IUnknown> for UIInvokePattern {
+    type Error = Error;
+
+    fn try_from(pattern: IUnknown) -> core::result::Result<Self, Self::Error> {
+        let pattern: IUIAutomationInvokePattern = pattern.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl Into<IUIAutomationInvokePattern> for UIInvokePattern {
+    fn into(self) -> IUIAutomationInvokePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationInvokePattern> for UIInvokePattern {
+    fn as_ref(&self) -> &IUIAutomationInvokePattern {
+        &self.pattern
     }
 }
