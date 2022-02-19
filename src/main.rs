@@ -1,10 +1,10 @@
 use clap::App;
 use clap::Arg;
-use uiautomation::uiautomation::Result;
-use uiautomation::uiautomation::UIAutomation;
-use uiautomation::uiautomation::UIElement;
-use uiautomation::uiautomation::UIInvokePattern;
-use uiautomation::uiautomation::UITreeWalker;
+use uiautomation::errors::Result;
+use uiautomation::patterns::UIInvokePattern;
+use uiautomation::core::UIAutomation;
+use uiautomation::core::UIElement;
+use uiautomation::core::UITreeWalker;
 
 fn main() {
     let matches = App::new("ui automation")

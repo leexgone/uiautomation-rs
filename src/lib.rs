@@ -1,3 +1,5 @@
 pub mod types;
 pub mod errors;
-pub mod uiautomation;
+pub mod core;
+pub mod patterns;
+pub mod conditions;

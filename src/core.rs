@@ -12,17 +12,16 @@ use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
-use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
-use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
-use windows::core::IUnknown;
-use windows::core::Interface;
 
+use crate::conditions::AndCondition;
+use crate::conditions::Condition;
+use crate::conditions::NameCondition;
 use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
-
-pub type Result<T> = core::result::Result<T, Error>;
+use crate::errors::Result;
+use crate::patterns::UIPattern;
 
 #[derive(Clone)]
 pub struct UIAutomation {
@@ -610,154 +609,5 @@ impl UIMatcher {
         } else {
             Ok(true)
         }
-    }
-}
-
-pub trait Condition {
-    fn judge(&self, element: &UIElement) -> Result<bool>;
-}
-
-pub struct AndCondition {
-    pub left: Box<dyn Condition>,
-    pub right: Box<dyn Condition>
-}
-
-impl AndCondition {
-    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
-        Self {
-            left,
-            right
-        }
-    }
-}
-
-impl Condition for AndCondition {
-    fn judge(&self, element: &UIElement) -> Result<bool> {
-        let ret = self.left.judge(element)? && self.right.judge(element)?;
-
-        Ok(ret)
-    }
-}
-
-pub struct OrCondition {
-    pub left: Box<dyn Condition>,
-    pub right: Box<dyn Condition>
-}
-
-impl OrCondition {
-    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
-        Self {
-            left,
-            right
-        }
-    }
-}
-
-impl Condition for OrCondition {
-    fn judge(&self, element: &UIElement) -> Result<bool> {
-        let ret = self.left.judge(element)? || self.right.judge(element)?;
-        Ok(ret)
-    }
-}
-
-pub struct NameCondition {
-    pub value: String,
-    pub casesensitive: bool,
-    pub partial: bool
-}
-
-impl Default for NameCondition {
-    fn default() -> Self {
-        Self { 
-            value: Default::default(), 
-            casesensitive: false, 
-            partial: true
-        }
-    }
-}
-
-impl Condition for NameCondition {
-    fn judge(&self, element: &UIElement) -> Result<bool> {
-        let element_name = element.get_name()?;
-        let element_name = element_name.as_str();
-        let condition_name = self.value.as_str();
-
-        Ok(
-            if self.partial {
-                if self.casesensitive {
-                    element_name.contains(condition_name)
-                } else {
-                    let element_name = element_name.to_lowercase();
-                    let condition_name = condition_name.to_lowercase();
-
-                    element_name.contains(&condition_name)
-                }
-            } else {
-                if self.casesensitive {
-                    element_name == condition_name
-                } else {
-                    element_name.eq_ignore_ascii_case(condition_name)
-                }
-            }
-        )
-    }
-}
-
-pub trait UIPattern : Sized {
-    fn pattern_id() -> i32;
-    fn new(pattern: IUnknown) -> Result<Self>;
-}
-
-pub struct UIInvokePattern {
-    pattern: IUIAutomationInvokePattern
-}
-
-impl UIInvokePattern {
-    pub fn invoke(&self) -> Result<()> {
-        unsafe {
-            self.pattern.Invoke()?;
-        }
-        Ok(())
-    }
-}
-
-impl UIPattern for UIInvokePattern {
-    fn pattern_id() -> i32 {
-        UIA_InvokePatternId
-    }
-
-    fn new(pattern: IUnknown) -> Result<Self> {
-        UIInvokePattern::try_from(pattern)
-    }
-}
-
-impl From<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn from(pattern: IUIAutomationInvokePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
-
-impl TryFrom<IUnknown> for UIInvokePattern {
-    type Error = Error;
-
-    fn try_from(pattern: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationInvokePattern = pattern.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
-
-impl Into<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn into(self) -> IUIAutomationInvokePattern {
-        self.pattern
-    }
-}
-
-impl AsRef<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn as_ref(&self) -> &IUIAutomationInvokePattern {
-        &self.pattern
     }
 }
