@@ -23,7 +23,7 @@ use crate::errors::Error;
 use crate::errors::Result;
 use crate::patterns::UIPattern;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UIAutomation {
     automation: IUIAutomation
 }
@@ -117,7 +117,7 @@ impl AsRef<IUIAutomation> for UIAutomation {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UIElement {
     element: IUIAutomationElement
 }
@@ -491,7 +491,9 @@ pub struct UIMatcher {
     automation: UIAutomation,
     depth: u32,
     from: Option<UIElement>,
-    condition: Option<Box<dyn Condition>>
+    condition: Option<Box<dyn Condition>>,
+    timeout: u64,
+    interval: u64
 }
 
 impl UIMatcher {
@@ -500,7 +502,9 @@ impl UIMatcher {
             automation,
             depth: 5,
             from: None,
-            condition: None
+            condition: None,
+            timeout: 3000,
+            interval: 100
         }
     }
 
@@ -511,6 +515,16 @@ impl UIMatcher {
 
     pub fn depth(mut self, depth: u32) -> Self {
         self.depth = depth;
+        self
+    }
+
+    pub fn timeout(mut self, timeout: u64) -> Self {
+        self.timeout = timeout;
+        self
+    }
+
+    pub fn interval(mut self, interval: u64) -> Self {
+        self.interval = interval;
         self
     }
 
