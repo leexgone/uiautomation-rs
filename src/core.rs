@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::ptr::null_mut;
 use std::thread::sleep;
 use std::time::Duration;
@@ -416,6 +417,15 @@ impl Into<IUIAutomationElement> for UIElement {
 impl AsRef<IUIAutomationElement> for UIElement {
     fn as_ref(&self) -> &IUIAutomationElement {
         &self.element
+    }
+}
+
+impl Display for UIElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = self.get_name();
+        let control_type = self.get_localized_control_type();
+
+        write!(f, "{} {}", name.unwrap_or_default(), control_type.unwrap_or_default())
     }
 }
 
