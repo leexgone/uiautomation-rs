@@ -23,7 +23,7 @@ fn main() {
 fn run_notepad() {
     let automation = UIAutomation::new().unwrap();
     let root = automation.get_root_element().unwrap();
-    let matcher = automation.create_matcher().from(root).contains_name("记事本");
+    let matcher = automation.create_matcher().from(root).timeout(10000).contains_name("记事本");
     if let Ok(notpad) = matcher.find_first() {
         println!("Found: {} - {}", notpad.get_name().unwrap(), notpad.get_classname().unwrap());
 

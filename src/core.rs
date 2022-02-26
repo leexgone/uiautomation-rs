@@ -1,5 +1,8 @@
 use std::ptr::null_mut;
+use std::thread::sleep;
+use std::time::Duration;
 
+use chrono::Local;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
@@ -19,6 +22,7 @@ use crate::conditions::AndCondition;
 use crate::conditions::Condition;
 use crate::conditions::NameCondition;
 use crate::errors::ERR_NOTFOUND;
+use crate::errors::ERR_TIMEOUT;
 use crate::errors::Error;
 use crate::errors::Result;
 use crate::patterns::UIPattern;
@@ -557,29 +561,53 @@ impl UIMatcher {
     }
 
     pub fn find_first(&self) -> Result<UIElement> {
-        let (root, walker) = self.prepare()?;
+        // let (root, walker) = self.prepare()?;
 
-        let mut elements: Vec<UIElement> = Vec::new();
-        self.search(&walker, &root, &mut elements, 1, true)?;
+        // let mut elements: Vec<UIElement> = Vec::new();
+        // self.search(&walker, &root, &mut elements, 1, true)?;
+        let elements = self.find(true)?;
 
         if elements.is_empty() {
             Err(Error::new(ERR_NOTFOUND, "can not find element"))
         } else {
-            Ok(elements.remove(0))
+            Ok(elements[0].clone())
         }
     }
 
     pub fn find_all(&self) -> Result<Vec<UIElement>> {
-        let (root, walker) = self.prepare()?;
+        // let (root, walker) = self.prepare()?;
 
-        let mut elements: Vec<UIElement> = Vec::new();
-        self.search(&walker, &root, &mut elements, 1, false)?;
+        // let mut elements: Vec<UIElement> = Vec::new();
+        // self.search(&walker, &root, &mut elements, 1, false)?;
+        let elements = self.find(false)?;
 
         if elements.is_empty() {
             Err(Error::new(ERR_NOTFOUND, "can not find element"))
         } else {
             Ok(elements)
         }
+    }
+
+    fn find(&self, first_only: bool) -> Result<Vec<UIElement>> {
+        let mut elements: Vec<UIElement> = Vec::new();
+        let start = Local::now().timestamp_millis();
+        loop {
+            let (root, walker) = self.prepare()?;
+            self.search(&walker, &root, &mut elements, 1, first_only)?;
+
+            if !elements.is_empty() || self.timeout <= 0 {
+                break;
+            }
+
+            let now = Local::now().timestamp_millis();
+            if now - start >= self.timeout as i64 {
+                return Err(Error::new(ERR_TIMEOUT, "find time out"));
+            }
+
+            sleep(Duration::from_millis(self.interval));
+        } 
+
+        Ok(elements)
     }
 
     fn prepare(&self) -> Result<(UIElement, UITreeWalker)> {

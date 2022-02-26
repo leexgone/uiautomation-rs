@@ -9,9 +9,10 @@ authors = ["Steven Lee <leexgone@163.com>"]
 [dependencies]
 
 clap = "3.0"
+chrono = "0.4"
 
 [dependencies.windows]
-version = "0.32"
+version = "0.33"
 features = [
     "Win32_Foundation",
     "Win32_System_Com",
