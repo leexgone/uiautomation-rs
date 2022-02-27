@@ -1,6 +1,9 @@
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
+use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
+use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -146,6 +149,60 @@ impl Into<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
 
 impl AsRef<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
     fn as_ref(&self) -> &IUIAutomationAnnotationPattern {
+        &self.pattern
+    }
+}
+
+pub struct CustomNavigationPattern {
+    pattern: IUIAutomationCustomNavigationPattern
+}
+
+impl CustomNavigationPattern {
+    pub fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
+        let element = unsafe {
+            self.pattern.Navigate(direction)?
+        };
+        Ok(element.into())
+    }
+}
+
+impl UIPattern for CustomNavigationPattern {
+    fn pattern_id() -> i32 {
+        UIA_CustomNavigationPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        CustomNavigationPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for CustomNavigationPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+        let pattern: IUIAutomationCustomNavigationPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
+    fn from(pattern: IUIAutomationCustomNavigationPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
+    fn into(self) -> IUIAutomationCustomNavigationPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
+    fn as_ref(&self) -> &IUIAutomationCustomNavigationPattern {
         &self.pattern
     }
 }
