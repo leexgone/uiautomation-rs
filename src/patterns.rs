@@ -1,9 +1,12 @@
+use windows::Win32::UI::Accessibility::DockPosition;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
+use windows::Win32::UI::Accessibility::UIA_DockPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -153,11 +156,11 @@ impl AsRef<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
     }
 }
 
-pub struct CustomNavigationPattern {
+pub struct UICustomNavigationPattern {
     pattern: IUIAutomationCustomNavigationPattern
 }
 
-impl CustomNavigationPattern {
+impl UICustomNavigationPattern {
     pub fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
         let element = unsafe {
             self.pattern.Navigate(direction)?
@@ -166,17 +169,17 @@ impl CustomNavigationPattern {
     }
 }
 
-impl UIPattern for CustomNavigationPattern {
+impl UIPattern for UICustomNavigationPattern {
     fn pattern_id() -> i32 {
         UIA_CustomNavigationPatternId
     }
 
     fn new(pattern: IUnknown) -> Result<Self> {
-        CustomNavigationPattern::try_from(pattern)
+        UICustomNavigationPattern::try_from(pattern)
     }
 }
 
-impl TryFrom<IUnknown> for CustomNavigationPattern {
+impl TryFrom<IUnknown> for UICustomNavigationPattern {
     type Error = Error;
 
     fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
@@ -187,7 +190,7 @@ impl TryFrom<IUnknown> for CustomNavigationPattern {
     }
 }
 
-impl From<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
+impl From<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
     fn from(pattern: IUIAutomationCustomNavigationPattern) -> Self {
         Self {
             pattern
@@ -195,14 +198,75 @@ impl From<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
     }
 }
 
-impl Into<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
+impl Into<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
     fn into(self) -> IUIAutomationCustomNavigationPattern {
         self.pattern
     }
 }
 
-impl AsRef<IUIAutomationCustomNavigationPattern> for CustomNavigationPattern {
+impl AsRef<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
     fn as_ref(&self) -> &IUIAutomationCustomNavigationPattern {
+        &self.pattern
+    }
+}
+
+pub struct UIDockPattern {
+    pattern: IUIAutomationDockPattern
+}
+
+impl UIDockPattern {
+    pub fn get_dock_position(&self) -> Result<DockPosition> {
+        let pos = unsafe {
+            self.pattern.CurrentDockPosition()?
+        };
+        Ok(pos)
+    }
+
+    pub fn set_doc_position(&self, position: DockPosition) -> Result<()> {
+        unsafe {
+            self.pattern.SetDockPosition(position)?
+        };
+        Ok(())
+    }
+}
+
+impl UIPattern for UIDockPattern {
+    fn pattern_id() -> i32 {
+        UIA_DockPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIDockPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIDockPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+        let pattern: IUIAutomationDockPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationDockPattern> for UIDockPattern {
+    fn from(pattern: IUIAutomationDockPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationDockPattern> for UIDockPattern {
+    fn into(self) -> IUIAutomationDockPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationDockPattern> for UIDockPattern {
+    fn as_ref(&self) -> &IUIAutomationDockPattern {
         &self.pattern
     }
 }
