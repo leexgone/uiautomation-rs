@@ -3,6 +3,7 @@ name = "uiautomation"
 version = "0.0.1"
 edition = "2021"
 license = "Apache-2.0"
+license-file = "../../LICENSE"
 authors = ["Steven Lee <leexgone@163.com>"]
 description = "UI Automation Framework for Windows"
 repository = "https://github.com/leexgone/uiautomation-rs"
