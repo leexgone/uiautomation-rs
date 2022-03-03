@@ -2,11 +2,15 @@ use windows::Win32::UI::Accessibility::DockPosition;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationDragPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationDropTargetPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
+use windows::Win32::UI::Accessibility::UIA_DragPatternId;
+use windows::Win32::UI::Accessibility::UIA_DropTargetPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -20,6 +24,7 @@ pub trait IUIPattern : Sized {
     fn new(pattern: IUnknown) -> Result<Self>;
 }
 
+#[derive(Debug, Clone)]
 pub struct UIInvokePattern {
     pattern: IUIAutomationInvokePattern
 }
@@ -74,6 +79,7 @@ impl AsRef<IUIAutomationInvokePattern> for UIInvokePattern {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct UIAnnotationPattern {
     pattern: IUIAutomationAnnotationPattern
 }
@@ -156,6 +162,7 @@ impl AsRef<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct UICustomNavigationPattern {
     pattern: IUIAutomationCustomNavigationPattern
 }
@@ -210,6 +217,7 @@ impl AsRef<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct UIDockPattern {
     pattern: IUIAutomationDockPattern
 }
@@ -267,6 +275,144 @@ impl Into<IUIAutomationDockPattern> for UIDockPattern {
 
 impl AsRef<IUIAutomationDockPattern> for UIDockPattern {
     fn as_ref(&self) -> &IUIAutomationDockPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIDragPattern {
+    pattern: IUIAutomationDragPattern
+}
+
+impl UIDragPattern {
+    pub fn is_grabbed(&self) -> Result<bool> {
+        let grabbed = unsafe {
+            self.pattern.CurrentIsGrabbed()?
+        };
+        Ok(grabbed.as_bool())
+    }
+
+    pub fn get_drop_effect(&self) -> Result<String> {
+        let effect = unsafe {
+            self.pattern.CurrentDropEffect()?
+        };
+
+        Ok(effect.to_string())
+    }
+
+    pub fn get_grabbed_items(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.pattern.GetCurrentGrabbedItems()?
+        };
+        let len = unsafe {
+            elements.Length()?
+        };
+
+        let mut items: Vec<UIElement> = Vec::new();
+        for i in 0..len {
+            let item = unsafe {
+                elements.GetElement(i)?
+            };
+            let item = UIElement::from(item);
+            items.push(item);
+        }
+
+        Ok(items)
+    }
+}
+
+impl IUIPattern for UIDragPattern {
+    fn pattern_id() -> i32 {
+        UIA_DragPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIDragPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIDragPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+        let pattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationDragPattern> for UIDragPattern {
+    fn from(pattern: IUIAutomationDragPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationDragPattern> for UIDragPattern {
+    fn into(self) -> IUIAutomationDragPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationDragPattern> for UIDragPattern {
+    fn as_ref(&self) -> &IUIAutomationDragPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIDropTargetPattern {
+    pattern: IUIAutomationDropTargetPattern
+}
+
+impl UIDropTargetPattern {
+    pub fn get_drop_target_effect(&self) -> Result<String> {
+        let effect = unsafe {
+            self.pattern.CurrentDropTargetEffect()?
+        };
+        Ok(effect.to_string())        
+    }
+}
+
+impl IUIPattern for UIDropTargetPattern {
+    fn pattern_id() -> i32 {
+        UIA_DropTargetPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIDropTargetPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIDropTargetPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+        let pattern: IUIAutomationDropTargetPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
+    fn from(pattern: IUIAutomationDropTargetPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
+    fn into(self) -> IUIAutomationDropTargetPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
+    fn as_ref(&self) -> &IUIAutomationDropTargetPattern {
         &self.pattern
     }
 }
