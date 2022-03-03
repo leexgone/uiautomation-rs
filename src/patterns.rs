@@ -15,7 +15,7 @@ use crate::core::UIElement;
 use crate::errors::Error;
 use crate::errors::Result;
 
-pub trait UIPattern : Sized {
+pub trait IUIPattern : Sized {
     fn pattern_id() -> i32;
     fn new(pattern: IUnknown) -> Result<Self>;
 }
@@ -33,7 +33,7 @@ impl UIInvokePattern {
     }
 }
 
-impl UIPattern for UIInvokePattern {
+impl IUIPattern for UIInvokePattern {
     fn pattern_id() -> i32 {
         UIA_InvokePatternId
     }
@@ -115,7 +115,7 @@ impl UIAnnotationPattern {
     }
 }
 
-impl UIPattern for UIAnnotationPattern {
+impl IUIPattern for UIAnnotationPattern {
     fn pattern_id() -> i32 {
         UIA_AnnotationPatternId
     }
@@ -169,7 +169,7 @@ impl UICustomNavigationPattern {
     }
 }
 
-impl UIPattern for UICustomNavigationPattern {
+impl IUIPattern for UICustomNavigationPattern {
     fn pattern_id() -> i32 {
         UIA_CustomNavigationPatternId
     }
@@ -230,7 +230,7 @@ impl UIDockPattern {
     }
 }
 
-impl UIPattern for UIDockPattern {
+impl IUIPattern for UIDockPattern {
     fn pattern_id() -> i32 {
         UIA_DockPatternId
     }
