@@ -1,5 +1,6 @@
 [workspace]
 
 members = [
-    "crates/uiautomation"
+    "crates/uiautomation",
+    "samples/uia_print"
 ]
