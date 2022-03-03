@@ -1,4 +1,5 @@
 use uiautomation::core::UIAutomation;
+use uiautomation::patterns::UIInvokePattern;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
