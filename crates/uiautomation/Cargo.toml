@@ -6,6 +6,8 @@ license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
 description = "UI Automation Framework for Windows"
 repository = "https://github.com/leexgone/uiautomation-rs"
+homepage = "https://github.com/leexgone"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
