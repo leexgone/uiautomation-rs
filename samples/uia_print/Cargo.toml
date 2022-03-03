@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 
-uiautomation = { path = "../../crates/uiautomation", version = "0.0.1" }
+uiautomation = { path = "../../crates/uiautomation" }
