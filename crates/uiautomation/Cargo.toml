@@ -7,7 +7,8 @@ authors = ["Steven Lee <leexgone@163.com>"]
 description = "UI Automation Framework for Windows"
 repository = "https://github.com/leexgone/uiautomation-rs"
 homepage = "https://github.com/leexgone"
-readme = "README.md"
+readme = "../../README.md"
+documentation = "https://github.com/leexgone/uiautomation-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
