@@ -9,6 +9,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
@@ -19,6 +20,7 @@ use windows::Win32::UI::Accessibility::UIA_ExpandCollapsePatternId;
 use windows::Win32::UI::Accessibility::UIA_GridItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_GridPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
+use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -632,6 +634,77 @@ impl Into<IUIAutomationGridItemPattern> for UIGridItemPattern {
 
 impl AsRef<IUIAutomationGridItemPattern> for UIGridItemPattern {
     fn as_ref(&self) -> &IUIAutomationGridItemPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIMultipleViewPattern {
+    pattern: IUIAutomationMultipleViewPattern
+}
+
+impl UIMultipleViewPattern {
+    pub fn get_view_name(&self, view: i32) -> Result<String> {
+        let name = unsafe {
+            self.pattern.GetViewName(view)?
+        };
+        Ok(name.to_string())
+    }
+
+    pub fn set_current_view(&self, view: i32) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.SetCurrentView(view)?
+        })
+    }
+
+    pub fn get_current_view(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentCurrentView()?
+        })
+    }
+
+    pub fn get_supported_views(&self) -> Result<Vec<i32>> {
+        todo!("get supported views")
+    }
+}
+
+impl IUIPattern for UIMultipleViewPattern {
+    fn pattern_id() -> i32 {
+        UIA_MultipleViewPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIMultipleViewPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIMultipleViewPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationMultipleViewPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
+    fn from(pattern: IUIAutomationMultipleViewPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
+    fn into(self) -> IUIAutomationMultipleViewPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
+    fn as_ref(&self) -> &IUIAutomationMultipleViewPattern {
         &self.pattern
     }
 }
