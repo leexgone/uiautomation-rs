@@ -1,9 +1,11 @@
 use windows::Win32::UI::Accessibility::DockPosition;
+use windows::Win32::UI::Accessibility::ExpandCollapseState;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDragPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDropTargetPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
@@ -11,6 +13,7 @@ use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
 use windows::Win32::UI::Accessibility::UIA_DragPatternId;
 use windows::Win32::UI::Accessibility::UIA_DropTargetPatternId;
+use windows::Win32::UI::Accessibility::UIA_ExpandCollapsePatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -413,6 +416,72 @@ impl Into<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
 
 impl AsRef<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
     fn as_ref(&self) -> &IUIAutomationDropTargetPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIExpandCollapsePattern {
+    pattern: IUIAutomationExpandCollapsePattern
+}
+
+impl UIExpandCollapsePattern {
+    pub fn expand(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Expand()?
+        })
+    }
+
+    pub fn collapse(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Collapse()?
+        })
+    }
+
+    pub fn get_state(&self) -> Result<ExpandCollapseState> {
+        Ok(unsafe {
+            self.pattern.CurrentExpandCollapseState()?
+        })
+    }
+}
+
+impl IUIPattern for UIExpandCollapsePattern {
+    fn pattern_id() -> i32 {
+        UIA_ExpandCollapsePatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIExpandCollapsePattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIExpandCollapsePattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationExpandCollapsePattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
+    fn from(pattern: IUIAutomationExpandCollapsePattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
+    fn into(self) -> IUIAutomationExpandCollapsePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
+    fn as_ref(&self) -> &IUIAutomationExpandCollapsePattern {
         &self.pattern
     }
 }
