@@ -6,6 +6,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDragPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDropTargetPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
@@ -15,6 +16,7 @@ use windows::Win32::UI::Accessibility::UIA_DockPatternId;
 use windows::Win32::UI::Accessibility::UIA_DragPatternId;
 use windows::Win32::UI::Accessibility::UIA_DropTargetPatternId;
 use windows::Win32::UI::Accessibility::UIA_ExpandCollapsePatternId;
+use windows::Win32::UI::Accessibility::UIA_GridItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_GridPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::core::IUnknown;
@@ -551,6 +553,85 @@ impl Into<IUIAutomationGridPattern> for UIGridPattern {
 
 impl AsRef<IUIAutomationGridPattern> for UIGridPattern {
     fn as_ref(&self) -> &IUIAutomationGridPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIGridItemPattern {
+    pattern: IUIAutomationGridItemPattern
+}
+
+impl UIGridItemPattern {
+    pub fn get_containing_grid(&self) -> Result<UIElement> {
+        let grid = unsafe {
+            self.pattern.CurrentContainingGrid()?
+        };
+        Ok(grid.into())
+    }
+
+    pub fn get_row(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentRow()?
+        })
+    }
+
+    pub fn get_column(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentColumn()?
+        })
+    }
+
+    pub fn get_row_span(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentRowSpan()?
+        })
+    }
+
+    pub fn get_column_span(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentColumnSpan()?
+        })
+    }
+}
+
+impl IUIPattern for UIGridItemPattern {
+    fn pattern_id() -> i32 {
+        UIA_GridItemPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIGridItemPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIGridItemPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationGridItemPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationGridItemPattern> for UIGridItemPattern {
+    fn from(pattern: IUIAutomationGridItemPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationGridItemPattern> for UIGridItemPattern {
+    fn into(self) -> IUIAutomationGridItemPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationGridItemPattern> for UIGridItemPattern {
+    fn as_ref(&self) -> &IUIAutomationGridItemPattern {
         &self.pattern
     }
 }
