@@ -11,6 +11,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationScrollPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -25,6 +26,7 @@ use windows::Win32::UI::Accessibility::UIA_GridPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
 use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
+use windows::Win32::UI::Accessibility::UIA_ScrollItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_ScrollPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -899,6 +901,52 @@ impl Into<IUIAutomationScrollPattern> for UIScrollPattern {
 
 impl AsRef<IUIAutomationScrollPattern> for UIScrollPattern {
     fn as_ref(&self) -> &IUIAutomationScrollPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIScrollItemPattern {
+    pattern: IUIAutomationScrollItemPattern
+}
+
+impl UIScrollItemPattern {
+    pub fn scroll_into_view(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.ScrollIntoView()?
+        })
+    }
+}
+
+impl UIPattern for UIScrollItemPattern {
+    fn pattern_id() -> i32 {
+        UIA_ScrollItemPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIScrollItemPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIScrollItemPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationScrollItemPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl Into<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
+    fn into(self) -> IUIAutomationScrollItemPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
+    fn as_ref(&self) -> &IUIAutomationScrollItemPattern {
         &self.pattern
     }
 }
