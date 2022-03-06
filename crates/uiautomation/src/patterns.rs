@@ -10,6 +10,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
@@ -21,6 +22,7 @@ use windows::Win32::UI::Accessibility::UIA_GridItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_GridPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
+use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -705,6 +707,97 @@ impl Into<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
 
 impl AsRef<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
     fn as_ref(&self) -> &IUIAutomationMultipleViewPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIRangeValuePattern {
+    pattern: IUIAutomationRangeValuePattern
+}
+
+impl UIRangeValuePattern {
+    pub fn set_value(&self, value: f64) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.SetValue(value)?
+        })
+    }
+
+    pub fn get_value(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentValue()?
+        })
+    }
+
+    pub fn is_readonly(&self) -> Result<bool> {
+        let readonly = unsafe {
+            self.pattern.CurrentIsReadOnly()?
+        };
+        Ok(readonly.as_bool())
+    }
+
+    pub fn get_maximum(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentMaximum()?
+        })
+    }
+
+    pub fn get_minimum(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentMinimum()?
+        })
+    }
+
+    pub fn get_large_change(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentLargeChange()?
+        })
+    }
+
+    pub fn get_small_change(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentSmallChange()?
+        })
+    }
+}
+
+impl UIPattern for UIRangeValuePattern {
+    fn pattern_id() -> i32 {
+        UIA_RangeValuePatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIRangeValuePattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIRangeValuePattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationRangeValuePattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
+    fn from(pattern: IUIAutomationRangeValuePattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
+    fn into(self) -> IUIAutomationRangeValuePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
+    fn as_ref(&self) -> &IUIAutomationRangeValuePattern {
         &self.pattern
     }
 }
