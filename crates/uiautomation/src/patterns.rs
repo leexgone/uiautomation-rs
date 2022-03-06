@@ -11,7 +11,9 @@ use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationScrollPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
+use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -23,6 +25,7 @@ use windows::Win32::UI::Accessibility::UIA_GridPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
 use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
+use windows::Win32::UI::Accessibility::UIA_ScrollPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -798,6 +801,104 @@ impl Into<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
 
 impl AsRef<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
     fn as_ref(&self) -> &IUIAutomationRangeValuePattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIScrollPattern {
+    pattern: IUIAutomationScrollPattern
+}
+
+impl UIScrollPattern {
+    pub fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Scroll(horizontal_amount, vertical_amount)?
+        })
+    }
+
+    pub fn set_scroll_percent(&self, horizontal_percent: f64, vertical_percent: f64) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.SetScrollPercent(horizontal_percent, vertical_percent)?
+        })
+    }
+
+    pub fn get_horizontal_scroll_percent(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentHorizontalScrollPercent()?
+        })
+    }
+
+    pub fn get_vertical_scroll_percent(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentVerticalScrollPercent()?
+        })
+    }
+
+    pub fn get_horizontal_view_size(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentHorizontalViewSize()?
+        })
+    }
+
+    pub fn get_vertical_view_size(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CurrentVerticalViewSize()?
+        })
+    }
+
+    pub fn is_horizontally_scrollable(&self) -> Result<bool> {
+        let scrollable = unsafe {
+            self.pattern.CurrentHorizontallyScrollable()?
+        };
+        Ok(scrollable.as_bool())
+    }
+
+    pub fn is_vertically_scrollable(&self) -> Result<bool> {
+        let scrollable = unsafe {
+            self.pattern.CurrentVerticallyScrollable()?
+        };
+        Ok(scrollable.as_bool())
+    }
+}
+
+impl UIPattern for UIScrollPattern {
+    fn pattern_id() -> i32 {
+        UIA_ScrollPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UIScrollPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIScrollPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationScrollPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationScrollPattern> for UIScrollPattern {
+    fn from(pattern: IUIAutomationScrollPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationScrollPattern> for UIScrollPattern {
+    fn into(self) -> IUIAutomationScrollPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationScrollPattern> for UIScrollPattern {
+    fn as_ref(&self) -> &IUIAutomationScrollPattern {
         &self.pattern
     }
 }
