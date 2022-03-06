@@ -28,7 +28,7 @@ use crate::core::UIElement;
 use crate::errors::Error;
 use crate::errors::Result;
 
-pub trait IUIPattern : Sized {
+pub trait UIPattern : Sized {
     fn pattern_id() -> i32;
     fn new(pattern: IUnknown) -> Result<Self>;
 }
@@ -47,7 +47,7 @@ impl UIInvokePattern {
     }
 }
 
-impl IUIPattern for UIInvokePattern {
+impl UIPattern for UIInvokePattern {
     fn pattern_id() -> i32 {
         UIA_InvokePatternId
     }
@@ -130,7 +130,7 @@ impl UIAnnotationPattern {
     }
 }
 
-impl IUIPattern for UIAnnotationPattern {
+impl UIPattern for UIAnnotationPattern {
     fn pattern_id() -> i32 {
         UIA_AnnotationPatternId
     }
@@ -185,7 +185,7 @@ impl UICustomNavigationPattern {
     }
 }
 
-impl IUIPattern for UICustomNavigationPattern {
+impl UIPattern for UICustomNavigationPattern {
     fn pattern_id() -> i32 {
         UIA_CustomNavigationPatternId
     }
@@ -247,7 +247,7 @@ impl UIDockPattern {
     }
 }
 
-impl IUIPattern for UIDockPattern {
+impl UIPattern for UIDockPattern {
     fn pattern_id() -> i32 {
         UIA_DockPatternId
     }
@@ -330,7 +330,7 @@ impl UIDragPattern {
     }
 }
 
-impl IUIPattern for UIDragPattern {
+impl UIPattern for UIDragPattern {
     fn pattern_id() -> i32 {
         UIA_DragPatternId
     }
@@ -385,7 +385,7 @@ impl UIDropTargetPattern {
     }
 }
 
-impl IUIPattern for UIDropTargetPattern {
+impl UIPattern for UIDropTargetPattern {
     fn pattern_id() -> i32 {
         UIA_DropTargetPatternId
     }
@@ -451,7 +451,7 @@ impl UIExpandCollapsePattern {
     }
 }
 
-impl IUIPattern for UIExpandCollapsePattern {
+impl UIPattern for UIExpandCollapsePattern {
     fn pattern_id() -> i32 {
         UIA_ExpandCollapsePatternId
     }
@@ -518,7 +518,7 @@ impl UIGridPattern {
     }
 }
 
-impl IUIPattern for UIGridPattern {
+impl UIPattern for UIGridPattern {
     fn pattern_id() -> i32 {
         UIA_GridPatternId
     }
@@ -597,7 +597,7 @@ impl UIGridItemPattern {
     }
 }
 
-impl IUIPattern for UIGridItemPattern {
+impl UIPattern for UIGridItemPattern {
     fn pattern_id() -> i32 {
         UIA_GridItemPatternId
     }
@@ -668,7 +668,7 @@ impl UIMultipleViewPattern {
     }
 }
 
-impl IUIPattern for UIMultipleViewPattern {
+impl UIPattern for UIMultipleViewPattern {
     fn pattern_id() -> i32 {
         UIA_MultipleViewPatternId
     }

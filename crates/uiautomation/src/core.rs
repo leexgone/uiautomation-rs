@@ -26,7 +26,7 @@ use crate::errors::ERR_NOTFOUND;
 use crate::errors::ERR_TIMEOUT;
 use crate::errors::Error;
 use crate::errors::Result;
-use crate::patterns::IUIPattern;
+use crate::patterns::UIPattern;
 
 #[derive(Clone, Debug)]
 pub struct UIAutomation {
@@ -378,7 +378,7 @@ impl UIElement {
         Ok(())
     }
 
-    pub fn get_pattern<T: IUIPattern>(&self) -> Result<T> {
+    pub fn get_pattern<T: UIPattern>(&self) -> Result<T> {
         let pattern = unsafe {
             self.element.GetCurrentPattern(T::pattern_id())?
         };
