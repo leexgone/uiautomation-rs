@@ -35,11 +35,10 @@ pub struct UIAutomation {
 
 impl UIAutomation {
     pub fn new() -> Result<UIAutomation> {
-        let automation: IUIAutomation;
-        unsafe {
+        let automation: IUIAutomation = unsafe {
             CoInitializeEx(null_mut(), COINIT_MULTITHREADED)?;
-            automation = CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?;
-        }
+            CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?
+        };
 
         Ok(UIAutomation {
             automation
