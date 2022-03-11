@@ -13,6 +13,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationScrollPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern2;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
@@ -28,10 +30,12 @@ use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
 use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
 use windows::Win32::UI::Accessibility::UIA_ScrollItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_ScrollPatternId;
+use windows::Win32::UI::Accessibility::UIA_SelectionPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
 use crate::core::UIElement;
+use crate::core::to_elements;
 use crate::errors::Error;
 use crate::errors::Result;
 
@@ -947,6 +951,109 @@ impl Into<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
 
 impl AsRef<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
     fn as_ref(&self) -> &IUIAutomationScrollItemPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UISelectionPattern {
+    pattern: IUIAutomationSelectionPattern
+}
+
+impl UISelectionPattern {
+    pub fn get_selection(&self) -> Result<Vec<UIElement>> {
+        let elem_arr = unsafe {
+            self.pattern.GetCurrentSelection()?
+        };
+
+        let elements = to_elements(elem_arr)?;
+
+        Ok(elements)
+    }
+
+    pub fn can_select_multiple(&self) -> Result<bool> {
+        let multiple = unsafe {
+            self.pattern.CurrentCanSelectMultiple()?
+        };
+        Ok(multiple.as_bool())
+    }
+
+    pub fn is_selection_required(&self) -> Result<bool> {
+        let required = unsafe {
+            self.pattern.CurrentIsSelectionRequired()?
+        };
+        Ok(required.as_bool())
+    }
+
+    pub fn get_first_selected_item(&self) -> Result<UIElement> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        let item = unsafe {
+            pattern2.CurrentFirstSelectedItem()?
+        };
+        Ok(item.into())
+    }
+
+    pub fn get_last_selected_item(&self) -> Result<UIElement> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        let item = unsafe {
+            pattern2.CurrentLastSelectedItem()?
+        };
+        Ok(item.into())
+    }
+
+    pub fn get_current_selected_item(&self) -> Result<UIElement> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        let item = unsafe {
+            pattern2.CurrentCurrentSelectedItem()?
+        };
+        Ok(item.into())
+    }
+
+    pub fn get_item_count(&self) -> Result<i32> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CurrentItemCount()?
+        })
+    }
+}
+
+impl UIPattern for UISelectionPattern {
+    fn pattern_id() -> i32 {
+        UIA_SelectionPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        UISelectionPattern::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UISelectionPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationSelectionPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationSelectionPattern> for UISelectionPattern {
+    fn from(pattern: IUIAutomationSelectionPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationSelectionPattern> for UISelectionPattern {
+    fn into(self) -> IUIAutomationSelectionPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationSelectionPattern> for UISelectionPattern {
+    fn as_ref(&self) -> &IUIAutomationSelectionPattern {
         &self.pattern
     }
 }

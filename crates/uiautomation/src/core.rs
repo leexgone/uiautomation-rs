@@ -386,7 +386,7 @@ impl UIElement {
     }
 }
 
-fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
+pub(crate) fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
     let mut arr: Vec<UIElement> = Vec::new();
     unsafe {
         for i in 0..elements.Length()? {
@@ -396,7 +396,6 @@ fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
     }
 
     Ok(arr)
-
 }
 
 impl From<IUIAutomationElement> for UIElement {
