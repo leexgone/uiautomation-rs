@@ -17,6 +17,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationScrollPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSelectionItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern2;
+use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -35,6 +36,7 @@ use windows::Win32::UI::Accessibility::UIA_ScrollItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_ScrollPatternId;
 use windows::Win32::UI::Accessibility::UIA_SelectionItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SelectionPatternId;
+use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -1195,6 +1197,69 @@ impl Into<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
 
 impl AsRef<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
     fn as_ref(&self) -> &IUIAutomationSpreadsheetPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UISpreadsheetItemPattern {
+    pattern: IUIAutomationSpreadsheetItemPattern
+}
+
+impl UISpreadsheetItemPattern {
+    pub fn get_formula(&self) -> Result<String> {
+        let formula = unsafe {
+            self.pattern.CurrentFormula()?
+        };
+        Ok(formula.to_string())
+    }
+
+    pub fn get_annotation_objects(&self) -> Result<Vec<UIElement>> {
+        let elem_arr = unsafe {
+            self.pattern.GetCurrentAnnotationObjects()?
+        };
+        let elements = to_elements(elem_arr)?;
+        Ok(elements)
+    }
+}
+
+impl UIPattern for UISpreadsheetItemPattern {
+    fn pattern_id() -> i32 {
+        UIA_SpreadsheetItemPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UISpreadsheetItemPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationSpreadsheetItemPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
+    fn from(pattern: IUIAutomationSpreadsheetItemPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
+    fn into(self) -> IUIAutomationSpreadsheetItemPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
+    fn as_ref(&self) -> &IUIAutomationSpreadsheetItemPattern {
         &self.pattern
     }
 }
