@@ -19,6 +19,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
@@ -38,6 +39,7 @@ use windows::Win32::UI::Accessibility::UIA_SelectionItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SelectionPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
+use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -1221,6 +1223,8 @@ impl UISpreadsheetItemPattern {
         let elements = to_elements(elem_arr)?;
         Ok(elements)
     }
+
+    // TODO
 }
 
 impl UIPattern for UISpreadsheetItemPattern {
@@ -1260,6 +1264,100 @@ impl Into<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
 
 impl AsRef<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
     fn as_ref(&self) -> &IUIAutomationSpreadsheetItemPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UIStylesPattern {
+    pattern: IUIAutomationStylesPattern
+}
+
+impl UIStylesPattern {
+    pub fn get_style_id(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentStyleId()?
+        })
+    }
+
+    pub fn get_style_name(&self) -> Result<String> {
+        let name = unsafe {
+            self.pattern.CurrentStyleName()?
+        };
+        Ok(name.to_string())
+    }
+
+    pub fn get_fill_color(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentFillColor()?
+        })
+    }
+
+    pub fn get_fill_pattern_style(&self) -> Result<String> {
+        let style = unsafe {
+            self.pattern.CurrentFillPatternStyle()?
+        };
+        Ok(style.to_string())
+    }
+
+    pub fn get_fill_pattern_color(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CurrentFillPatternColor()?
+        })
+    }
+
+    pub fn get_shape(&self) -> Result<String> {
+        let shape = unsafe {
+            self.pattern.CurrentShape()?
+        };
+        Ok(shape.to_string())
+    }
+
+    pub fn get_extended_properties(&self) -> Result<String> {
+        let properties = unsafe {
+            self.pattern.CurrentExtendedProperties()?
+        };
+        Ok(properties.to_string())
+    }
+}
+
+impl UIPattern for UIStylesPattern {
+    fn pattern_id() -> i32 {
+        UIA_StylesPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIStylesPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationStylesPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationStylesPattern> for UIStylesPattern {
+    fn from(pattern: IUIAutomationStylesPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationStylesPattern> for UIStylesPattern {
+    fn into(self) -> IUIAutomationStylesPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationStylesPattern> for UIStylesPattern {
+    fn as_ref(&self) -> &IUIAutomationStylesPattern {
         &self.pattern
     }
 }
