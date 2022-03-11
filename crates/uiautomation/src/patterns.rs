@@ -20,8 +20,10 @@ use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::ScrollAmount;
+use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -40,6 +42,7 @@ use windows::Win32::UI::Accessibility::UIA_SelectionPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
 use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
+use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -1358,6 +1361,66 @@ impl Into<IUIAutomationStylesPattern> for UIStylesPattern {
 
 impl AsRef<IUIAutomationStylesPattern> for UIStylesPattern {
     fn as_ref(&self) -> &IUIAutomationStylesPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UISynchronizedInputPattern {
+    pattern: IUIAutomationSynchronizedInputPattern
+}
+
+impl UISynchronizedInputPattern {
+    pub fn start_listening(&self, input_type: SynchronizedInputType) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.StartListening(input_type)?
+        })
+    }
+
+    pub fn cancel(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Cancel()?
+        })
+    }
+}
+
+impl UIPattern for UISynchronizedInputPattern {
+    fn pattern_id() -> i32 {
+        UIA_SynchronizedInputPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UISynchronizedInputPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationSynchronizedInputPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
+    fn from(pattern: IUIAutomationSynchronizedInputPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
+    fn into(self) -> IUIAutomationSynchronizedInputPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
+    fn as_ref(&self) -> &IUIAutomationSynchronizedInputPattern {
         &self.pattern
     }
 }
