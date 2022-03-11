@@ -1,7 +1,7 @@
-use uiautomation::errors::Result;
-use uiautomation::core::UIAutomation;
-use uiautomation::core::UIElement;
-use uiautomation::core::UITreeWalker;
+use uiautomation::Result;
+use uiautomation::UIAutomation;
+use uiautomation::UIElement;
+use uiautomation::UITreeWalker;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
