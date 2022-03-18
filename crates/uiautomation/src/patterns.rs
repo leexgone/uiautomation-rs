@@ -1,4 +1,5 @@
 use windows::Win32::Foundation::BSTR;
+use windows::Win32::Foundation::POINT;
 use windows::Win32::UI::Accessibility::DockPosition;
 use windows::Win32::UI::Accessibility::ExpandCollapseState;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
@@ -24,10 +25,14 @@ use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTableItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextChildPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
+use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
+use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
@@ -51,11 +56,12 @@ use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
 use windows::Win32::UI::Accessibility::UIA_TableItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_TablePatternId;
 use windows::Win32::UI::Accessibility::UIA_TextChildPatternId;
+use windows::Win32::UI::Accessibility::UIA_TextEditPatternId;
+use windows::Win32::UI::Accessibility::UIA_TextPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
 use crate::core::UIElement;
-use crate::core::to_elements;
 use crate::errors::Error;
 use crate::errors::Result;
 
@@ -986,7 +992,7 @@ impl UISelectionPattern {
             self.pattern.GetCurrentSelection()?
         };
 
-        let elements = to_elements(elem_arr)?;
+        let elements = UIElement::to_elements(elem_arr)?;
 
         Ok(elements)
     }
@@ -1231,7 +1237,7 @@ impl UISpreadsheetItemPattern {
         let elem_arr = unsafe {
             self.pattern.GetCurrentAnnotationObjects()?
         };
-        let elements = to_elements(elem_arr)?;
+        let elements = UIElement::to_elements(elem_arr)?;
         Ok(elements)
     }
 
@@ -1444,7 +1450,7 @@ impl UITablePattern {
             self.pattern.GetCurrentRowHeaders()?
         };
 
-        to_elements(headers)
+        UIElement::to_elements(headers)
     }
 
     pub fn get_column_headers(&self) -> Result<Vec<UIElement>> {
@@ -1452,7 +1458,7 @@ impl UITablePattern {
             self.pattern.GetCurrentColumnHeaders()?
         };
 
-        to_elements(headers)
+        UIElement::to_elements(headers)
     }
 
     pub fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
@@ -1514,7 +1520,7 @@ impl UITableItemPattern {
             self.pattern.GetCurrentRowHeaderItems()?
         };
 
-        to_elements(items)
+        UIElement::to_elements(items)
     }
 
     pub fn get_column_header_items(&self) -> Result<Vec<UIElement>> {
@@ -1522,7 +1528,7 @@ impl UITableItemPattern {
             self.pattern.GetCurrentColumnHeaderItems()?
         };
 
-        to_elements(items)
+        UIElement::to_elements(items)
     }
 }
 
@@ -1631,9 +1637,173 @@ impl AsRef<IUIAutomationTextChildPattern> for UITextChildPattern {
     }
 }
 
+/// A Wrapper for `IUIAutomationTextPattern`
+#[derive(Debug, Clone)]
+pub struct UITextPattern {
+    pattern: IUIAutomationTextPattern
+}
+
+impl UITextPattern {
+    pub fn get_ragne_from_point(&self, pt: POINT) -> Result<UITextRange> {
+        let range = unsafe {
+            self.pattern.RangeFromPoint(pt)?
+        };
+
+        Ok(range.into())
+    }
+
+    pub fn get_range_from_child(&self, child: &UIElement) -> Result<UITextRange> {
+        let range = unsafe {
+            self.pattern.RangeFromChild(child.as_ref().clone())?
+        };
+
+        Ok(range.into())
+    }
+
+    pub fn get_selection(&self) -> Result<Vec<UITextRange>> {
+        let ranges = unsafe {
+            self.pattern.GetSelection()?
+        };
+
+        UITextRange::to_ranges(ranges)
+    }
+
+    pub fn get_visible_ranges(&self) -> Result<Vec<UITextRange>> {
+        let ranges = unsafe {
+            self.pattern.GetVisibleRanges()?
+        };
+
+        UITextRange::to_ranges(ranges)
+    }
+
+    pub fn get_document_range(&self) -> Result<UITextRange> {
+        let range = unsafe {
+            self.pattern.DocumentRange()?
+        };
+
+        Ok(range.into())
+    }
+
+    pub fn get_supported_text_selection(&self) -> Result<SupportedTextSelection> {
+        Ok(unsafe {
+            self.pattern.SupportedTextSelection()?
+        })
+    }
+}
+
+impl UIPattern for UITextPattern {
+    fn pattern_id() -> i32 {
+        UIA_TextPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITextPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTextPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTextPattern> for UITextPattern {
+    fn from(pattern: IUIAutomationTextPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTextPattern> for UITextPattern {
+    fn into(self) -> IUIAutomationTextPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTextPattern> for UITextPattern {
+    fn as_ref(&self) -> &IUIAutomationTextPattern {
+        &self.pattern
+    }
+}
+
+/// A Wrapper for `IUIAutomationTextEditPattern`.
+/// 
+/// This type inherits from `UITextPattern`.
+/// 
+#[derive(Debug, Clone)]
+pub struct UITextEditPattern {
+    pattern: IUIAutomationTextEditPattern
+}
+
+impl UITextEditPattern {
+}
+
+impl UIPattern for UITextEditPattern {
+    fn pattern_id() -> i32 {
+        UIA_TextEditPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITextEditPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTextEditPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTextEditPattern> for UITextEditPattern {
+    fn from(pattern: IUIAutomationTextEditPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTextEditPattern> for UITextEditPattern {
+    fn into(self) -> IUIAutomationTextEditPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTextEditPattern> for UITextEditPattern {
+    fn as_ref(&self) -> &IUIAutomationTextEditPattern {
+        &self.pattern
+    }
+}
+
+/// A wrapper for `IUIAutomationTextRange`
 #[derive(Debug, Clone)]
 pub struct UITextRange {
     range: IUIAutomationTextRange
+}
+
+impl UITextRange {
+    pub(crate) fn to_ranges(ranges: IUIAutomationTextRangeArray) -> Result<Vec<UITextRange>> {
+        let mut arr: Vec<UITextRange> = Vec::new();
+
+        unsafe {
+            for i in 0..ranges.Length()? {
+                let range = ranges.GetElement(i)?;
+                arr.push(range.into());
+            }
+        }
+
+        Ok(arr)
+    }
 }
 
 impl From<IUIAutomationTextRange> for UITextRange {

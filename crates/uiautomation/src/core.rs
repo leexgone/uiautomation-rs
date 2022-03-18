@@ -342,7 +342,7 @@ impl UIElement {
             self.element.CurrentControllerFor()?
         };
 
-        to_elements(elements)
+        Self::to_elements(elements)
     }
 
     pub fn get_described_by(&self) -> Result<Vec<UIElement>> {
@@ -350,7 +350,7 @@ impl UIElement {
             self.element.CurrentDescribedBy()?
         };
 
-        to_elements(elements)
+        Self::to_elements(elements)
     }
 
     pub fn get_flows_to(&self) -> Result<Vec<UIElement>> {
@@ -358,7 +358,7 @@ impl UIElement {
             self.element.CurrentFlowsTo()?
         };
 
-        to_elements(elements)
+        Self::to_elements(elements)
     }
 
     pub fn get_provider_description(&self) -> Result<String> {
@@ -384,18 +384,19 @@ impl UIElement {
 
         T::new(pattern)
     }
-}
 
-pub(crate) fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
-    let mut arr: Vec<UIElement> = Vec::new();
-    unsafe {
-        for i in 0..elements.Length()? {
-            let elem = UIElement::from(elements.GetElement(i)?);
-            arr.push(elem);
+
+    pub(crate) fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
+        let mut arr: Vec<UIElement> = Vec::new();
+        unsafe {
+            for i in 0..elements.Length()? {
+                let elem = UIElement::from(elements.GetElement(i)?);
+                arr.push(elem);
+            }
         }
-    }
 
-    Ok(arr)
+        Ok(arr)
+    }
 }
 
 impl From<IUIAutomationElement> for UIElement {
