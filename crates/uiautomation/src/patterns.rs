@@ -21,7 +21,9 @@ use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
+use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
@@ -43,6 +45,7 @@ use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
 use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
 use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
+use windows::Win32::UI::Accessibility::UIA_TablePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -1421,6 +1424,76 @@ impl Into<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern 
 
 impl AsRef<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
     fn as_ref(&self) -> &IUIAutomationSynchronizedInputPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UITablePattern {
+    pattern: IUIAutomationTablePattern
+}
+
+impl UITablePattern {
+    pub fn get_row_headers(&self) -> Result<Vec<UIElement>> {
+        let headers = unsafe {
+            self.pattern.GetCurrentRowHeaders()?
+        };
+
+        to_elements(headers)
+    }
+
+    pub fn get_column_headers(&self) -> Result<Vec<UIElement>> {
+        let headers = unsafe {
+            self.pattern.GetCurrentColumnHeaders()?
+        };
+
+        to_elements(headers)
+    }
+
+    pub fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
+        Ok(unsafe {
+            self.pattern.CurrentRowOrColumnMajor()?
+        })
+    }
+}
+
+impl UIPattern for UITablePattern {
+    fn pattern_id() -> i32 {
+        UIA_TablePatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITablePattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTablePattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTablePattern> for UITablePattern {
+    fn from(pattern: IUIAutomationTablePattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTablePattern> for UITablePattern {
+    fn into(self) -> IUIAutomationTablePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTablePattern> for UITablePattern {
+    fn as_ref(&self) -> &IUIAutomationTablePattern {
         &self.pattern
     }
 }
