@@ -21,6 +21,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTableItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
@@ -45,6 +46,7 @@ use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
 use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
 use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
+use windows::Win32::UI::Accessibility::UIA_TableItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_TablePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -1494,6 +1496,70 @@ impl Into<IUIAutomationTablePattern> for UITablePattern {
 
 impl AsRef<IUIAutomationTablePattern> for UITablePattern {
     fn as_ref(&self) -> &IUIAutomationTablePattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UITableItemPattern {
+    pattern: IUIAutomationTableItemPattern
+}
+
+impl UITableItemPattern {
+    pub fn get_row_header_items(&self) -> Result<Vec<UIElement>> {
+        let items = unsafe {
+            self.pattern.GetCurrentRowHeaderItems()?
+        };
+
+        to_elements(items)
+    }
+
+    pub fn get_column_header_items(&self) -> Result<Vec<UIElement>> {
+        let items = unsafe {
+            self.pattern.GetCurrentColumnHeaderItems()?
+        };
+
+        to_elements(items)
+    }
+}
+
+impl UIPattern for UITableItemPattern {
+    fn pattern_id() -> i32 {
+        UIA_TableItemPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITableItemPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTableItemPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTableItemPattern> for UITableItemPattern {
+    fn from(pattern: IUIAutomationTableItemPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTableItemPattern> for UITableItemPattern {
+    fn into(self) -> IUIAutomationTableItemPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTableItemPattern> for UITableItemPattern {
+    fn as_ref(&self) -> &IUIAutomationTableItemPattern {
         &self.pattern
     }
 }
