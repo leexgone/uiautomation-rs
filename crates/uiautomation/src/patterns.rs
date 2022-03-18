@@ -23,6 +23,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTableItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextChildPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -48,6 +50,7 @@ use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
 use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
 use windows::Win32::UI::Accessibility::UIA_TableItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_TablePatternId;
+use windows::Win32::UI::Accessibility::UIA_TextChildPatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -1561,5 +1564,94 @@ impl Into<IUIAutomationTableItemPattern> for UITableItemPattern {
 impl AsRef<IUIAutomationTableItemPattern> for UITableItemPattern {
     fn as_ref(&self) -> &IUIAutomationTableItemPattern {
         &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UITextChildPattern {
+    pattern: IUIAutomationTextChildPattern
+}
+
+impl UITextChildPattern {
+    pub fn get_text_container(&self) -> Result<UIElement> {
+        let container = unsafe {
+            self.pattern.TextContainer()?
+        };
+
+        Ok(container.into())
+    }
+
+    pub fn get_text_range(&self) -> Result<UITextRange> {
+        let range = unsafe {
+            self.pattern.TextRange()?
+        };
+
+        Ok(range.into())
+    }
+}
+
+impl UIPattern for UITextChildPattern {
+    fn pattern_id() -> i32 {
+        UIA_TextChildPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITextChildPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTextChildPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTextChildPattern> for UITextChildPattern {
+    fn from(pattern: IUIAutomationTextChildPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTextChildPattern> for UITextChildPattern {
+    fn into(self) -> IUIAutomationTextChildPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTextChildPattern> for UITextChildPattern {
+    fn as_ref(&self) -> &IUIAutomationTextChildPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UITextRange {
+    range: IUIAutomationTextRange
+}
+
+impl From<IUIAutomationTextRange> for UITextRange {
+    fn from(range: IUIAutomationTextRange) -> Self {
+        Self {
+            range
+        }
+    }
+}
+
+impl Into<IUIAutomationTextRange> for UITextRange {
+    fn into(self) -> IUIAutomationTextRange {
+        self.range
+    }
+}
+
+impl AsRef<IUIAutomationTextRange> for UITextRange {
+    fn as_ref(&self) -> &IUIAutomationTextRange {
+        &self.range
     }
 }
