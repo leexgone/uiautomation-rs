@@ -36,6 +36,8 @@ use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
+use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
+use windows::Win32::UI::Accessibility::TextUnit;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -1835,13 +1837,104 @@ impl AsRef<UITextPattern> for UITextEditPattern {
         &self.text
     }
 }
-/// A wrapper for `IUIAutomationTextRange`
+/// A wrapper for `IUIAutomationTextRange`, `IUIAutomationTextRange2` and `IUIAutomationTextRange3`.
 #[derive(Debug, Clone)]
 pub struct UITextRange {
     range: IUIAutomationTextRange
 }
 
 impl UITextRange {
+    pub fn compare(&self, range: &UITextRange) -> Result<bool> {
+        let ret = unsafe {
+            self.range.Compare(range.as_ref())?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn compare_endpoints(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<i32> {
+       Ok(unsafe {
+           self.range.CompareEndpoints(src_endpoint, range.as_ref(), target_endpoint)?
+       }) 
+    }
+
+    pub fn expand_to_enclosing_unit(&self, text_unit: TextUnit) -> Result<()> {
+        Ok(unsafe {
+            self.range.ExpandToEnclosingUnit(text_unit)?
+        })
+    }
+
+    pub fn find_text(&self, text: &str, backward: bool, ignorecase: bool) -> Result<UITextRange> {
+        let range = unsafe {
+            self.range.FindText(BSTR::from(text), backward, ignorecase)?
+        };
+        Ok(range.into())
+    }
+
+    pub fn get_enclosing_element(&self) -> Result<UIElement> {
+        let element = unsafe {
+            self.range.GetEnclosingElement()?
+        };
+        Ok(element.into())
+    }
+
+    pub fn get_text(&self, max_length: i32) -> Result<String> {
+        let text = unsafe {
+            self.range.GetText(max_length)?
+        };
+        Ok(text.to_string())
+    }
+
+    pub fn move_text(&self, unit: TextUnit, count: i32) -> Result<i32> {
+        Ok(unsafe {
+            self.range.Move(unit, count)?
+        })
+    }
+
+    pub fn move_endpoint_by_unit(&self, endpoint: TextPatternRangeEndpoint, unit: TextUnit, count: i32) -> Result<i32> {
+        Ok(unsafe {
+            self.range.MoveEndpointByUnit(endpoint, unit, count)?
+        })
+    }
+
+    pub fn move_endpoint_by_range(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<()> {
+        Ok(unsafe {
+            self.range.MoveEndpointByRange(src_endpoint, range.as_ref(), target_endpoint)?
+        })
+    }
+
+    pub fn select(&self) -> Result<()> {
+        Ok(unsafe {
+            self.range.Select()?
+        })
+    }
+
+    pub fn add_to_selection(&self) -> Result<()> {
+        Ok(unsafe {
+            self.range.AddToSelection()?
+        })
+    }
+
+    pub fn remove_from_selection(&self) -> Result<()> {
+        Ok(unsafe {
+            self.range.RemoveFromSelection()?
+        })
+    }
+
+    pub fn scroll_into_view(&self, align_to_top: bool) -> Result<()> {
+        Ok(unsafe {
+            self.range.ScrollIntoView(align_to_top)?
+        })
+    }
+
+    pub fn get_children(&self) -> Result<Vec<UIElement>> {
+        let children = unsafe {
+            self.range.GetChildren()?
+        };
+
+        UIElement::to_elements(children)
+    }
+
+    /// Convert `IUIAutomationTextRangeArray` to `Vec<UITextRange>`.
     pub(crate) fn to_ranges(ranges: IUIAutomationTextRangeArray) -> Result<Vec<UITextRange>> {
         let mut arr: Vec<UITextRange> = Vec::new();
 
