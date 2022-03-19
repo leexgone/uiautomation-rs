@@ -37,6 +37,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -73,6 +74,9 @@ use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
 use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
 use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
 use windows::Win32::UI::Accessibility::UIA_VirtualizedItemPatternId;
+use windows::Win32::UI::Accessibility::UIA_WindowPatternId;
+use windows::Win32::UI::Accessibility::WindowInteractionState;
+use windows::Win32::UI::Accessibility::WindowVisualState;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -2300,6 +2304,114 @@ impl Into<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
 
 impl AsRef<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
     fn as_ref(&self) -> &IUIAutomationVirtualizedItemPattern {
+        &self.pattern
+    }
+}
+
+/// A wrapper for `IUIAutomationWindowPattern`.
+#[derive(Debug, Clone)]
+pub struct UIWindowPattern {
+    pattern: IUIAutomationWindowPattern
+}
+
+impl UIWindowPattern {
+    pub fn close(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Close()?
+        })
+    }
+
+    pub fn wait_for_input_idle(&self, milliseconds: i32) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.WaitForInputIdle(milliseconds)?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn get_window_visual_state(&self) -> Result<WindowVisualState> {
+        Ok(unsafe {
+            self.pattern.CurrentWindowVisualState()?
+        })
+    }
+
+    pub fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.SetWindowVisualState(state)?
+        })
+    }
+
+    pub fn can_maximize(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentCanMaximize()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn can_minimize(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentCanMinimize()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn is_modal(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentIsModal()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn is_topmost(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentIsTopmost()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn get_window_interaction_state(&self) -> Result<WindowInteractionState> {
+        Ok(unsafe {
+            self.pattern.CurrentWindowInteractionState()?
+        })
+    }
+}
+
+impl UIPattern for UIWindowPattern {
+    fn pattern_id() -> i32 {
+        UIA_WindowPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIWindowPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationWindowPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationWindowPattern> for UIWindowPattern {
+    fn from(pattern: IUIAutomationWindowPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationWindowPattern> for UIWindowPattern {
+    fn into(self) -> IUIAutomationWindowPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationWindowPattern> for UIWindowPattern {
+    fn as_ref(&self) -> &IUIAutomationWindowPattern {
         &self.pattern
     }
 }
