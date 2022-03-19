@@ -35,6 +35,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
 use windows::Win32::UI::Accessibility::IUIAutomationTogglePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
+use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -69,6 +70,7 @@ use windows::Win32::UI::Accessibility::UIA_TextEditPatternId;
 use windows::Win32::UI::Accessibility::UIA_TextPatternId;
 use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
 use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
+use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -2172,6 +2174,75 @@ impl Into<IUIAutomationTransformPattern> for UITransformPattern {
 
 impl AsRef<IUIAutomationTransformPattern> for UITransformPattern {
     fn as_ref(&self) -> &IUIAutomationTransformPattern {
+        &self.pattern
+    }
+}
+
+/// A wrapper for `IUIAutomationValuePattern`.
+#[derive(Debug, Clone)]
+pub struct UIValuePattern {
+    pattern: IUIAutomationValuePattern
+}
+
+impl UIValuePattern {
+    pub fn set_value(&self, value: &str) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.SetValue(BSTR::from(value))?
+        })
+    }
+
+    pub fn get_value(&self) -> Result<String> {
+        let value = unsafe {
+            self.pattern.CurrentValue()?
+        };
+        Ok(value.to_string())
+    }
+
+    pub fn is_readonly(&self) -> Result<bool> {
+        let readonly = unsafe {
+            self.pattern.CurrentIsReadOnly()?
+        };
+        Ok(readonly.as_bool())
+    }
+}
+
+impl UIPattern for UIValuePattern {
+    fn pattern_id() -> i32 {
+        UIA_ValuePatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIValuePattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationValuePattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationValuePattern> for UIValuePattern {
+    fn from(pattern: IUIAutomationValuePattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationValuePattern> for UIValuePattern {
+    fn into(self) -> IUIAutomationValuePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationValuePattern> for UIValuePattern {
+    fn as_ref(&self) -> &IUIAutomationValuePattern {
         &self.pattern
     }
 }
