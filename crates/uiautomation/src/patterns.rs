@@ -1738,10 +1738,24 @@ impl AsRef<IUIAutomationTextPattern> for UITextPattern {
 /// 
 #[derive(Debug, Clone)]
 pub struct UITextEditPattern {
+    text: UITextPattern,
     pattern: IUIAutomationTextEditPattern
 }
 
 impl UITextEditPattern {
+    pub fn get_active_composition(&self) -> Result<UITextRange> {
+        let range = unsafe {
+            self.pattern.GetActiveComposition()?
+        };
+        Ok(range.into())
+    }
+
+    pub fn get_conversion_target(&self) -> Result<UITextRange> {
+        let range = unsafe {
+            self.pattern.GetConversionTarget()?
+        };
+        Ok(range.into())
+    }
 }
 
 impl UIPattern for UITextEditPattern {
@@ -1759,7 +1773,9 @@ impl TryFrom<IUnknown> for UITextEditPattern {
 
     fn try_from(value: IUnknown) -> Result<Self> {
         let pattern: IUIAutomationTextEditPattern = value.cast()?;
+        let text = UITextPattern::try_from(value)?;
         Ok(Self {
+            text,
             pattern
         })
     }
@@ -1767,7 +1783,9 @@ impl TryFrom<IUnknown> for UITextEditPattern {
 
 impl From<IUIAutomationTextEditPattern> for UITextEditPattern {
     fn from(pattern: IUIAutomationTextEditPattern) -> Self {
+        let text: IUIAutomationTextPattern = pattern.cast().unwrap();
         Self {
+            text: text.into(),
             pattern
         }
     }
@@ -1785,6 +1803,11 @@ impl AsRef<IUIAutomationTextEditPattern> for UITextEditPattern {
     }
 }
 
+impl AsRef<UITextPattern> for UITextEditPattern {
+    fn as_ref(&self) -> &UITextPattern {
+        &self.text
+    }
+}
 /// A wrapper for `IUIAutomationTextRange`
 #[derive(Debug, Clone)]
 pub struct UITextRange {
