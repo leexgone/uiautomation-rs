@@ -32,6 +32,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTextPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange2;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
+use windows::Win32::UI::Accessibility::IUIAutomationTogglePattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -39,6 +40,7 @@ use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
 use windows::Win32::UI::Accessibility::TextUnit;
+use windows::Win32::UI::Accessibility::ToggleState;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -63,6 +65,7 @@ use windows::Win32::UI::Accessibility::UIA_TablePatternId;
 use windows::Win32::UI::Accessibility::UIA_TextChildPatternId;
 use windows::Win32::UI::Accessibility::UIA_TextEditPatternId;
 use windows::Win32::UI::Accessibility::UIA_TextPatternId;
+use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -1974,5 +1977,66 @@ impl Into<IUIAutomationTextRange> for UITextRange {
 impl AsRef<IUIAutomationTextRange> for UITextRange {
     fn as_ref(&self) -> &IUIAutomationTextRange {
         &self.range
+    }
+}
+
+/// A wrapper for `IUIAutomationTogglePattern`
+#[derive(Debug, Clone)]
+pub struct UITogglePattern {
+    pattern: IUIAutomationTogglePattern
+}
+
+impl UITogglePattern {
+    pub fn get_toggle_state(&self) -> Result<ToggleState> {
+        Ok(unsafe {
+            self.pattern.CurrentToggleState()?
+        })
+    }
+
+    pub fn toggle(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Toggle()?
+        })
+    }
+}
+
+impl UIPattern for UITogglePattern {
+    fn pattern_id() -> i32 {
+        UIA_TogglePatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITogglePattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTogglePattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTogglePattern> for UITogglePattern {
+    fn from(pattern: IUIAutomationTogglePattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTogglePattern> for UITogglePattern {
+    fn into(self) -> IUIAutomationTogglePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTogglePattern> for UITogglePattern {
+    fn as_ref(&self) -> &IUIAutomationTogglePattern {
+        &self.pattern
     }
 }
