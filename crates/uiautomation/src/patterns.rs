@@ -30,6 +30,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
+use windows::Win32::UI::Accessibility::IUIAutomationTextRange2;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
@@ -1932,6 +1933,13 @@ impl UITextRange {
         };
 
         UIElement::to_elements(children)
+    }
+
+    pub fn show_context_menu(&self) -> Result<()> {
+        let range2: IUIAutomationTextRange2 = self.range.cast()?;
+        Ok(unsafe {
+            range2.ShowContextMenu()?
+        })
     }
 
     /// Convert `IUIAutomationTextRangeArray` to `Vec<UITextRange>`.
