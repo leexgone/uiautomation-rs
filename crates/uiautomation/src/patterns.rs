@@ -1,3 +1,4 @@
+use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::UI::Accessibility::DockPosition;
@@ -27,6 +28,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextChildPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTextPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
 use windows::Win32::UI::Accessibility::NavigateDirection;
@@ -62,6 +64,7 @@ use windows::core::IUnknown;
 use windows::core::Interface;
 
 use crate::core::UIElement;
+use crate::errors::ERR_INACTIVE;
 use crate::errors::Error;
 use crate::errors::Result;
 
@@ -1637,7 +1640,7 @@ impl AsRef<IUIAutomationTextChildPattern> for UITextChildPattern {
     }
 }
 
-/// A Wrapper for `IUIAutomationTextPattern`
+/// A Wrapper for `IUIAutomationTextPattern` and `IUIAutomationTextPattern2`
 #[derive(Debug, Clone)]
 pub struct UITextPattern {
     pattern: IUIAutomationTextPattern
@@ -1688,6 +1691,30 @@ impl UITextPattern {
         Ok(unsafe {
             self.pattern.SupportedTextSelection()?
         })
+    }
+
+    pub fn get_range_from_annotation(&self, annotation: &UIElement) -> Result<UITextRange> {
+        let pattern2: IUIAutomationTextPattern2 = self.pattern.cast()?;
+        let range = unsafe {
+            pattern2.RangeFromAnnotation(annotation.as_ref())?
+        };
+        Ok(range.into())
+    }
+
+    pub fn get_caret_range(&self) -> Result<UITextRange> {
+        let pattern2: IUIAutomationTextPattern2 = self.pattern.cast()?;
+        let mut active = BOOL::default();
+        let mut range = Option::None;
+        unsafe {
+            pattern2.GetCaretRange(&mut active, &mut range)?
+        };
+
+        if active.as_bool() && range.is_some() {
+            let range = range.unwrap();
+            Ok(range.into())
+        } else {
+            Err(Error::new(ERR_INACTIVE, "INACTIVE ELEMENT"))
+        }
     }
 }
 

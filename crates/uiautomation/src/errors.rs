@@ -2,9 +2,14 @@ use std::fmt::Display;
 
 use windows::core::HRESULT;
 
+/// Error caused by unknown reason.
 pub const ERR_NONE: i32 = 0;
+/// Error occurs when an element or object is not found.
 pub const ERR_NOTFOUND: i32 = 1;
+/// Error occurs when the operation is timeout.
 pub const ERR_TIMEOUT: i32 = 2;
+/// Error occurs when the element is inactive.
+pub const ERR_INACTIVE: i32 = 3;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
