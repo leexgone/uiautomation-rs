@@ -33,6 +33,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange2;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
 use windows::Win32::UI::Accessibility::IUIAutomationTogglePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -66,6 +68,8 @@ use windows::Win32::UI::Accessibility::UIA_TextChildPatternId;
 use windows::Win32::UI::Accessibility::UIA_TextEditPatternId;
 use windows::Win32::UI::Accessibility::UIA_TextPatternId;
 use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
+use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
+use windows::Win32::UI::Accessibility::ZoomUnit;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
@@ -2037,6 +2041,137 @@ impl Into<IUIAutomationTogglePattern> for UITogglePattern {
 
 impl AsRef<IUIAutomationTogglePattern> for UITogglePattern {
     fn as_ref(&self) -> &IUIAutomationTogglePattern {
+        &self.pattern
+    }
+}
+
+/// A wrapper for `IUIAutomationTransformPattern` and `IUIAutomationTransformPattern2`
+#[derive(Debug, Clone)]
+pub struct UITransformPattern {
+    pattern: IUIAutomationTransformPattern
+}
+
+impl UITransformPattern {
+    pub fn can_move(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentCanMove()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn move_to(&self, x: f64, y: f64) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Move(x, y)?
+        })
+    }
+
+    pub fn can_resize(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentCanResize()?
+        };
+        Ok(ret.as_bool())        
+    }
+
+    pub fn resize(&self, width: f64, height: f64) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Resize(width, height)?
+        })
+    }
+
+    pub fn can_rotate(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CurrentCanRotate()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn rotate(&self, degrees: f64) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Rotate(degrees)?
+        })
+    }
+
+    pub fn can_zoom(&self) -> Result<bool> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        let zoomable = unsafe {
+            pattern2.CurrentCanZoom()?
+        };
+        Ok(zoomable.as_bool())
+    }
+
+    pub fn get_zoom_level(&self) -> Result<f64> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CurrentZoomLevel()?
+        })
+    }
+
+    pub fn get_zoom_minimum(&self) -> Result<f64> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CurrentZoomMinimum()?
+        })
+    }
+
+    pub fn get_zoom_maximum(&self) -> Result<f64> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CurrentZoomMaximum()?
+        })
+    }
+
+    pub fn zoom(&self, zoom_value: f64) -> Result<()> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.Zoom(zoom_value)?
+        })
+    }
+
+    pub fn zoom_by_unit(&self, zoom_unit: ZoomUnit) -> Result<()> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.ZoomByUnit(zoom_unit)?
+        })
+    }
+}
+
+impl UIPattern for UITransformPattern {
+    fn pattern_id() -> i32 {
+        UIA_TransformPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UITransformPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationTransformPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationTransformPattern> for UITransformPattern {
+    fn from(pattern: IUIAutomationTransformPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationTransformPattern> for UITransformPattern {
+    fn into(self) -> IUIAutomationTransformPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationTransformPattern> for UITransformPattern {
+    fn as_ref(&self) -> &IUIAutomationTransformPattern {
         &self.pattern
     }
 }
