@@ -36,6 +36,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTogglePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
@@ -71,6 +72,7 @@ use windows::Win32::UI::Accessibility::UIA_TextPatternId;
 use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
 use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
 use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
+use windows::Win32::UI::Accessibility::UIA_VirtualizedItemPatternId;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 use windows::core::IUnknown;
 use windows::core::Interface;
@@ -2243,6 +2245,61 @@ impl Into<IUIAutomationValuePattern> for UIValuePattern {
 
 impl AsRef<IUIAutomationValuePattern> for UIValuePattern {
     fn as_ref(&self) -> &IUIAutomationValuePattern {
+        &self.pattern
+    }
+}
+
+/// A wrapper for `IUIAutomationVirtualizedItemPattern`.
+#[derive(Debug, Clone)]
+pub struct UIVirtualizedItemPattern {
+    pattern: IUIAutomationVirtualizedItemPattern
+}
+
+impl UIVirtualizedItemPattern {
+    pub fn realize(&self) -> Result<()> {
+        Ok(unsafe {
+            self.pattern.Realize()?
+        })
+    }
+}
+
+impl UIPattern for UIVirtualizedItemPattern {
+    fn pattern_id() -> i32 {
+        UIA_VirtualizedItemPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIVirtualizedItemPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationVirtualizedItemPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
+    fn from(pattern: IUIAutomationVirtualizedItemPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
+    fn into(self) -> IUIAutomationVirtualizedItemPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
+    fn as_ref(&self) -> &IUIAutomationVirtualizedItemPattern {
         &self.pattern
     }
 }
