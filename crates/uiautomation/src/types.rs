@@ -1,5 +1,10 @@
 use std::fmt::Display;
 
+use windows::Win32::System::Com::VARIANT;
+
+use crate::Error;
+use crate::Result;
+
 #[derive(Debug)]
 pub enum Value {
     INT(i32),
@@ -62,6 +67,20 @@ impl Display for Value {
             Value::INT(value) => write!(f, "{}", value),
             Value::LONG(value) => write!(f, "{}", value),
             Value::STR(value) => write!(f, "{}", value),
+        }
+    }
+}
+
+/// A Wrapper for windows `VARIANT`
+#[derive(Clone, PartialEq, Eq)]
+pub struct Variant {
+    value: VARIANT
+}
+
+impl Default for Variant {
+    fn default() -> Self {
+        Self { 
+            value: Default::default() 
         }
     }
 }

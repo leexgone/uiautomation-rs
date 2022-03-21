@@ -1,4 +1,4 @@
-//pub mod types;
+mod types;
 pub mod errors;
 pub mod core;
 pub mod patterns;
