@@ -6,22 +6,33 @@ use windows::Win32::System::Com::SAFEARRAY;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::System::Com::VARIANT_0_0_0;
 use windows::Win32::System::Ole::VARENUM;
+use windows::Win32::System::Ole::VT_ARRAY;
+use windows::Win32::System::Ole::VT_BOOL;
+use windows::Win32::System::Ole::VT_BSTR;
 use windows::Win32::System::Ole::VT_CY;
 use windows::Win32::System::Ole::VT_DATE;
+use windows::Win32::System::Ole::VT_DECIMAL;
+use windows::Win32::System::Ole::VT_DISPATCH;
 use windows::Win32::System::Ole::VT_EMPTY;
+use windows::Win32::System::Ole::VT_ERROR;
+use windows::Win32::System::Ole::VT_HRESULT;
 use windows::Win32::System::Ole::VT_I1;
 use windows::Win32::System::Ole::VT_I2;
 use windows::Win32::System::Ole::VT_I4;
 use windows::Win32::System::Ole::VT_I8;
 use windows::Win32::System::Ole::VT_INT;
+use windows::Win32::System::Ole::VT_LPSTR;
 use windows::Win32::System::Ole::VT_NULL;
 use windows::Win32::System::Ole::VT_R4;
 use windows::Win32::System::Ole::VT_R8;
+use windows::Win32::System::Ole::VT_SAFEARRAY;
 use windows::Win32::System::Ole::VT_UI1;
 use windows::Win32::System::Ole::VT_UI2;
 use windows::Win32::System::Ole::VT_UI4;
 use windows::Win32::System::Ole::VT_UI8;
 use windows::Win32::System::Ole::VT_UINT;
+use windows::Win32::System::Ole::VT_UNKNOWN;
+use windows::Win32::System::Ole::VT_VARIANT;
 use windows::Win32::System::Ole::VT_VOID;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
@@ -51,12 +62,12 @@ pub enum Value {
     CURRENCY(i64),
     DATE(f64),
     STRING(String),
+    UNKNOWN(IUnknown),
     DISPATCH(IDispatch),
     ERROR(HRESULT),
     HRESULT(HRESULT),
     BOOL(bool),
     VARIANT(Variant),
-    UNKNOWN(IUnknown),
     DECIMAL(DECIMAL),
     SAFEARRAY(SafeArray),
     ARRAY(SafeArray)
@@ -178,6 +189,79 @@ impl TryFrom<&Variant> for Value {
                 value.get_data().date
             };
             Ok(Self::DATE(val))
+        } else if vt == VT_BSTR || vt == VT_LPSTR {
+            let val = unsafe {
+                value.get_data().bstrVal.to_string()
+            };
+            Ok(Self::STRING(val))
+        } else if vt == VT_LPSTR {
+            let val = unsafe {
+                if value.get_data().pcVal.is_null() {
+                    String::from("")
+                } else {
+                    let lpstr = value.get_data().pcVal.0;
+                    let mut end = lpstr;
+                    while *end != 0 {
+                        end = end.add(1);
+                    };
+                    String::from_utf8_lossy(std::slice::from_raw_parts(lpstr, end.offset_from(lpstr) as _)).into()
+                }
+            };
+
+            Ok(Self::STRING(val))
+        } else if vt == VT_DISPATCH {
+            let val = unsafe {
+                if let Some(ref disp) = *value.get_data().ppdispVal {
+                    Self::DISPATCH(disp.clone())
+                } else {
+                    Self::NULL
+                }
+            };
+            Ok(val)
+        } else if vt == VT_UNKNOWN {
+            let val = unsafe {
+                if let Some(ref unkown) = *value.get_data().ppunkVal {
+                    Self::UNKNOWN(unkown.clone())
+                } else {
+                    Self::NULL
+                }
+            };
+            Ok(val)
+        } else if vt == VT_ERROR {
+            let val = unsafe {
+                value.get_data().intVal
+            };
+            Ok(Self::HRESULT(HRESULT(val)))
+        } else if vt == VT_HRESULT {
+            let val = unsafe {
+                value.get_data().intVal
+            };
+            Ok(Self::HRESULT(HRESULT(val)))
+        } else if vt == VT_BOOL {
+            let val = unsafe {
+                value.get_data().__OBSOLETE__VARIANT_BOOL != 0
+            };
+            Ok(Self::BOOL(val))
+        } else if vt == VT_VARIANT {
+            let val = unsafe {
+                (*value.get_data().pvarVal).clone()
+            };
+            Ok(Self::VARIANT(val.into()))
+        } else if vt == VT_DECIMAL {
+            let val = unsafe {
+                (*value.get_data().pdecVal).clone()
+            };
+            Ok(Self::DECIMAL(val))
+        } else if vt == VT_SAFEARRAY {
+            let arr = unsafe {
+                (*value.get_data().parray).clone()
+            };
+            Ok(Self::SAFEARRAY(arr.into()))
+        } else if vt == VT_ARRAY {
+            let arr = unsafe {
+                (*value.get_data().parray).clone()
+            };
+            Ok(Self::ARRAY(arr.into()))
         }
         else {
             Err(Error::new(ERR_TYPE, ""))
@@ -212,6 +296,14 @@ impl Variant {
     }
 }
 
+impl From<VARIANT> for Variant {
+    fn from(value: VARIANT) -> Self {
+        Self {
+            value
+        }
+    }
+}
+
 // impl TryInto<Value> for &Variant {
 //     type Error = Error;
 
@@ -234,6 +326,14 @@ impl Display for Variant {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SafeArray {
     array: SAFEARRAY
+}
+
+impl From<SAFEARRAY> for SafeArray {
+    fn from(array: SAFEARRAY) -> Self {
+        Self {
+            array
+        }
+    }
 }
 
 impl Display for SafeArray {
