@@ -1,9 +1,14 @@
 use std::fmt::Display;
+use std::mem::ManuallyDrop;
 
+use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::DECIMAL;
+use windows::Win32::System::Com::CY;
 use windows::Win32::System::Com::IDispatch;
 use windows::Win32::System::Com::SAFEARRAY;
 use windows::Win32::System::Com::VARIANT;
+use windows::Win32::System::Com::VARIANT_0;
+use windows::Win32::System::Com::VARIANT_0_0;
 use windows::Win32::System::Com::VARIANT_0_0_0;
 use windows::Win32::System::Ole::VARENUM;
 use windows::Win32::System::Ole::VT_ARRAY;
@@ -22,6 +27,7 @@ use windows::Win32::System::Ole::VT_I4;
 use windows::Win32::System::Ole::VT_I8;
 use windows::Win32::System::Ole::VT_INT;
 use windows::Win32::System::Ole::VT_LPSTR;
+use windows::Win32::System::Ole::VT_LPWSTR;
 use windows::Win32::System::Ole::VT_NULL;
 use windows::Win32::System::Ole::VT_R4;
 use windows::Win32::System::Ole::VT_R8;
@@ -34,6 +40,21 @@ use windows::Win32::System::Ole::VT_UINT;
 use windows::Win32::System::Ole::VT_UNKNOWN;
 use windows::Win32::System::Ole::VT_VARIANT;
 use windows::Win32::System::Ole::VT_VOID;
+use windows::Win32::System::Ole::VarBoolFromCy;
+use windows::Win32::System::Ole::VarBoolFromDate;
+use windows::Win32::System::Ole::VarBoolFromDec;
+use windows::Win32::System::Ole::VarBoolFromDisp;
+use windows::Win32::System::Ole::VarBoolFromI1;
+use windows::Win32::System::Ole::VarBoolFromI2;
+use windows::Win32::System::Ole::VarBoolFromI4;
+use windows::Win32::System::Ole::VarBoolFromI8;
+use windows::Win32::System::Ole::VarBoolFromR4;
+use windows::Win32::System::Ole::VarBoolFromR8;
+use windows::Win32::System::Ole::VarBoolFromStr;
+use windows::Win32::System::Ole::VarBoolFromUI1;
+use windows::Win32::System::Ole::VarBoolFromUI2;
+use windows::Win32::System::Ole::VarBoolFromUI4;
+use windows::Win32::System::Ole::VarBoolFromUI8;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
 
@@ -94,12 +115,12 @@ impl Display for Value {
             Value::CURRENCY(value) => write!(f, "CY({})", value),
             Value::DATE(value) => write!(f, "DATE({})", value),
             Value::STRING(value) => write!(f, "STRING({})", value),
+            Value::UNKNOWN(_) => write!(f, "UNKNOWN"),
             Value::DISPATCH(_) => write!(f, "DISPATCH"),
             Value::ERROR(value) => write!(f, "ERROR({})", value.0),
             Value::HRESULT(value) => write!(f, "HRESULT({})", value.0),
             Value::BOOL(value) => write!(f, "BOOL({})", value),
             Value::VARIANT(value) => write!(f, "VARIANT({})", value),
-            Value::UNKNOWN(_) => write!(f, "UNKNOWN"),
             Value::DECIMAL(_) => write!(f, "DECIMAL"),
             Value::SAFEARRAY(value) => write!(f, "SAFEARRAY({})", value),
             Value::ARRAY(value) => write!(f, "ARRAY({})", value),
@@ -107,99 +128,308 @@ impl Display for Value {
     }
 }
 
-impl TryFrom<&Variant> for Value {
-    type Error = Error;
+// impl TryFrom<&Variant> for Value {
+//     type Error = Error;
 
-    fn try_from(value: &Variant) -> Result<Self> {
-        let vt = value.get_type();
+//     fn try_from(value: &Variant) -> Result<Self> {
+//         let vt = value.get_type();
 
-        if vt == VT_EMPTY {
-            Ok(Self::EMPTY)
-        } else if vt == VT_NULL {
-            Ok(Self::NULL)
-        } else if vt == VT_VOID {
-            Ok(Self::VOID)
-        } else if vt == VT_I1 {
+//         if vt == VT_EMPTY {
+//             Ok(Self::EMPTY)
+//         } else if vt == VT_NULL {
+//             Ok(Self::NULL)
+//         } else if vt == VT_VOID {
+//             Ok(Self::VOID)
+//         } else if vt == VT_I1 {
+//             let val = unsafe {
+//                 value.get_data().bVal as i8
+//             }; 
+//             Ok(Self::I1(val))
+//         } else if vt == VT_I2 {
+//             let val = unsafe {
+//                 value.get_data().iVal
+//             };
+//             Ok(Self::I2(val))
+//         } else if vt == VT_I4 {
+//             let val = unsafe {
+//                 value.get_data().lVal
+//             };
+//             Ok(Self::I4(val))
+//         } else if vt == VT_I8 {
+//             let val = unsafe {
+//                 value.get_data().llVal
+//             };
+//             Ok(Self::I8(val))
+//         } else if vt == VT_INT {
+//             let val = unsafe {
+//                 value.get_data().lVal
+//             };
+//             Ok(Self::INT(val))
+//         } else if vt == VT_UI1 {
+//             let val = unsafe {
+//                 value.get_data().bVal
+//             };
+//             Ok(Self::UI1(val))
+//         } else if vt == VT_UI2 {
+//             let val = unsafe {
+//                 value.get_data().uiVal
+//             };
+//             Ok(Self::UI2(val))
+//         } else if vt == VT_UI4 {
+//             let val = unsafe {
+//                 value.get_data().ulVal
+//             };
+//             Ok(Self::UI4(val))
+//         } else if vt == VT_UI8 {
+//             let val = unsafe {
+//                 value.get_data().ullVal
+//             };
+//             Ok(Self::UI8(val))
+//         } else if vt == VT_UINT {
+//             let val = unsafe {
+//                 value.get_data().uintVal
+//             };
+//             Ok(Self::UINT(val))
+//         } else if vt == VT_R4 {
+//             let val = unsafe {
+//                 value.get_data().fltVal
+//             };
+//             Ok(Self::R4(val))
+//         } else if vt == VT_R8 {
+//             let val = unsafe {
+//                 value.get_data().dblVal
+//             };
+//             Ok(Self::R8(val))
+//         } else if vt == VT_CY {
+//             let val = unsafe {
+//                 value.get_data().cyVal.int64
+//             };
+//             Ok(Self::CURRENCY(val))
+//         } else if vt == VT_DATE {
+//             let val = unsafe {
+//                 value.get_data().date
+//             };
+//             Ok(Self::DATE(val))
+//         } else if vt == VT_BSTR || vt == VT_LPSTR {
+//             let val = unsafe {
+//                 value.get_data().bstrVal.to_string()
+//             };
+//             Ok(Self::STRING(val))
+//         } else if vt == VT_LPSTR {
+//             let val = unsafe {
+//                 if value.get_data().pcVal.is_null() {
+//                     String::from("")
+//                 } else {
+//                     let lpstr = value.get_data().pcVal.0;
+//                     let mut end = lpstr;
+//                     while *end != 0 {
+//                         end = end.add(1);
+//                     };
+//                     String::from_utf8_lossy(std::slice::from_raw_parts(lpstr, end.offset_from(lpstr) as _)).into()
+//                 }
+//             };
+
+//             Ok(Self::STRING(val))
+//         } else if vt == VT_DISPATCH {
+//             let val = unsafe {
+//                 if let Some(ref disp) = *value.get_data().ppdispVal {
+//                     Self::DISPATCH(disp.clone())
+//                 } else {
+//                     Self::NULL
+//                 }
+//             };
+//             Ok(val)
+//         } else if vt == VT_UNKNOWN {
+//             let val = unsafe {
+//                 if let Some(ref unkown) = *value.get_data().ppunkVal {
+//                     Self::UNKNOWN(unkown.clone())
+//                 } else {
+//                     Self::NULL
+//                 }
+//             };
+//             Ok(val)
+//         } else if vt == VT_ERROR {
+//             let val = unsafe {
+//                 value.get_data().intVal
+//             };
+//             Ok(Self::HRESULT(HRESULT(val)))
+//         } else if vt == VT_HRESULT {
+//             let val = unsafe {
+//                 value.get_data().intVal
+//             };
+//             Ok(Self::HRESULT(HRESULT(val)))
+//         } else if vt == VT_BOOL {
+//             let val = unsafe {
+//                 value.get_data().__OBSOLETE__VARIANT_BOOL != 0
+//             };
+//             Ok(Self::BOOL(val))
+//         } else if vt == VT_VARIANT {
+//             let val = unsafe {
+//                 (*value.get_data().pvarVal).clone()
+//             };
+//             Ok(Self::VARIANT(val.into()))
+//         } else if vt == VT_DECIMAL {
+//             let val = unsafe {
+//                 (*value.get_data().pdecVal).clone()
+//             };
+//             Ok(Self::DECIMAL(val))
+//         } else if vt == VT_SAFEARRAY || vt == VT_ARRAY {
+//             let arr = unsafe {
+//                 (*value.get_data().parray).clone()
+//             };
+//             Ok(Self::SAFEARRAY(arr.into()))
+//         } else {
+//             Err(Error::new(ERR_TYPE, ""))
+//         }
+//     }
+// }
+
+/// A Wrapper for windows `VARIANT`
+#[derive(Clone, PartialEq, Eq, Default)]
+pub struct Variant {
+    value: VARIANT
+}
+
+impl Variant {
+    /// Create a null variant.
+    fn new_null(vt: VARENUM) -> Variant {
+        let mut val = VARIANT_0_0::default();
+        val.vt = vt.0 as u16;
+
+        let variant = VARIANT {
+            Anonymous: VARIANT_0 {
+                Anonymous: ManuallyDrop::new(val)
+            }
+        };
+
+        variant.into()
+    }
+
+    /// Create a `Variant` from `vt` and `value`.
+    fn new(vt: VARENUM, value: VARIANT_0_0_0) -> Variant {
+        let variant = VARIANT {
+            Anonymous: VARIANT_0 {
+                Anonymous: ManuallyDrop::new(VARIANT_0_0 {
+                    vt: vt.0 as u16,
+                    wReserved1: 0,
+                    wReserved2: 0,
+                    wReserved3: 0,
+                    Anonymous: value
+                })
+            }
+        };
+
+        variant.into()
+    }
+
+    /// Retrieve the variant type as `i32`.
+    fn vt(&self) -> i32 {
+        unsafe {
+            self.value.Anonymous.Anonymous.vt as i32
+        }
+    }
+
+    /// Retrieve the variant type as `VARENUM`.
+    pub fn get_type(&self) -> VARENUM {
+        VARENUM(self.vt())
+    }
+
+    /// Retrieve the data of the variant.
+    pub(crate) unsafe fn get_data(&self) -> &VARIANT_0_0_0 {
+        &self.value.Anonymous.Anonymous.Anonymous
+    }
+
+    /// Try to get value.
+    pub fn get_value(&self) -> Result<Value> {
+        let vt = self.vt();
+
+        if vt == VT_EMPTY.0 {
+            Ok(Value::EMPTY)
+        } else if vt == VT_NULL.0 {
+            Ok(Value::NULL)
+        } else if vt == VT_VOID.0 {
+            Ok(Value::VOID)
+        } else if vt == VT_I1.0 {
             let val = unsafe {
-                value.get_data().bVal as i8
+                self.get_data().bVal as i8
             }; 
-            Ok(Self::I1(val))
-        } else if vt == VT_I2 {
+            Ok(Value::I1(val))
+        } else if vt == VT_I2.0 {
             let val = unsafe {
-                value.get_data().iVal
+                self.get_data().iVal
             };
-            Ok(Self::I2(val))
-        } else if vt == VT_I4 {
+            Ok(Value::I2(val))
+        } else if vt == VT_I4.0 {
             let val = unsafe {
-                value.get_data().lVal
+                self.get_data().lVal
             };
-            Ok(Self::I4(val))
-        } else if vt == VT_I8 {
+            Ok(Value::I4(val))
+        } else if vt == VT_I8.0 {
             let val = unsafe {
-                value.get_data().llVal
+                self.get_data().llVal
             };
-            Ok(Self::I8(val))
-        } else if vt == VT_INT {
+            Ok(Value::I8(val))
+        } else if vt == VT_INT.0 {
             let val = unsafe {
-                value.get_data().lVal
+                self.get_data().lVal
             };
-            Ok(Self::INT(val))
-        } else if vt == VT_UI1 {
+            Ok(Value::INT(val))
+        } else if vt == VT_UI1.0 {
             let val = unsafe {
-                value.get_data().bVal
+                self.get_data().bVal
             };
-            Ok(Self::UI1(val))
-        } else if vt == VT_UI2 {
+            Ok(Value::UI1(val))
+        } else if vt == VT_UI2.0 {
             let val = unsafe {
-                value.get_data().uiVal
+                self.get_data().uiVal
             };
-            Ok(Self::UI2(val))
-        } else if vt == VT_UI4 {
+            Ok(Value::UI2(val))
+        } else if vt == VT_UI4.0 {
             let val = unsafe {
-                value.get_data().ulVal
+                self.get_data().ulVal
             };
-            Ok(Self::UI4(val))
-        } else if vt == VT_UI8 {
+            Ok(Value::UI4(val))
+        } else if vt == VT_UI8.0 {
             let val = unsafe {
-                value.get_data().ullVal
+                self.get_data().ullVal
             };
-            Ok(Self::UI8(val))
-        } else if vt == VT_UINT {
+            Ok(Value::UI8(val))
+        } else if vt == VT_UINT.0 {
             let val = unsafe {
-                value.get_data().uintVal
+                self.get_data().uintVal
             };
-            Ok(Self::UINT(val))
-        } else if vt == VT_R4 {
+            Ok(Value::UINT(val))
+        } else if vt == VT_R4.0 {
             let val = unsafe {
-                value.get_data().fltVal
+                self.get_data().fltVal
             };
-            Ok(Self::R4(val))
-        } else if vt == VT_R8 {
+            Ok(Value::R4(val))
+        } else if vt == VT_R8.0 {
             let val = unsafe {
-                value.get_data().dblVal
+                self.get_data().dblVal
             };
-            Ok(Self::R8(val))
-        } else if vt == VT_CY {
+            Ok(Value::R8(val))
+        } else if vt == VT_CY.0 {
             let val = unsafe {
-                value.get_data().cyVal.int64
+                self.get_data().cyVal.int64
             };
-            Ok(Self::CURRENCY(val))
-        } else if vt == VT_DATE {
+            Ok(Value::CURRENCY(val))
+        } else if vt == VT_DATE.0 {
             let val = unsafe {
-                value.get_data().date
+                self.get_data().date
             };
-            Ok(Self::DATE(val))
-        } else if vt == VT_BSTR || vt == VT_LPSTR {
+            Ok(Value::DATE(val))
+        } else if vt == VT_BSTR.0 || vt == VT_LPSTR.0 {
             let val = unsafe {
-                value.get_data().bstrVal.to_string()
+                self.get_data().bstrVal.to_string()
             };
-            Ok(Self::STRING(val))
-        } else if vt == VT_LPSTR {
+            Ok(Value::STRING(val))
+        } else if vt == VT_LPSTR.0 {
             let val = unsafe {
-                if value.get_data().pcVal.is_null() {
+                if self.get_data().pcVal.is_null() {
                     String::from("")
                 } else {
-                    let lpstr = value.get_data().pcVal.0;
+                    let lpstr = self.get_data().pcVal.0;
                     let mut end = lpstr;
                     while *end != 0 {
                         end = end.add(1);
@@ -208,91 +438,105 @@ impl TryFrom<&Variant> for Value {
                 }
             };
 
-            Ok(Self::STRING(val))
-        } else if vt == VT_DISPATCH {
+            Ok(Value::STRING(val))
+        } else if vt == VT_DISPATCH.0 {
             let val = unsafe {
-                if let Some(ref disp) = *value.get_data().ppdispVal {
-                    Self::DISPATCH(disp.clone())
+                if let Some(ref disp) = *self.get_data().ppdispVal {
+                    Value::DISPATCH(disp.clone())
                 } else {
-                    Self::NULL
+                    Value::NULL
                 }
             };
             Ok(val)
-        } else if vt == VT_UNKNOWN {
+        } else if vt == VT_UNKNOWN.0 {
             let val = unsafe {
-                if let Some(ref unkown) = *value.get_data().ppunkVal {
-                    Self::UNKNOWN(unkown.clone())
+                if let Some(ref unkown) = *self.get_data().ppunkVal {
+                    Value::UNKNOWN(unkown.clone())
                 } else {
-                    Self::NULL
+                    Value::NULL
                 }
             };
             Ok(val)
-        } else if vt == VT_ERROR {
+        } else if vt == VT_ERROR.0 {
             let val = unsafe {
-                value.get_data().intVal
+                self.get_data().intVal
             };
-            Ok(Self::HRESULT(HRESULT(val)))
-        } else if vt == VT_HRESULT {
+            Ok(Value::HRESULT(HRESULT(val)))
+        } else if vt == VT_HRESULT.0 {
             let val = unsafe {
-                value.get_data().intVal
+                self.get_data().intVal
             };
-            Ok(Self::HRESULT(HRESULT(val)))
-        } else if vt == VT_BOOL {
+            Ok(Value::HRESULT(HRESULT(val)))
+        } else if vt == VT_BOOL.0 {
             let val = unsafe {
-                value.get_data().__OBSOLETE__VARIANT_BOOL != 0
+                self.get_data().__OBSOLETE__VARIANT_BOOL != 0
             };
-            Ok(Self::BOOL(val))
-        } else if vt == VT_VARIANT {
+            Ok(Value::BOOL(val))
+        } else if vt == VT_VARIANT.0 {
             let val = unsafe {
-                (*value.get_data().pvarVal).clone()
+                (*self.get_data().pvarVal).clone()
             };
-            Ok(Self::VARIANT(val.into()))
-        } else if vt == VT_DECIMAL {
+            Ok(Value::VARIANT(val.into()))
+        } else if vt == VT_DECIMAL.0 {
             let val = unsafe {
-                (*value.get_data().pdecVal).clone()
+                (*self.get_data().pdecVal).clone()
             };
-            Ok(Self::DECIMAL(val))
-        } else if vt == VT_SAFEARRAY {
+            Ok(Value::DECIMAL(val))
+        } else if vt == VT_SAFEARRAY.0 || vt == VT_ARRAY.0 {
             let arr = unsafe {
-                (*value.get_data().parray).clone()
+                (*self.get_data().parray).clone()
             };
-            Ok(Self::SAFEARRAY(arr.into()))
-        } else if vt == VT_ARRAY {
-            let arr = unsafe {
-                (*value.get_data().parray).clone()
-            };
-            Ok(Self::ARRAY(arr.into()))
-        }
-        else {
+            Ok(Value::SAFEARRAY(arr.into()))
+        } else {
             Err(Error::new(ERR_TYPE, ""))
         }
     }
-}
 
-/// A Wrapper for windows `VARIANT`
-#[derive(Clone, PartialEq, Eq)]
-pub struct Variant {
-    value: VARIANT
-}
+    /// Check whether the variant is null.
+    /// 
+    /// Return `true` when vt is `VT_EMPTY`, `VT_NULL` or `VT_VOID`.
+    pub fn is_null(&self) -> bool {
+        let vt = self.vt();
+        vt == VT_EMPTY.0 || vt == VT_NULL.0 || vt == VT_VOID.0
+    }
 
-impl Default for Variant {
-    fn default() -> Self {
-        Self { 
-            value: Default::default() 
+    /// Check whether the variant is string.
+    /// 
+    /// Return `true` when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
+    pub fn is_string(&self) -> bool {
+        let vt = self.vt();
+        vt == VT_BSTR.0 || vt == VT_LPWSTR.0 || vt == VT_LPSTR.0
+    }
+
+    /// Try to get string value.
+    /// 
+    /// Return `String` value when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
+    pub fn get_string(&self) -> Result<String> {
+        let value = self.get_value()?;
+        match value {
+            Value::STRING(str) => Ok(str),
+            _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
         }
     }
-}
 
-impl Variant {
-    pub fn get_type(&self) -> VARENUM {
-        let t = unsafe {
-            self.value.Anonymous.Anonymous.vt as i32 
-        }; 
-        VARENUM(t)
+    /// Check whether the variant is array.
+    /// 
+    /// Return `true` when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
+    pub fn is_array(&self) -> bool {
+        let vt = self.vt();
+        vt == VT_SAFEARRAY.0 || vt == VT_ARRAY.0
     }
 
-    pub(crate) unsafe fn get_data(&self) -> &VARIANT_0_0_0 {
-        &self.value.Anonymous.Anonymous.Anonymous
+    /// Try to get array value.
+    /// 
+    /// Return `SafeArray` value when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
+    pub fn get_array(&self) -> Result<SafeArray> {
+        let value = self.get_value()?;
+        match value {
+            Value::SAFEARRAY(arr) => Ok(arr),
+            Value::ARRAY(arr) => Ok(arr),
+            _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
+        }
     }
 }
 
@@ -304,21 +548,131 @@ impl From<VARIANT> for Variant {
     }
 }
 
-// impl TryInto<Value> for &Variant {
-//     type Error = Error;
+impl Into<VARIANT> for Variant {
+    fn into(self) -> VARIANT {
+        self.value
+    }
+}
 
-//     fn try_into(self) -> Result<Value> {
-//         todo!()
-//     }
-// }
+impl AsRef<VARIANT> for Variant {
+    fn as_ref(&self) -> &VARIANT {
+        &self.value
+    }
+}
 
 impl Display for Variant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Ok(val) = Value::try_from(self) {
+        if let Ok(val) = self.get_value() {
             write!(f, "{}", val)
         } else {
             Err(std::fmt::Error {})
         }
+    }
+}
+
+impl From<Value> for Variant {
+    fn from(value: Value) -> Self {
+        match value {
+            Value::EMPTY => Variant::new_null(VT_EMPTY),
+            Value::NULL => Variant::new_null(VT_NULL),
+            Value::VOID => Variant::new_null(VT_VOID),
+            Value::I1(v) => Variant::new(VT_I1, VARIANT_0_0_0 { bVal: v as u8 }),
+            Value::I2(v) => Variant::new(VT_I2, VARIANT_0_0_0 { iVal: v }),
+            Value::I4(v) => Variant::new(VT_I4, VARIANT_0_0_0 { lVal: v }),
+            Value::I8(v) => Variant::new(VT_I8, VARIANT_0_0_0 { llVal: v }),
+            Value::INT(v) => Variant::new(VT_INT, VARIANT_0_0_0 { lVal: v }),
+            Value::UI1(v) => Variant::new(VT_UI1, VARIANT_0_0_0 { bVal: v }),
+            Value::UI2(v) => Variant::new(VT_UI2, VARIANT_0_0_0 { uiVal: v }),
+            Value::UI4(v) => Variant::new(VT_UI4, VARIANT_0_0_0 { ulVal: v }),
+            Value::UI8(v) => Variant::new(VT_UI8, VARIANT_0_0_0 { ullVal: v }),
+            Value::UINT(v) => Variant::new(VT_UINT, VARIANT_0_0_0 { uintVal: v }),
+            Value::R4(v) => Variant::new(VT_R4, VARIANT_0_0_0 { fltVal: v }),
+            Value::R8(v) => Variant::new(VT_R8, VARIANT_0_0_0 { dblVal: v }),
+            Value::CURRENCY(v) => Variant::new(VT_CY, VARIANT_0_0_0 { cyVal: CY { int64: v} }),
+            Value::DATE(v) => Variant::new(VT_DATE, VARIANT_0_0_0 { date: v }),
+            Value::STRING(v) => Variant::new(VT_BSTR, VARIANT_0_0_0 { bstrVal: ManuallyDrop::new(BSTR::from(v)) }),
+            Value::UNKNOWN(v) => Variant::new(VT_UNKNOWN, VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
+            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
+            Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
+            Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
+            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { 0xffff } else { 0x000 } as i16 }),
+            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
+            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
+            Value::SAFEARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
+            Value::ARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
+        }
+    }
+}
+
+impl TryInto<Value> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Value> {
+        self.get_value()
+    }
+}
+
+impl TryInto<Value> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Value> {
+        (&self).get_value()
+    }
+}
+
+impl From<bool> for Variant {
+    fn from(value: bool) -> Self {
+        Value::BOOL(value).into()
+    }
+}
+
+impl TryInto<bool> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<bool> {
+        let vt = self.vt();
+        let val: i16 = unsafe { if vt == VT_BOOL.0 {
+                self.get_data().boolVal
+            } else if vt == VT_CY.0 {
+                VarBoolFromCy(self.get_data().cyVal)?
+            } else if vt == VT_DATE.0 {
+                VarBoolFromDate(self.get_data().date)?
+            } else if vt == VT_DECIMAL.0 {
+                VarBoolFromDec(self.get_data().pdecVal)?
+            } else if vt == VT_I1.0 {
+                VarBoolFromI1(self.get_data().cVal)?
+            } else if vt == VT_I2.0 {
+                VarBoolFromI2(self.get_data().iVal)?
+            } else if vt == VT_I4.0 || vt == VT_INT.0 {
+                VarBoolFromI4(self.get_data().lVal)?
+            } else if vt == VT_I8.0 {
+                VarBoolFromI8(self.get_data().llVal)?
+            } else if vt == VT_R4.0 {
+                VarBoolFromR4(self.get_data().fltVal)?
+            } else if vt == VT_R8.0 {
+                VarBoolFromR8(self.get_data().dblVal)?
+            } else if vt == VT_BSTR.0 || vt == VT_LPWSTR.0 || vt == VT_LPSTR.0 {
+                let str = self.get_string()?;
+                VarBoolFromStr(str, 0, 0)?
+            } else if vt == VT_UI1.0 {
+                VarBoolFromUI1(self.get_data().bVal)?
+            } else if vt == VT_UI2.0 {
+                VarBoolFromUI2(self.get_data().uiVal)?
+            } else if vt == VT_UI4.0 || vt == VT_UINT.0 {
+                VarBoolFromUI4(self.get_data().ulVal)?
+            } else if vt == VT_UI8.0 {
+                VarBoolFromUI8(self.get_data().ullVal)?
+            } else if vt == VT_DISPATCH.0 {
+                if let Some(ref disp) = *self.get_data().pdispVal {
+                    VarBoolFromDisp(disp, 0)?
+                } else {
+                    0i16
+                }
+            } else {
+                return Err(Error::new(ERR_TYPE, "Error Variant Type"));
+            }
+        };
+        Ok(val != 0)
     }
 }
 
@@ -344,29 +698,30 @@ impl Display for SafeArray {
 
 #[cfg(test)]
 mod tests {
-    use std::mem::ManuallyDrop;
+    use windows::Win32::System::Ole::VT_BOOL;
 
-    use windows::Win32::Foundation::BSTR;
-    use windows::Win32::System::Com::VARIANT;
-    use windows::Win32::System::Com::VARIANT_0_0;
-    use windows::Win32::System::Com::VARIANT_0_0_0;
-    use windows::Win32::System::Ole::VT_BSTR;
+    use crate::variants::Value;
+    use crate::variants::Variant;
 
     #[test]
-    fn build_variant() {
-        let s: BSTR = "hello,world!".into();
-        let v = VARIANT {
-            Anonymous: windows::Win32::System::Com::VARIANT_0 { 
-                Anonymous: ManuallyDrop::new(VARIANT_0_0 { 
-                    vt: VT_BSTR.0 as u16, 
-                    wReserved1: 0, 
-                    wReserved2: 0, 
-                    wReserved3: 0, 
-                    Anonymous: VARIANT_0_0_0 {
-                        bstrVal: ManuallyDrop::new(s)
-                    }
-                })
-            }
-        };
+    fn test_variant_null() {
+        let v = Variant::from(Value::NULL);
+        assert!(v.is_null());
+    }
+
+    #[test]
+    fn test_variant_bool() {
+        let v: Variant = true.into();
+        assert!(v.get_type() == VT_BOOL);
+
+        let b: bool = v.try_into().unwrap();
+        assert!(b)
+    }
+
+    #[test]
+    fn test_variant_string() {
+        let s = Variant::from(Value::STRING("Hello".into()));
+        assert!(s.is_string());
+        assert!(s.get_string().unwrap() == "Hello");
     }
 }

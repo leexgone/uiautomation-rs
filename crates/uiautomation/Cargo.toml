@@ -16,8 +16,9 @@ readme = "../../README.md"
 chrono = "0.4.19"
 
 [dependencies.windows]
-version = "0.33.0"
+version = "0.34.0"
 features = [
+    "alloc",
     "Win32_Foundation",
     "Win32_System_Com",
     "Win32_System_Ole",

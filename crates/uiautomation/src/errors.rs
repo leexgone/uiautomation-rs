@@ -10,7 +10,7 @@ pub const ERR_NOTFOUND: i32 = 1;
 pub const ERR_TIMEOUT: i32 = 2;
 /// Error occurs when the element is inactive.
 pub const ERR_INACTIVE: i32 = 3;
-/// Error caused by unsupported type
+/// Error caused by unsupported or mismatched type
 pub const ERR_TYPE: i32 = 4;
 
 #[derive(Debug, PartialEq, Eq)]
