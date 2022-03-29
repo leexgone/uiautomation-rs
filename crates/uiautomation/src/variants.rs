@@ -55,6 +55,21 @@ use windows::Win32::System::Ole::VarBoolFromUI1;
 use windows::Win32::System::Ole::VarBoolFromUI2;
 use windows::Win32::System::Ole::VarBoolFromUI4;
 use windows::Win32::System::Ole::VarBoolFromUI8;
+use windows::Win32::System::Ole::VarBstrFromBool;
+use windows::Win32::System::Ole::VarBstrFromCy;
+use windows::Win32::System::Ole::VarBstrFromDate;
+use windows::Win32::System::Ole::VarBstrFromDec;
+use windows::Win32::System::Ole::VarBstrFromDisp;
+use windows::Win32::System::Ole::VarBstrFromI1;
+use windows::Win32::System::Ole::VarBstrFromI2;
+use windows::Win32::System::Ole::VarBstrFromI4;
+use windows::Win32::System::Ole::VarBstrFromI8;
+use windows::Win32::System::Ole::VarBstrFromR4;
+use windows::Win32::System::Ole::VarBstrFromR8;
+use windows::Win32::System::Ole::VarBstrFromUI1;
+use windows::Win32::System::Ole::VarBstrFromUI2;
+use windows::Win32::System::Ole::VarBstrFromUI4;
+use windows::Win32::System::Ole::VarBstrFromUI8;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
 
@@ -673,6 +688,84 @@ impl TryInto<bool> for Variant {
             }
         };
         Ok(val != 0)
+    }
+}
+
+impl From<&str> for Variant {
+    fn from(value: &str) -> Self {
+        Value::STRING(value.into()).into()
+    }
+}
+
+impl From<String> for Variant {
+    fn from(value: String) -> Self {
+        value.as_str().into()
+    }
+}
+
+impl From<&String> for Variant {
+    fn from(value: &String) -> Self {
+        value.as_str().into()
+    }
+}
+
+impl TryInto<String> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<String> {
+        if self.is_string() {
+            self.get_string()
+        } else {
+            let vt = self.vt();
+            let str: BSTR = unsafe {
+                if vt == VT_BOOL.0 {
+                    VarBstrFromBool(self.get_data().boolVal, 0, 0)?
+                } else if vt == VT_CY.0 {
+                    VarBstrFromCy(self.get_data().cyVal, 0, 0)?
+                } else if vt == VT_DATE.0 {
+                    VarBstrFromDate(self.get_data().date, 0, 0)?
+                } else if vt == VT_DECIMAL.0 {
+                    VarBstrFromDec(self.get_data().pdecVal, 0, 0)?
+                } else if vt == VT_DISPATCH.0 {
+                    if let Some(ref disp) = *self.get_data().pdispVal {
+                        VarBstrFromDisp(disp, 0, 0)?
+                    } else {
+                        BSTR::default()
+                    }
+                } else if vt == VT_I1.0 {
+                    VarBstrFromI1(self.get_data().cVal, 0, 0)?
+                } else if vt == VT_I2.0 {
+                    VarBstrFromI2(self.get_data().iVal, 0, 0)?
+                } else if vt == VT_I4.0 || vt == VT_INT.0 {
+                    VarBstrFromI4(self.get_data().lVal, 0, 0)?
+                } else if vt == VT_I8.0 {
+                    VarBstrFromI8(self.get_data().llVal, 0, 0)?
+                } else if vt == VT_R4.0 {
+                    VarBstrFromR4(self.get_data().fltVal, 0, 0)?
+                } else if vt == VT_R8.0 {
+                    VarBstrFromR8(self.get_data().dblVal, 0, 0)?
+                } else if vt == VT_UI1.0 {
+                    VarBstrFromUI1(self.get_data().bVal, 0, 0)?
+                } else if vt == VT_UI2.0 {
+                    VarBstrFromUI2(self.get_data().uiVal, 0, 0)?
+                } else if vt == VT_UI4.0 || vt == VT_UINT.0 {
+                    VarBstrFromUI4(self.get_data().ulVal, 0, 0)?
+                } else if vt == VT_UI8.0 {
+                    VarBstrFromUI8(self.get_data().ullVal, 0, 0)?
+                } else {
+                    return Err(Error::new(ERR_TYPE, "Error Variant Type"));
+                }
+            };
+            Ok(str.to_string())
+        }
+    }
+}
+
+impl TryInto<String> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<String> {
+        (&self).try_into()
     }
 }
 
