@@ -341,6 +341,125 @@ impl Variant {
 
     /// Try to get value.
     pub fn get_value(&self) -> Result<Value> {
+        self.try_into()
+    }
+
+    /// Check whether the variant is null.
+    /// 
+    /// Return `true` when vt is `VT_EMPTY`, `VT_NULL` or `VT_VOID`.
+    pub fn is_null(&self) -> bool {
+        let vt = self.vt();
+        vt == VT_EMPTY.0 || vt == VT_NULL.0 || vt == VT_VOID.0
+    }
+
+    /// Check whether the variant is string.
+    /// 
+    /// Return `true` when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
+    pub fn is_string(&self) -> bool {
+        let vt = self.vt();
+        vt == VT_BSTR.0 || vt == VT_LPWSTR.0 || vt == VT_LPSTR.0
+    }
+
+    /// Try to get string value.
+    /// 
+    /// Return `String` value when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
+    pub fn get_string(&self) -> Result<String> {
+        let value = self.get_value()?;
+        match value {
+            Value::STRING(str) => Ok(str),
+            _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
+        }
+    }
+
+    /// Check whether the variant is array.
+    /// 
+    /// Return `true` when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
+    pub fn is_array(&self) -> bool {
+        let vt = self.vt();
+        vt == VT_SAFEARRAY.0 || vt == VT_ARRAY.0
+    }
+
+    /// Try to get array value.
+    /// 
+    /// Return `SafeArray` value when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
+    pub fn get_array(&self) -> Result<SafeArray> {
+        let value = self.get_value()?;
+        match value {
+            Value::SAFEARRAY(arr) => Ok(arr),
+            Value::ARRAY(arr) => Ok(arr),
+            _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
+        }
+    }
+}
+
+impl From<VARIANT> for Variant {
+    fn from(value: VARIANT) -> Self {
+        Self {
+            value
+        }
+    }
+}
+
+impl Into<VARIANT> for Variant {
+    fn into(self) -> VARIANT {
+        self.value
+    }
+}
+
+impl AsRef<VARIANT> for Variant {
+    fn as_ref(&self) -> &VARIANT {
+        &self.value
+    }
+}
+
+impl Display for Variant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Ok(val) = self.get_value() {
+            write!(f, "{}", val)
+        } else {
+            Err(std::fmt::Error {})
+        }
+    }
+}
+
+impl From<Value> for Variant {
+    fn from(value: Value) -> Self {
+        match value {
+            Value::EMPTY => Variant::new_null(VT_EMPTY),
+            Value::NULL => Variant::new_null(VT_NULL),
+            Value::VOID => Variant::new_null(VT_VOID),
+            Value::I1(v) => Variant::new(VT_I1, VARIANT_0_0_0 { bVal: v as u8 }),
+            Value::I2(v) => Variant::new(VT_I2, VARIANT_0_0_0 { iVal: v }),
+            Value::I4(v) => Variant::new(VT_I4, VARIANT_0_0_0 { lVal: v }),
+            Value::I8(v) => Variant::new(VT_I8, VARIANT_0_0_0 { llVal: v }),
+            Value::INT(v) => Variant::new(VT_INT, VARIANT_0_0_0 { lVal: v }),
+            Value::UI1(v) => Variant::new(VT_UI1, VARIANT_0_0_0 { bVal: v }),
+            Value::UI2(v) => Variant::new(VT_UI2, VARIANT_0_0_0 { uiVal: v }),
+            Value::UI4(v) => Variant::new(VT_UI4, VARIANT_0_0_0 { ulVal: v }),
+            Value::UI8(v) => Variant::new(VT_UI8, VARIANT_0_0_0 { ullVal: v }),
+            Value::UINT(v) => Variant::new(VT_UINT, VARIANT_0_0_0 { uintVal: v }),
+            Value::R4(v) => Variant::new(VT_R4, VARIANT_0_0_0 { fltVal: v }),
+            Value::R8(v) => Variant::new(VT_R8, VARIANT_0_0_0 { dblVal: v }),
+            Value::CURRENCY(v) => Variant::new(VT_CY, VARIANT_0_0_0 { cyVal: CY { int64: v} }),
+            Value::DATE(v) => Variant::new(VT_DATE, VARIANT_0_0_0 { date: v }),
+            Value::STRING(v) => Variant::new(VT_BSTR, VARIANT_0_0_0 { bstrVal: ManuallyDrop::new(BSTR::from(v)) }),
+            Value::UNKNOWN(v) => Variant::new(VT_UNKNOWN, VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
+            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
+            Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
+            Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
+            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { 0xffff } else { 0x000 } as i16 }),
+            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
+            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
+            Value::SAFEARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
+            Value::ARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
+        }
+    }
+}
+
+impl TryInto<Value> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Value> {
         let vt = self.vt();
 
         if vt == VT_EMPTY.0 {
@@ -491,132 +610,13 @@ impl Variant {
             Err(Error::new(ERR_TYPE, ""))
         }
     }
-
-    /// Check whether the variant is null.
-    /// 
-    /// Return `true` when vt is `VT_EMPTY`, `VT_NULL` or `VT_VOID`.
-    pub fn is_null(&self) -> bool {
-        let vt = self.vt();
-        vt == VT_EMPTY.0 || vt == VT_NULL.0 || vt == VT_VOID.0
-    }
-
-    /// Check whether the variant is string.
-    /// 
-    /// Return `true` when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
-    pub fn is_string(&self) -> bool {
-        let vt = self.vt();
-        vt == VT_BSTR.0 || vt == VT_LPWSTR.0 || vt == VT_LPSTR.0
-    }
-
-    /// Try to get string value.
-    /// 
-    /// Return `String` value when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
-    pub fn get_string(&self) -> Result<String> {
-        let value = self.get_value()?;
-        match value {
-            Value::STRING(str) => Ok(str),
-            _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
-        }
-    }
-
-    /// Check whether the variant is array.
-    /// 
-    /// Return `true` when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
-    pub fn is_array(&self) -> bool {
-        let vt = self.vt();
-        vt == VT_SAFEARRAY.0 || vt == VT_ARRAY.0
-    }
-
-    /// Try to get array value.
-    /// 
-    /// Return `SafeArray` value when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
-    pub fn get_array(&self) -> Result<SafeArray> {
-        let value = self.get_value()?;
-        match value {
-            Value::SAFEARRAY(arr) => Ok(arr),
-            Value::ARRAY(arr) => Ok(arr),
-            _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
-        }
-    }
-}
-
-impl From<VARIANT> for Variant {
-    fn from(value: VARIANT) -> Self {
-        Self {
-            value
-        }
-    }
-}
-
-impl Into<VARIANT> for Variant {
-    fn into(self) -> VARIANT {
-        self.value
-    }
-}
-
-impl AsRef<VARIANT> for Variant {
-    fn as_ref(&self) -> &VARIANT {
-        &self.value
-    }
-}
-
-impl Display for Variant {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Ok(val) = self.get_value() {
-            write!(f, "{}", val)
-        } else {
-            Err(std::fmt::Error {})
-        }
-    }
-}
-
-impl From<Value> for Variant {
-    fn from(value: Value) -> Self {
-        match value {
-            Value::EMPTY => Variant::new_null(VT_EMPTY),
-            Value::NULL => Variant::new_null(VT_NULL),
-            Value::VOID => Variant::new_null(VT_VOID),
-            Value::I1(v) => Variant::new(VT_I1, VARIANT_0_0_0 { bVal: v as u8 }),
-            Value::I2(v) => Variant::new(VT_I2, VARIANT_0_0_0 { iVal: v }),
-            Value::I4(v) => Variant::new(VT_I4, VARIANT_0_0_0 { lVal: v }),
-            Value::I8(v) => Variant::new(VT_I8, VARIANT_0_0_0 { llVal: v }),
-            Value::INT(v) => Variant::new(VT_INT, VARIANT_0_0_0 { lVal: v }),
-            Value::UI1(v) => Variant::new(VT_UI1, VARIANT_0_0_0 { bVal: v }),
-            Value::UI2(v) => Variant::new(VT_UI2, VARIANT_0_0_0 { uiVal: v }),
-            Value::UI4(v) => Variant::new(VT_UI4, VARIANT_0_0_0 { ulVal: v }),
-            Value::UI8(v) => Variant::new(VT_UI8, VARIANT_0_0_0 { ullVal: v }),
-            Value::UINT(v) => Variant::new(VT_UINT, VARIANT_0_0_0 { uintVal: v }),
-            Value::R4(v) => Variant::new(VT_R4, VARIANT_0_0_0 { fltVal: v }),
-            Value::R8(v) => Variant::new(VT_R8, VARIANT_0_0_0 { dblVal: v }),
-            Value::CURRENCY(v) => Variant::new(VT_CY, VARIANT_0_0_0 { cyVal: CY { int64: v} }),
-            Value::DATE(v) => Variant::new(VT_DATE, VARIANT_0_0_0 { date: v }),
-            Value::STRING(v) => Variant::new(VT_BSTR, VARIANT_0_0_0 { bstrVal: ManuallyDrop::new(BSTR::from(v)) }),
-            Value::UNKNOWN(v) => Variant::new(VT_UNKNOWN, VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
-            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
-            Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { 0xffff } else { 0x000 } as i16 }),
-            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
-            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
-            Value::SAFEARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
-            Value::ARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
-        }
-    }
-}
-
-impl TryInto<Value> for &Variant {
-    type Error = Error;
-
-    fn try_into(self) -> Result<Value> {
-        self.get_value()
-    }
 }
 
 impl TryInto<Value> for Variant {
     type Error = Error;
 
     fn try_into(self) -> Result<Value> {
-        (&self).get_value()
+        (&self).try_into()
     }
 }
 
@@ -715,7 +715,11 @@ mod tests {
         assert!(v.get_type() == VT_BOOL);
 
         let b: bool = v.try_into().unwrap();
-        assert!(b)
+        assert!(b);
+
+        let val = Variant::from(Value::STRING("true".into()));
+        let b_val: bool = val.try_into().unwrap();
+        assert!(b_val);
     }
 
     #[test]
