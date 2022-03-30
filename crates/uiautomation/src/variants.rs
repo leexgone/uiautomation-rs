@@ -10,6 +10,8 @@ use windows::Win32::System::Com::VARIANT;
 use windows::Win32::System::Com::VARIANT_0;
 use windows::Win32::System::Com::VARIANT_0_0;
 use windows::Win32::System::Com::VARIANT_0_0_0;
+use windows::Win32::System::Ole::SafeArrayCreate;
+use windows::Win32::System::Ole::SafeArrayCreateVector;
 use windows::Win32::System::Ole::VARENUM;
 use windows::Win32::System::Ole::VT_ARRAY;
 use windows::Win32::System::Ole::VT_BOOL;
@@ -775,11 +777,35 @@ pub struct SafeArray {
     array: SAFEARRAY
 }
 
+impl SafeArray {
+    pub fn new_vector(vt: VARENUM, len: u32) -> Result<Self> {
+        unsafe {
+            let array = SafeArrayCreateVector(vt.0 as _, 0, len);
+
+            Ok(Self {
+                array: *array
+            })
+        }
+    }
+}
+
 impl From<SAFEARRAY> for SafeArray {
     fn from(array: SAFEARRAY) -> Self {
         Self {
             array
         }
+    }
+}
+
+impl Into<SAFEARRAY> for SafeArray {
+    fn into(self) -> SAFEARRAY {
+        self.array
+    }
+}
+
+impl AsRef<SAFEARRAY> for SafeArray {
+    fn as_ref(&self) -> &SAFEARRAY {
+        &self.array
     }
 }
 
