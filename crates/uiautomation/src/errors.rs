@@ -12,6 +12,8 @@ pub const ERR_TIMEOUT: i32 = 2;
 pub const ERR_INACTIVE: i32 = 3;
 /// Error caused by unsupported or mismatched type
 pub const ERR_TYPE: i32 = 4;
+/// Error when a pointer is null.
+pub const ERR_NULL_PTR:  i32 = 5;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {

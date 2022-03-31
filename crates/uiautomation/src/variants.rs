@@ -77,6 +77,7 @@ use windows::core::IUnknown;
 
 use crate::Error;
 use crate::Result;
+use crate::errors::ERR_NULL_PTR;
 use crate::errors::ERR_TYPE;
 
 /// enum type value for `Variant`
@@ -781,10 +782,13 @@ impl SafeArray {
     pub fn new_vector(vt: VARENUM, len: u32) -> Result<Self> {
         unsafe {
             let array = SafeArrayCreateVector(vt.0 as _, 0, len);
-
-            Ok(Self {
-                array: *array
-            })
+            if array.is_null() {
+                Err(Error::new(ERR_NULL_PTR, "Create SafeArray Failed"))
+            } else {
+                Ok(Self {
+                    array: *array
+                })
+            }
         }
     }
 }
