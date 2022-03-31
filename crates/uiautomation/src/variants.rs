@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::mem::ManuallyDrop;
+use std::ptr::null_mut;
 
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::DECIMAL;
@@ -473,8 +474,8 @@ impl From<Value> for Variant {
             Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { 0xffff } else { 0x000 } as i16 }),
             Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
             Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
-            Value::SAFEARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
-            Value::ARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: &mut v.array }),
+            Value::SAFEARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
+            Value::ARRAY(mut v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
         }
     }
 }
@@ -780,7 +781,7 @@ impl TryInto<String> for Variant {
 /// A Wrapper for windows `SAFEARRAY`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SafeArray {
-    array: SAFEARRAY
+    array: *mut SAFEARRAY
 }
 
 impl SafeArray {
@@ -791,7 +792,7 @@ impl SafeArray {
                 Err(Error::new(ERR_NULL_PTR, "Create SafeArray Failed"))
             } else {
                 Ok(Self {
-                    array: *array
+                    array
                 })
             }
         }
@@ -799,7 +800,7 @@ impl SafeArray {
 
     pub fn get_var_type(&self) -> Result<VARENUM> {
         let vt = unsafe {
-            SafeArrayGetVartype(&self.array)?
+            SafeArrayGetVartype(self.array)?
         };
 
         Ok(VARENUM(vt as _))     
@@ -807,19 +808,19 @@ impl SafeArray {
 
     pub fn get_dim(&self) -> u32 {
         unsafe {
-            SafeArrayGetDim(&self.array)
+            SafeArrayGetDim(self.array)
         }
     }
 
     pub fn get_lower_bound(&self, dimension: u32) -> Result<i32> {
         Ok(unsafe {
-            SafeArrayGetLBound(&self.array, dimension)?
+            SafeArrayGetLBound(self.array, dimension)?
         })
     }
 
     pub fn get_upper_bound(&self, dimension: u32) -> Result<i32> {
         Ok(unsafe {
-            SafeArrayGetUBound(&self.array, dimension)?
+            SafeArrayGetUBound(self.array, dimension)?
         })
     }
 
@@ -828,7 +829,7 @@ impl SafeArray {
         let mut value = T::default();
         let v_ref: *mut T = &mut value;
         unsafe {
-            SafeArrayGetElement(&self.array, indices.as_ptr(), v_ref as _)?
+            SafeArrayGetElement(self.array, indices.as_ptr(), v_ref as _)?
         };
         Ok(value)
     }
@@ -875,7 +876,7 @@ impl SafeArray {
             let indices: [i32; 1] = [i as _];
             let v_ref: *const T = &src[i];
             unsafe {
-                SafeArrayPutElement(&arr.array, indices.as_ptr(), v_ref as _)?
+                SafeArrayPutElement(arr.array, indices.as_ptr(), v_ref as _)?
             };
         };
         Ok(arr)
@@ -887,23 +888,19 @@ impl SafeArray {
     }
 }
 
-impl From<SAFEARRAY> for SafeArray {
-    fn from(array: SAFEARRAY) -> Self {
+impl From<*mut SAFEARRAY> for SafeArray {
+    fn from(array: *mut SAFEARRAY) -> Self {
         Self {
             array
         }
     }
 }
 
-impl Into<SAFEARRAY> for SafeArray {
-    fn into(self) -> SAFEARRAY {
-        self.array
-    }
-}
-
-impl AsRef<SAFEARRAY> for SafeArray {
-    fn as_ref(&self) -> &SAFEARRAY {
-        &self.array
+impl Into<*mut SAFEARRAY> for SafeArray {
+    fn into(self) -> *mut SAFEARRAY {
+        let ret = self.array;
+        self.array == null_mut();
+        ret
     }
 }
 
@@ -913,10 +910,63 @@ impl Display for SafeArray {
     }
 }
 
+impl TryFrom<&Vec<i8>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<i8>) -> Result<Self> {
+        Self::from_vector(VT_I1, value)
+    }
+}
+
+impl TryInto<Vec<i8>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i8>> {
+        self.into_vector(VT_I1)
+    }
+}
+
+impl TryInto<Vec<i8>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i8>> {
+        (&self).try_into()
+    }
+}
+
+impl TryFrom<&Vec<i16>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<i16>) -> Result<Self> {
+        Self::from_vector(VT_I2, value)
+    }
+}
+
+impl TryInto<Vec<i16>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i16>> {
+        self.into_vector(VT_I2)
+    }
+}
+
+impl TryInto<Vec<i16>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i16>> {
+        (&self).try_into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use windows::Win32::System::Com::SAFEARRAY;
+    use windows::Win32::System::Ole::SafeArrayCreateVector;
+    use windows::Win32::System::Ole::SafeArrayGetVartype;
     use windows::Win32::System::Ole::VT_BOOL;
+    use windows::Win32::System::Ole::VT_I4;
 
+    use crate::variants::SafeArray;
     use crate::variants::Value;
     use crate::variants::Variant;
 
@@ -944,5 +994,39 @@ mod tests {
         let s = Variant::from(Value::STRING("Hello".into()));
         assert!(s.is_string());
         assert!(s.get_string().unwrap() == "Hello");
+    }
+
+    #[test]
+    fn test_safearray_i1() {
+        let vals: Vec<i8> = vec![1, 2, 3];
+        let arr: SafeArray = (&vals).try_into().unwrap();
+
+        assert_eq!(arr.get_dim(), 1);
+        assert_eq!(arr.get_lower_bound(1).unwrap(), 0);
+        assert_eq!(arr.get_upper_bound(1).unwrap(), 2);
+
+        let vals: Vec<i8> = arr.try_into().unwrap();
+
+        assert_eq!(vals.len(), 3);
+        assert_eq!(vals[0], 1);
+        assert_eq!(vals[1], 2);
+        assert_eq!(vals[2], 3);
+    }
+
+    #[test]
+    fn test_safearray() {
+        let arr = unsafe {
+            SafeArrayCreateVector(VT_I4.0 as _, 0, 3)
+        };
+        let vt = unsafe {
+            SafeArrayGetVartype(arr).unwrap()
+        };
+        assert_eq!(vt, VT_I4.0 as u16);
+
+        let arr: SAFEARRAY = unsafe { *arr };
+        let vt = unsafe {
+            SafeArrayGetVartype(&arr).unwrap()
+        };
+        assert_eq!(vt, VT_I4.0 as u16);
     }
 }
