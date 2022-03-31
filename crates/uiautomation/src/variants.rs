@@ -10,8 +10,13 @@ use windows::Win32::System::Com::VARIANT;
 use windows::Win32::System::Com::VARIANT_0;
 use windows::Win32::System::Com::VARIANT_0_0;
 use windows::Win32::System::Com::VARIANT_0_0_0;
-use windows::Win32::System::Ole::SafeArrayCreate;
 use windows::Win32::System::Ole::SafeArrayCreateVector;
+use windows::Win32::System::Ole::SafeArrayGetDim;
+use windows::Win32::System::Ole::SafeArrayGetElement;
+use windows::Win32::System::Ole::SafeArrayGetLBound;
+use windows::Win32::System::Ole::SafeArrayGetUBound;
+use windows::Win32::System::Ole::SafeArrayGetVartype;
+use windows::Win32::System::Ole::SafeArrayPutElement;
 use windows::Win32::System::Ole::VARENUM;
 use windows::Win32::System::Ole::VT_ARRAY;
 use windows::Win32::System::Ole::VT_BOOL;
@@ -779,9 +784,9 @@ pub struct SafeArray {
 }
 
 impl SafeArray {
-    pub fn new_vector(vt: VARENUM, len: u32) -> Result<Self> {
+    pub fn new_vector(var_type: VARENUM, len: u32) -> Result<Self> {
         unsafe {
-            let array = SafeArrayCreateVector(vt.0 as _, 0, len);
+            let array = SafeArrayCreateVector(var_type.0 as _, 0, len);
             if array.is_null() {
                 Err(Error::new(ERR_NULL_PTR, "Create SafeArray Failed"))
             } else {
@@ -790,6 +795,95 @@ impl SafeArray {
                 })
             }
         }
+    }
+
+    pub fn get_var_type(&self) -> Result<VARENUM> {
+        let vt = unsafe {
+            SafeArrayGetVartype(&self.array)?
+        };
+
+        Ok(VARENUM(vt as _))     
+    }
+
+    pub fn get_dim(&self) -> u32 {
+        unsafe {
+            SafeArrayGetDim(&self.array)
+        }
+    }
+
+    pub fn get_lower_bound(&self, dimension: u32) -> Result<i32> {
+        Ok(unsafe {
+            SafeArrayGetLBound(&self.array, dimension)?
+        })
+    }
+
+    pub fn get_upper_bound(&self, dimension: u32) -> Result<i32> {
+        Ok(unsafe {
+            SafeArrayGetUBound(&self.array, dimension)?
+        })
+    }
+
+    pub fn get_element<T: Default>(&self, index: i32) -> Result<T> {
+        let indices: [i32; 1] = [index];
+        let mut value = T::default();
+        let v_ref: *mut T = &mut value;
+        unsafe {
+            SafeArrayGetElement(&self.array, indices.as_ptr(), v_ref as _)?
+        };
+        Ok(value)
+    }
+
+    pub fn put_element<T>(&mut self, index: i32, value: T) -> Result<()> {
+        let indices: [i32; 1] = [index];
+        let v_ref: *const T = &value;
+        unsafe {
+            SafeArrayPutElement(&self.array, indices.as_ptr(), v_ref as _)?
+        };
+        Ok(())
+    }
+
+    fn into_vector<T: Default>(&self, var_type: VARENUM) -> Result<Vec<T>> {
+        if self.get_var_type()? != var_type {
+            return Err(Error::new(ERR_TYPE, "Err SafeArray Type"));
+        };
+
+        if self.get_dim() != 1 {
+            return Err(Error::new(ERR_TYPE, "Err SafeArray Dimension Count"));
+        };
+
+        let lower = self.get_lower_bound(1)?;
+        let upper = self.get_upper_bound(1)?;
+
+        let mut arr = Vec::with_capacity((upper - lower + 1) as _);
+        for i in lower..=upper {
+            let v = self.get_element(i)?;
+            arr.push(v);
+        };
+
+        Ok(arr)
+    }
+
+    fn into_string_vector(&self) -> Result<Vec<String>> {
+        let bstrs: Vec<BSTR> = self.into_vector(VT_BSTR)?;
+        let strings: Vec<String> = bstrs.iter().map(|s| s.to_string()).collect();
+        Ok(strings)
+    }
+
+    fn from_vector<T: Default>(var_type: VARENUM, src: &Vec<T>) -> Result<SafeArray> {
+        let arr = Self::new_vector(var_type, src.len() as _)?;
+        for i in 0..src.len() {
+            let indices: [i32; 1] = [i as _];
+            let v_ref: *const T = &src[i];
+            unsafe {
+                SafeArrayPutElement(&arr.array, indices.as_ptr(), v_ref as _)?
+            };
+        };
+        Ok(arr)
+    }
+
+    fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
+        let bstrs: Vec<BSTR> = src.iter().map(|s| s.as_ref().into()).collect();
+        Self::from_vector(VT_BSTR, &bstrs)
     }
 }
 
