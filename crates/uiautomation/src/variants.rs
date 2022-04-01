@@ -791,23 +791,18 @@ impl Display for SafeArray {
         }
 
         match vt.unwrap() {
-            // VT_BOOL => {
-            //     let vals: Result<Vec<bool>> = self.try_into();
-            //     if vals.is_err() {
-            //         return Err(std::fmt::Error {});
-            //     }
-
-            //     let vals = vals.unwrap();
-            //     write!(f, "[")?;
-            //     for (i, v) in vals.iter().enumerate() {
-            //         if i > 0 {
-            //             write!(f, ", ")?;
-            //         }
-            //         write!(f, "{}", v)?;
-            //     }
-            //     write!(f, "]")
-            // }
             VT_BOOL => fmt_safe_array!(Vec<bool>, self, f),
+            VT_I1 => fmt_safe_array!(Vec<i8>, self, f),
+            VT_I2 => fmt_safe_array!(Vec<i16>, self, f),
+            VT_I4 | VT_INT => fmt_safe_array!(Vec<i32>, self, f),
+            VT_I8 => fmt_safe_array!(Vec<i64>, self, f),
+            VT_UI1 => fmt_safe_array!(Vec<u8>, self, f),
+            VT_UI2 => fmt_safe_array!(Vec<u16>, self, f),
+            VT_UI4 | VT_UINT => fmt_safe_array!(Vec<u32>, self, f),
+            VT_UI8 => fmt_safe_array!(Vec<u64>, self, f),
+            VT_R4 => fmt_safe_array!(Vec<f32>, self, f),
+            VT_R8 => fmt_safe_array!(Vec<f64>, self, f),
+            VT_BSTR | VT_LPWSTR => fmt_safe_array!(Vec<String>, self, f),
             _ => Err(core::fmt::Error {})
         }
     }
@@ -1214,6 +1209,14 @@ impl TryFrom<Vec<String>> for SafeArray {
 
     fn try_from(value: Vec<String>) -> Result<Self> {
         Self::from_string_vector(&value)
+    }
+}
+
+impl TryInto<Vec<String>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<String>> {
+        self.into_string_vector()
     }
 }
 
