@@ -88,6 +88,9 @@ use crate::Result;
 use crate::errors::ERR_NULL_PTR;
 use crate::errors::ERR_TYPE;
 
+const VARIANT_TRUE: i16 = -1;
+const VARIANT_FALSE: i16 = 0;
+
 /// enum type value for `Variant`
 #[derive(Clone, PartialEq)]
 pub enum Value {
@@ -153,162 +156,6 @@ impl Display for Value {
         }
     }
 }
-
-// impl TryFrom<&Variant> for Value {
-//     type Error = Error;
-
-//     fn try_from(value: &Variant) -> Result<Self> {
-//         let vt = value.get_type();
-
-//         if vt == VT_EMPTY {
-//             Ok(Self::EMPTY)
-//         } else if vt == VT_NULL {
-//             Ok(Self::NULL)
-//         } else if vt == VT_VOID {
-//             Ok(Self::VOID)
-//         } else if vt == VT_I1 {
-//             let val = unsafe {
-//                 value.get_data().bVal as i8
-//             }; 
-//             Ok(Self::I1(val))
-//         } else if vt == VT_I2 {
-//             let val = unsafe {
-//                 value.get_data().iVal
-//             };
-//             Ok(Self::I2(val))
-//         } else if vt == VT_I4 {
-//             let val = unsafe {
-//                 value.get_data().lVal
-//             };
-//             Ok(Self::I4(val))
-//         } else if vt == VT_I8 {
-//             let val = unsafe {
-//                 value.get_data().llVal
-//             };
-//             Ok(Self::I8(val))
-//         } else if vt == VT_INT {
-//             let val = unsafe {
-//                 value.get_data().lVal
-//             };
-//             Ok(Self::INT(val))
-//         } else if vt == VT_UI1 {
-//             let val = unsafe {
-//                 value.get_data().bVal
-//             };
-//             Ok(Self::UI1(val))
-//         } else if vt == VT_UI2 {
-//             let val = unsafe {
-//                 value.get_data().uiVal
-//             };
-//             Ok(Self::UI2(val))
-//         } else if vt == VT_UI4 {
-//             let val = unsafe {
-//                 value.get_data().ulVal
-//             };
-//             Ok(Self::UI4(val))
-//         } else if vt == VT_UI8 {
-//             let val = unsafe {
-//                 value.get_data().ullVal
-//             };
-//             Ok(Self::UI8(val))
-//         } else if vt == VT_UINT {
-//             let val = unsafe {
-//                 value.get_data().uintVal
-//             };
-//             Ok(Self::UINT(val))
-//         } else if vt == VT_R4 {
-//             let val = unsafe {
-//                 value.get_data().fltVal
-//             };
-//             Ok(Self::R4(val))
-//         } else if vt == VT_R8 {
-//             let val = unsafe {
-//                 value.get_data().dblVal
-//             };
-//             Ok(Self::R8(val))
-//         } else if vt == VT_CY {
-//             let val = unsafe {
-//                 value.get_data().cyVal.int64
-//             };
-//             Ok(Self::CURRENCY(val))
-//         } else if vt == VT_DATE {
-//             let val = unsafe {
-//                 value.get_data().date
-//             };
-//             Ok(Self::DATE(val))
-//         } else if vt == VT_BSTR || vt == VT_LPSTR {
-//             let val = unsafe {
-//                 value.get_data().bstrVal.to_string()
-//             };
-//             Ok(Self::STRING(val))
-//         } else if vt == VT_LPSTR {
-//             let val = unsafe {
-//                 if value.get_data().pcVal.is_null() {
-//                     String::from("")
-//                 } else {
-//                     let lpstr = value.get_data().pcVal.0;
-//                     let mut end = lpstr;
-//                     while *end != 0 {
-//                         end = end.add(1);
-//                     };
-//                     String::from_utf8_lossy(std::slice::from_raw_parts(lpstr, end.offset_from(lpstr) as _)).into()
-//                 }
-//             };
-
-//             Ok(Self::STRING(val))
-//         } else if vt == VT_DISPATCH {
-//             let val = unsafe {
-//                 if let Some(ref disp) = *value.get_data().ppdispVal {
-//                     Self::DISPATCH(disp.clone())
-//                 } else {
-//                     Self::NULL
-//                 }
-//             };
-//             Ok(val)
-//         } else if vt == VT_UNKNOWN {
-//             let val = unsafe {
-//                 if let Some(ref unkown) = *value.get_data().ppunkVal {
-//                     Self::UNKNOWN(unkown.clone())
-//                 } else {
-//                     Self::NULL
-//                 }
-//             };
-//             Ok(val)
-//         } else if vt == VT_ERROR {
-//             let val = unsafe {
-//                 value.get_data().intVal
-//             };
-//             Ok(Self::HRESULT(HRESULT(val)))
-//         } else if vt == VT_HRESULT {
-//             let val = unsafe {
-//                 value.get_data().intVal
-//             };
-//             Ok(Self::HRESULT(HRESULT(val)))
-//         } else if vt == VT_BOOL {
-//             let val = unsafe {
-//                 value.get_data().__OBSOLETE__VARIANT_BOOL != 0
-//             };
-//             Ok(Self::BOOL(val))
-//         } else if vt == VT_VARIANT {
-//             let val = unsafe {
-//                 (*value.get_data().pvarVal).clone()
-//             };
-//             Ok(Self::VARIANT(val.into()))
-//         } else if vt == VT_DECIMAL {
-//             let val = unsafe {
-//                 (*value.get_data().pdecVal).clone()
-//             };
-//             Ok(Self::DECIMAL(val))
-//         } else if vt == VT_SAFEARRAY || vt == VT_ARRAY {
-//             let arr = unsafe {
-//                 (*value.get_data().parray).clone()
-//             };
-//             Ok(Self::SAFEARRAY(arr.into()))
-//         } else {
-//             Err(Error::new(ERR_TYPE, ""))
-//         }
-//     }
-// }
 
 /// A Wrapper for windows `VARIANT`
 #[derive(Clone, PartialEq, Eq, Default)]
@@ -473,7 +320,7 @@ impl From<Value> for Variant {
             Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
             Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
             Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { 0xffff } else { 0x000 } as i16 }),
+            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { VARIANT_TRUE } else { VARIANT_FALSE }}),
             Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
             Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
             Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
@@ -788,6 +635,7 @@ pub struct SafeArray {
 }
 
 impl SafeArray {
+    /// Create `SafeArray` wrapper. if the array is from a VARIANT, set `owned` as `false`.
     fn new(array: *mut SAFEARRAY, owned: bool) -> Self {
         Self {
             array,
@@ -795,6 +643,7 @@ impl SafeArray {
         }
     }
 
+    /// Create a vector array.
     pub fn new_vector(var_type: VARENUM, len: u32) -> Result<Self> {
         unsafe {
             let array = SafeArrayCreateVector(var_type.0 as _, 0, len);
@@ -809,6 +658,7 @@ impl SafeArray {
         }
     }
 
+    /// Retrieve the raw `*mut SAFEARRAY`
     pub fn get_array(&self) -> *mut SAFEARRAY {
         self.array
     }
@@ -858,7 +708,7 @@ impl SafeArray {
         Ok(())
     }
 
-    fn into_vector<T: Default>(&self, var_type: VARENUM) -> Result<Vec<T>> {
+    pub fn into_vector<T: Default>(&self, var_type: VARENUM) -> Result<Vec<T>> {
         if self.get_var_type()? != var_type {
             return Err(Error::new(ERR_TYPE, "Err SafeArray Type"));
         };
@@ -879,13 +729,13 @@ impl SafeArray {
         Ok(arr)
     }
 
-    fn into_string_vector(&self) -> Result<Vec<String>> {
+    pub fn into_string_vector(&self) -> Result<Vec<String>> {
         let bstrs: Vec<BSTR> = self.into_vector(VT_BSTR)?;
         let strings: Vec<String> = bstrs.iter().map(|s| s.to_string()).collect();
         Ok(strings)
     }
 
-    fn from_vector<T: Default>(var_type: VARENUM, src: &Vec<T>) -> Result<SafeArray> {
+    pub fn from_vector<T: Default>(var_type: VARENUM, src: &Vec<T>) -> Result<SafeArray> {
         let arr = Self::new_vector(var_type, src.len() as _)?;
         for i in 0..src.len() {
             let indices: [i32; 1] = [i as _];
@@ -897,7 +747,7 @@ impl SafeArray {
         Ok(arr)
     }
 
-    fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
+    pub fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
         let bstrs: Vec<BSTR> = src.iter().map(|s| s.as_ref().into()).collect();
         Self::from_vector(VT_BSTR, &bstrs)
     }
@@ -912,17 +762,54 @@ impl From<*mut SAFEARRAY> for SafeArray {
     }
 }
 
-// impl Into<*mut SAFEARRAY> for SafeArray {
-//     fn into(self) -> *mut SAFEARRAY {
-//         let ret = self.array;
-//         self.array = null_mut();
-//         ret
-//     }
-// }
+macro_rules! fmt_safe_array {
+    ($vec_type:ty, $self:ident, $f:ident) => {
+        {
+            let vals: Result<$vec_type> = $self.try_into();
+            if vals.is_err() {
+                return Err(std::fmt::Error {});
+            }
+
+            let vals = vals.unwrap();
+            write!($f, "[")?;
+            for (i, v) in vals.iter().enumerate() {
+                if i > 0 {
+                    write!($f, ", ")?;
+                }
+                write!($f, "{}", v)?;
+            }
+            write!($f, "]")
+        }
+    };
+}
 
 impl Display for SafeArray {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let vt = self.get_var_type();
+        if vt.is_err() {
+            return Err(std::fmt::Error {});
+        }
+
+        match vt.unwrap() {
+            // VT_BOOL => {
+            //     let vals: Result<Vec<bool>> = self.try_into();
+            //     if vals.is_err() {
+            //         return Err(std::fmt::Error {});
+            //     }
+
+            //     let vals = vals.unwrap();
+            //     write!(f, "[")?;
+            //     for (i, v) in vals.iter().enumerate() {
+            //         if i > 0 {
+            //             write!(f, ", ")?;
+            //         }
+            //         write!(f, "{}", v)?;
+            //     }
+            //     write!(f, "]")
+            // }
+            VT_BOOL => fmt_safe_array!(Vec<bool>, self, f),
+            _ => Err(core::fmt::Error {})
+        }
     }
 }
 
@@ -962,19 +849,26 @@ impl TryFrom<&Vec<i8>> for SafeArray {
     }
 }
 
-// impl TryInto<Vec<i8>> for &SafeArray {
-//     type Error = Error;
+impl TryFrom<Vec<i8>> for SafeArray {
+    type Error = Error;
 
-//     fn try_into(self) -> Result<Vec<i8>> {
-//         self.into_vector(VT_I1)
-//     }
-// }
+    fn try_from(value: Vec<i8>) -> Result<Self> {
+        Self::from_vector(VT_I1, &value)
+    }
+}
+
+impl TryInto<Vec<i8>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i8>> {
+        self.into_vector(VT_I1)
+    }
+}
 
 impl TryInto<Vec<i8>> for SafeArray {
     type Error = Error;
 
     fn try_into(self) -> Result<Vec<i8>> {
-        // (&self).try_into()
         self.into_vector(VT_I1)
     }
 }
@@ -987,20 +881,291 @@ impl TryFrom<&Vec<i16>> for SafeArray {
     }
 }
 
-// impl TryInto<Vec<i16>> for &SafeArray {
-//     type Error = Error;
+impl TryFrom<Vec<i16>> for SafeArray {
+    type Error = Error;
 
-//     fn try_into(self) -> Result<Vec<i16>> {
-//         self.into_vector(VT_I2)
-//     }
-// }
+    fn try_from(value: Vec<i16>) -> Result<Self> {
+        Self::from_vector(VT_I2, &value)
+    }
+}
+
+impl TryInto<Vec<i16>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i16>> {
+        self.into_vector(VT_I2)
+    }
+}
 
 impl TryInto<Vec<i16>> for SafeArray {
     type Error = Error;
 
     fn try_into(self) -> Result<Vec<i16>> {
-        // (&self).try_into()
         self.into_vector(VT_I2)
+    }
+}
+
+impl TryFrom<&Vec<i32>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<i32>) -> Result<Self> {
+        Self::from_vector(VT_I4, value)
+    }
+}
+
+impl TryFrom<Vec<i32>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<i32>) -> Result<Self> {
+        Self::from_vector(VT_I4, &value)
+    }
+}
+
+impl TryInto<Vec<i32>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i32>> {
+        if self.get_var_type()? == VT_INT {
+            self.into_vector(VT_INT)
+        } else {
+            self.into_vector(VT_I4)
+        }
+    }
+}
+
+impl TryInto<Vec<i32>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i32>> {
+        (&self).try_into()
+    }
+}
+
+impl TryFrom<&Vec<i64>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<i64>) -> Result<Self> {
+        Self::from_vector(VT_I8, value)
+    }
+}
+
+impl TryFrom<Vec<i64>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<i64>) -> Result<Self> {
+        Self::from_vector(VT_I8, &value)
+    }
+}
+
+impl TryInto<Vec<i64>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i64>> {
+        self.into_vector(VT_I8)
+    }
+}
+
+impl TryInto<Vec<i64>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<i64>> {
+        self.into_vector(VT_I8)
+    }
+}
+
+impl TryFrom<&Vec<u8>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<u8>) -> Result<Self> {
+        Self::from_vector(VT_UI1, value)
+    }
+}
+
+impl TryFrom<Vec<u8>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<u8>) -> Result<Self> {
+        Self::from_vector(VT_UI1, &value)
+    }
+}
+
+impl TryInto<Vec<u8>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u8>> {
+        self.into_vector(VT_UI1)
+    }
+}
+
+impl TryInto<Vec<u8>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u8>> {
+        self.into_vector(VT_UI1)
+    }
+}
+
+impl TryFrom<&Vec<u16>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<u16>) -> Result<Self> {
+        Self::from_vector(VT_UI2, value)
+    }
+}
+
+impl TryFrom<Vec<u16>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<u16>) -> Result<Self> {
+        Self::from_vector(VT_UI2, &value)
+    }
+}
+
+impl TryInto<Vec<u16>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u16>> {
+        self.into_vector(VT_UI2)
+    }
+}
+
+impl TryInto<Vec<u16>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u16>> {
+        self.into_vector(VT_UI2)
+    }
+}
+
+impl TryFrom<&Vec<u32>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<u32>) -> Result<Self> {
+        Self::from_vector(VT_UI4, value)
+    }
+}
+
+impl TryFrom<Vec<u32>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<u32>) -> Result<Self> {
+        Self::from_vector(VT_UI4, &value)
+    }
+}
+
+impl TryInto<Vec<u32>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u32>> {
+        if self.get_var_type()? == VT_UINT {
+            self.into_vector(VT_UINT)
+        } else {
+            self.into_vector(VT_UI4)
+        }
+    }
+}
+
+impl TryInto<Vec<u32>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u32>> {
+        (&self).try_into()
+    }
+}
+
+impl TryFrom<&Vec<u64>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<u64>) -> Result<Self> {
+        Self::from_vector(VT_UI8, value)
+    }
+}
+
+impl TryFrom<Vec<u64>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<u64>) -> Result<Self> {
+        Self::from_vector(VT_UI8, &value)
+    }
+}
+
+impl TryInto<Vec<u64>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u64>> {
+        self.into_vector(VT_UI8)
+    }
+}
+
+impl TryInto<Vec<u64>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<u64>> {
+        self.into_vector(VT_UI8)
+    }
+}
+
+impl TryFrom<&Vec<f32>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<f32>) -> Result<Self> {
+        Self::from_vector(VT_R4, value)
+    }
+}
+
+impl TryFrom<Vec<f32>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<f32>) -> Result<Self> {
+        Self::from_vector(VT_R4, &value)
+    }
+}
+
+impl TryInto<Vec<f32>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<f32>> {
+        self.into_vector(VT_R4)
+    }
+}
+
+impl TryInto<Vec<f32>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<f32>> {
+        self.into_vector(VT_R4)
+    }
+}
+
+impl TryFrom<&Vec<f64>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<f64>) -> Result<Self> {
+        Self::from_vector(VT_R8, value)
+    }
+}
+
+impl TryFrom<Vec<f64>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<f64>) -> Result<Self> {
+        Self::from_vector(VT_R8, &value)
+    }
+}
+
+impl TryInto<Vec<f64>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<f64>> {
+        self.into_vector(VT_R8)
+    }
+}
+
+impl TryInto<Vec<f64>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<f64>> {
+        self.into_vector(VT_R8)
     }
 }
 
@@ -1008,8 +1173,15 @@ impl TryFrom<&Vec<&str>> for SafeArray {
     type Error = Error;
 
     fn try_from(value: &Vec<&str>) -> Result<Self> {
-        // value.try_into()
         Self::from_string_vector(value)
+    }
+}
+
+impl TryFrom<Vec<&str>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<&str>) -> Result<Self> {
+        Self::from_string_vector(&value)
     }
 }
 
@@ -1017,8 +1189,15 @@ impl TryFrom<&Vec<&String>> for SafeArray {
     type Error = Error;
 
     fn try_from(value: &Vec<&String>) -> Result<Self> {
-        // value.try_into()
         Self::from_string_vector(value)
+    }
+}
+
+impl TryFrom<Vec<&String>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<&String>) -> Result<Self> {
+        Self::from_string_vector(&value)
     }
 }
 
@@ -1026,8 +1205,15 @@ impl TryFrom<&Vec<String>> for SafeArray {
     type Error = Error;
 
     fn try_from(value: &Vec<String>) -> Result<Self> {
-        // value.try_into()
         Self::from_string_vector(value)
+    }
+}
+
+impl TryFrom<Vec<String>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        Self::from_string_vector(&value)
     }
 }
 
@@ -1039,12 +1225,43 @@ impl TryInto<Vec<String>> for SafeArray {
     }
 }
 
+impl TryFrom<&Vec<bool>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: &Vec<bool>) -> Result<Self> {
+        let bools: Vec<i16> = value.iter().map(|b| if *b { VARIANT_TRUE } else { VARIANT_FALSE }).collect();
+        Self::from_vector(VT_BOOL, &bools)
+    }
+}
+
+impl TryFrom<Vec<bool>> for SafeArray {
+    type Error = Error;
+
+    fn try_from(value: Vec<bool>) -> Result<Self> {
+        (&value).try_into()
+    }
+}
+
+impl TryInto<Vec<bool>> for &SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<bool>> {
+        let bools: Vec<i16> = self.into_vector(VT_BOOL)?;
+        Ok(bools.iter().map(|v| *v != 0).collect())
+    }
+}
+
+impl TryInto<Vec<bool>> for SafeArray {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<bool>> {
+        (&self).try_into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use windows::Win32::System::Ole::SafeArrayCreateVector;
-    use windows::Win32::System::Ole::SafeArrayGetVartype;
     use windows::Win32::System::Ole::VT_BOOL;
-    use windows::Win32::System::Ole::VT_I4;
 
     use crate::variants::SafeArray;
     use crate::variants::Value;
@@ -1079,12 +1296,13 @@ mod tests {
     #[test]
     fn test_safearray_i1() {
         let vals: Vec<i8> = vec![1, 2, 3];
-        let arr: SafeArray = (&vals).try_into().unwrap();
+        let arr: SafeArray = vals.try_into().unwrap();
 
         assert_eq!(arr.get_dim(), 1);
         assert_eq!(arr.get_lower_bound(1).unwrap(), 0);
         assert_eq!(arr.get_upper_bound(1).unwrap(), 2);
 
+        // println!("{}", arr.to_string());
         let vals: Vec<i8> = arr.try_into().unwrap();
 
         assert_eq!(vals.len(), 3);
@@ -1094,19 +1312,37 @@ mod tests {
     }
 
     #[test]
-    fn test_safearray() {
-        let arr = unsafe {
-            SafeArrayCreateVector(VT_I4.0 as _, 0, 3)
-        };
-        let vt = unsafe {
-            SafeArrayGetVartype(arr).unwrap()
-        };
-        assert_eq!(vt, VT_I4.0 as u16);
+    fn test_safearray_bool() {
+        let vals = vec![true, false];
+        let arr: SafeArray = vals.try_into().unwrap();
+
+        assert_eq!(arr.get_var_type().unwrap(), VT_BOOL);
+
+        assert_eq!(arr.to_string(), "[true, false]");
+
+        let vals: Vec<bool> = arr.try_into().unwrap();
+        assert_eq!(vals.len(), 2);
+        assert!(vals[0]);
+        assert!(!vals[1]);
+    }
+
+    #[test]
+    fn test_tmp() {
+        // let arr = unsafe {
+        //     SafeArrayCreateVector(VT_I4.0 as _, 0, 3)
+        // };
+        // let vt = unsafe {
+        //     SafeArrayGetVartype(arr).unwrap()
+        // };
+        // assert_eq!(vt, VT_I4.0 as u16);
 
         // let arr: SAFEARRAY = unsafe { *arr };
         // let vt = unsafe {
         //     SafeArrayGetVartype(&arr).unwrap()
         // };
         // assert_eq!(vt, VT_I4.0 as u16);
+        // let arr = vec![1, 2, 3, 4];
+        // let str: String = arr.iter().fold(String::new(), |s, &n| { if s.is_empty() { &n.to_string() } });
+        // println!("{}", str)
     }
 }
