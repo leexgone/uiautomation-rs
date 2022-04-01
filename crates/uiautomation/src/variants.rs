@@ -503,46 +503,33 @@ impl TryInto<bool> for Variant {
     type Error = Error;
 
     fn try_into(self) -> Result<bool> {
-        let vt = self.vt();
-        let val: i16 = unsafe { if vt == VT_BOOL.0 {
-                self.get_data().boolVal
-            } else if vt == VT_CY.0 {
-                VarBoolFromCy(self.get_data().cyVal)?
-            } else if vt == VT_DATE.0 {
-                VarBoolFromDate(self.get_data().date)?
-            } else if vt == VT_DECIMAL.0 {
-                VarBoolFromDec(self.get_data().pdecVal)?
-            } else if vt == VT_I1.0 {
-                VarBoolFromI1(self.get_data().cVal)?
-            } else if vt == VT_I2.0 {
-                VarBoolFromI2(self.get_data().iVal)?
-            } else if vt == VT_I4.0 || vt == VT_INT.0 {
-                VarBoolFromI4(self.get_data().lVal)?
-            } else if vt == VT_I8.0 {
-                VarBoolFromI8(self.get_data().llVal)?
-            } else if vt == VT_R4.0 {
-                VarBoolFromR4(self.get_data().fltVal)?
-            } else if vt == VT_R8.0 {
-                VarBoolFromR8(self.get_data().dblVal)?
-            } else if vt == VT_BSTR.0 || vt == VT_LPWSTR.0 || vt == VT_LPSTR.0 {
-                let str = self.get_string()?;
-                VarBoolFromStr(str, 0, 0)?
-            } else if vt == VT_UI1.0 {
-                VarBoolFromUI1(self.get_data().bVal)?
-            } else if vt == VT_UI2.0 {
-                VarBoolFromUI2(self.get_data().uiVal)?
-            } else if vt == VT_UI4.0 || vt == VT_UINT.0 {
-                VarBoolFromUI4(self.get_data().ulVal)?
-            } else if vt == VT_UI8.0 {
-                VarBoolFromUI8(self.get_data().ullVal)?
-            } else if vt == VT_DISPATCH.0 {
-                if let Some(ref disp) = *self.get_data().pdispVal {
+        // let vt = self.vt();
+        let val: i16 = unsafe {
+            match self.get_type() {
+                VT_BOOL => self.get_data().boolVal,
+                VT_CY => VarBoolFromCy(self.get_data().cyVal)?,
+                VT_DATE => VarBoolFromDate(self.get_data().date)?,
+                VT_DECIMAL => VarBoolFromDec(self.get_data().pdecVal)?,
+                VT_I1 => VarBoolFromI1(self.get_data().cVal)?,
+                VT_I2 => VarBoolFromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT => VarBoolFromI4(self.get_data().lVal)?,
+                VT_I8 => VarBoolFromI8(self.get_data().llVal)?,
+                VT_R4 => VarBoolFromR4(self.get_data().fltVal)?,
+                VT_R8 => VarBoolFromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR => {
+                    let str = self.get_string()?;
+                    VarBoolFromStr(str, 0, 0)?
+                }, 
+                VT_UI1 => VarBoolFromUI1(self.get_data().bVal)?,
+                VT_UI2 => VarBoolFromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT => VarBoolFromUI4(self.get_data().ulVal)?,
+                VT_UI8 => VarBoolFromUI8(self.get_data().ullVal)?,
+                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                     VarBoolFromDisp(disp, 0)?
                 } else {
-                    0i16
-                }
-            } else {
-                return Err(Error::new(ERR_TYPE, "Error Variant Type"));
+                    VARIANT_FALSE
+                },
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
             }
         };
         Ok(val != 0)
@@ -574,44 +561,29 @@ impl TryInto<String> for &Variant {
         if self.is_string() {
             self.get_string()
         } else {
-            let vt = self.vt();
+            // let vt = self.get_type();
             let str: BSTR = unsafe {
-                if vt == VT_BOOL.0 {
-                    VarBstrFromBool(self.get_data().boolVal, 0, 0)?
-                } else if vt == VT_CY.0 {
-                    VarBstrFromCy(self.get_data().cyVal, 0, 0)?
-                } else if vt == VT_DATE.0 {
-                    VarBstrFromDate(self.get_data().date, 0, 0)?
-                } else if vt == VT_DECIMAL.0 {
-                    VarBstrFromDec(self.get_data().pdecVal, 0, 0)?
-                } else if vt == VT_DISPATCH.0 {
-                    if let Some(ref disp) = *self.get_data().pdispVal {
+                match self.get_type() {
+                    VT_BOOL => VarBstrFromBool(self.get_data().boolVal, 0, 0)?,
+                    VT_CY => VarBstrFromCy(self.get_data().cyVal, 0, 0)?,
+                    VT_DATE => VarBstrFromDate(self.get_data().date, 0, 0)?,
+                    VT_DECIMAL => VarBstrFromDec(self.get_data().pdecVal, 0, 0)?,
+                    VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                         VarBstrFromDisp(disp, 0, 0)?
                     } else {
                         BSTR::default()
-                    }
-                } else if vt == VT_I1.0 {
-                    VarBstrFromI1(self.get_data().cVal, 0, 0)?
-                } else if vt == VT_I2.0 {
-                    VarBstrFromI2(self.get_data().iVal, 0, 0)?
-                } else if vt == VT_I4.0 || vt == VT_INT.0 {
-                    VarBstrFromI4(self.get_data().lVal, 0, 0)?
-                } else if vt == VT_I8.0 {
-                    VarBstrFromI8(self.get_data().llVal, 0, 0)?
-                } else if vt == VT_R4.0 {
-                    VarBstrFromR4(self.get_data().fltVal, 0, 0)?
-                } else if vt == VT_R8.0 {
-                    VarBstrFromR8(self.get_data().dblVal, 0, 0)?
-                } else if vt == VT_UI1.0 {
-                    VarBstrFromUI1(self.get_data().bVal, 0, 0)?
-                } else if vt == VT_UI2.0 {
-                    VarBstrFromUI2(self.get_data().uiVal, 0, 0)?
-                } else if vt == VT_UI4.0 || vt == VT_UINT.0 {
-                    VarBstrFromUI4(self.get_data().ulVal, 0, 0)?
-                } else if vt == VT_UI8.0 {
-                    VarBstrFromUI8(self.get_data().ullVal, 0, 0)?
-                } else {
-                    return Err(Error::new(ERR_TYPE, "Error Variant Type"));
+                    },
+                    VT_I1 => VarBstrFromI1(self.get_data().cVal, 0, 0)?,
+                    VT_I2 => VarBstrFromI2(self.get_data().iVal, 0, 0)?,
+                    VT_I4 | VT_INT => VarBstrFromI4(self.get_data().lVal, 0, 0)?,
+                    VT_I8 => VarBstrFromI8(self.get_data().llVal, 0, 0)?,
+                    VT_R4 => VarBstrFromR4(self.get_data().fltVal, 0, 0)?,
+                    VT_R8 => VarBstrFromR8(self.get_data().dblVal, 0, 0)?,
+                    VT_UI1 => VarBstrFromUI1(self.get_data().bVal, 0, 0)?,
+                    VT_UI2 => VarBstrFromUI2(self.get_data().uiVal, 0, 0)?,
+                    VT_UI4 | VT_UINT => VarBstrFromUI4(self.get_data().ulVal, 0, 0)?,
+                    VT_UI8 => VarBstrFromUI8(self.get_data().ullVal, 0, 0)?,
+                    _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
                 }
             };
             Ok(str.to_string())
