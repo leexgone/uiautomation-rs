@@ -80,8 +80,24 @@ use windows::Win32::System::Ole::VarBstrFromUI1;
 use windows::Win32::System::Ole::VarBstrFromUI2;
 use windows::Win32::System::Ole::VarBstrFromUI4;
 use windows::Win32::System::Ole::VarBstrFromUI8;
+use windows::Win32::System::Ole::VarI1FromBool;
+use windows::Win32::System::Ole::VarI1FromCy;
+use windows::Win32::System::Ole::VarI1FromDate;
+use windows::Win32::System::Ole::VarI1FromDec;
+use windows::Win32::System::Ole::VarI1FromDisp;
+use windows::Win32::System::Ole::VarI1FromI2;
+use windows::Win32::System::Ole::VarI1FromI4;
+use windows::Win32::System::Ole::VarI1FromI8;
+use windows::Win32::System::Ole::VarI1FromR4;
+use windows::Win32::System::Ole::VarI1FromR8;
+use windows::Win32::System::Ole::VarI1FromStr;
+use windows::Win32::System::Ole::VarI1FromUI1;
+use windows::Win32::System::Ole::VarI1FromUI2;
+use windows::Win32::System::Ole::VarI1FromUI4;
+use windows::Win32::System::Ole::VarI1FromUI8;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
+use windows::core::PSTR;
 
 use crate::Error;
 use crate::Result;
@@ -499,7 +515,7 @@ impl From<bool> for Variant {
     }
 }
 
-impl TryInto<bool> for Variant {
+impl TryInto<bool> for &Variant {
     type Error = Error;
 
     fn try_into(self) -> Result<bool> {
@@ -533,6 +549,14 @@ impl TryInto<bool> for Variant {
             }
         };
         Ok(val != 0)
+    }
+}
+
+impl TryInto<bool> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<bool> {
+        (&self).try_into()
     }
 }
 
@@ -595,6 +619,76 @@ impl TryInto<String> for Variant {
     type Error = Error;
 
     fn try_into(self) -> Result<String> {
+        (&self).try_into()
+    }
+}
+
+impl From<i8> for Variant {
+    fn from(value: i8) -> Self {
+        Value::I1(value).into()
+    }
+}
+
+macro_rules! var_to_i1 {
+    ($func:ident, $value:expr) => {
+        {
+            let pc = PSTR::default();
+            $func($value, pc)?;
+            (*pc.0) as i8
+        }
+    };
+}
+
+impl TryInto<i8> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<i8> {
+        let val: i8 = unsafe {
+            match self.get_type() {
+                // VT_BOOL => {
+                //     let pc = PSTR::default();
+                //     VarI1FromBool(self.get_data().iVal, pc)?;
+                //     (*pc.0) as i8
+                // }
+                VT_BOOL     => var_to_i1!(VarI1FromBool, self.get_data().__OBSOLETE__VARIANT_BOOL),
+                VT_CY       => var_to_i1!(VarI1FromCy, self.get_data().cyVal),
+                VT_DATE     => var_to_i1!(VarI1FromDate, self.get_data().date),
+                VT_DECIMAL  => var_to_i1!(VarI1FromDec, self.get_data().pdecVal),
+                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                    let pc = PSTR::default();
+                    VarI1FromDisp(disp, 0, pc)?;
+                    *pc.0 as i8
+                } else {
+                    0i8
+                },
+                VT_I1   => self.get_data().bVal as i8,
+                VT_I2   => var_to_i1!(VarI1FromI2, self.get_data().iVal),
+                VT_I4 | VT_INT  => var_to_i1!(VarI1FromI4, self.get_data().lVal),
+                VT_I8   => var_to_i1!(VarI1FromI8, self.get_data().llVal),
+                VT_R4   => var_to_i1!(VarI1FromR4, self.get_data().fltVal),
+                VT_R8   => var_to_i1!(VarI1FromR8, self.get_data().dblVal),
+                VT_BSTR | VT_LPWSTR | VT_LPSTR => {
+                    let str = self.get_string()?;
+                    let pc = PSTR::default();
+                    VarI1FromStr(str, 0, 0, pc)?;
+                    (*pc.0) as i8
+                },
+                VT_UI1  => var_to_i1!(VarI1FromUI1, self.get_data().bVal),
+                VT_UI2  => var_to_i1!(VarI1FromUI2, self.get_data().uiVal),
+                VT_UI4 | VT_UINT => var_to_i1!(VarI1FromUI4, self.get_data().ulVal),
+                VT_UI8  => var_to_i1!(VarI1FromUI8, self.get_data().ullVal),
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<i8> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<i8> {
         (&self).try_into()
     }
 }
