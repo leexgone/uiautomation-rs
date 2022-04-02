@@ -141,6 +141,19 @@ use windows::Win32::System::Ole::VarI8FromUI4;
 use windows::Win32::System::Ole::VarI8FromUI8;
 use windows::Win32::System::Ole::VarR4FromBool;
 use windows::Win32::System::Ole::VarR4FromCy;
+use windows::Win32::System::Ole::VarR4FromDate;
+use windows::Win32::System::Ole::VarR4FromDec;
+use windows::Win32::System::Ole::VarR4FromDisp;
+use windows::Win32::System::Ole::VarR4FromI1;
+use windows::Win32::System::Ole::VarR4FromI2;
+use windows::Win32::System::Ole::VarR4FromI4;
+use windows::Win32::System::Ole::VarR4FromI8;
+use windows::Win32::System::Ole::VarR4FromR8;
+use windows::Win32::System::Ole::VarR4FromStr;
+use windows::Win32::System::Ole::VarR4FromUI1;
+use windows::Win32::System::Ole::VarR4FromUI2;
+use windows::Win32::System::Ole::VarR4FromUI4;
+use windows::Win32::System::Ole::VarR4FromUI8;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
 use windows::core::PSTR;
@@ -904,7 +917,25 @@ impl TryInto<f32> for &Variant {
                     let mut v: [f32; 1] = [0f32];
                     VarR4FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
                     v[0]
-                }
+                },
+                VT_DATE     => VarR4FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarR4FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                    VarR4FromDisp(disp, 0)?
+                } else {
+                    0f32
+                },
+                VT_I1       => VarR4FromI1(self.get_data().cVal)?,
+                VT_I2       => VarR4FromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT  => VarR4FromI4(self.get_data().lVal)?,
+                VT_I8       => VarR4FromI8(self.get_data().llVal)?,
+                VT_R4       => self.get_data().fltVal,
+                VT_R8       => VarR4FromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarR4FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => VarR4FromUI1(self.get_data().bVal)?,
+                VT_UI2      => VarR4FromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT    => VarR4FromUI4(self.get_data().ulVal)?,
+                VT_UI8      => VarR4FromUI8(self.get_data().ullVal)?,
                 _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
             }
         };
