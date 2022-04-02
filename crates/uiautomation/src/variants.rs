@@ -95,6 +95,21 @@ use windows::Win32::System::Ole::VarI1FromUI1;
 use windows::Win32::System::Ole::VarI1FromUI2;
 use windows::Win32::System::Ole::VarI1FromUI4;
 use windows::Win32::System::Ole::VarI1FromUI8;
+use windows::Win32::System::Ole::VarI2FromBool;
+use windows::Win32::System::Ole::VarI2FromCy;
+use windows::Win32::System::Ole::VarI2FromDate;
+use windows::Win32::System::Ole::VarI2FromDec;
+use windows::Win32::System::Ole::VarI2FromDisp;
+use windows::Win32::System::Ole::VarI2FromI1;
+use windows::Win32::System::Ole::VarI2FromI4;
+use windows::Win32::System::Ole::VarI2FromI8;
+use windows::Win32::System::Ole::VarI2FromR4;
+use windows::Win32::System::Ole::VarI2FromR8;
+use windows::Win32::System::Ole::VarI2FromStr;
+use windows::Win32::System::Ole::VarI2FromUI1;
+use windows::Win32::System::Ole::VarI2FromUI2;
+use windows::Win32::System::Ole::VarI2FromUI4;
+use windows::Win32::System::Ole::VarI2FromUI8;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
 use windows::core::PSTR;
@@ -650,7 +665,7 @@ impl TryInto<i8> for &Variant {
                 //     VarI1FromBool(self.get_data().iVal, pc)?;
                 //     (*pc.0) as i8
                 // }
-                VT_BOOL     => var_to_i1!(VarI1FromBool, self.get_data().__OBSOLETE__VARIANT_BOOL),
+                VT_BOOL     => var_to_i1!(VarI1FromBool, self.get_data().boolVal),
                 VT_CY       => var_to_i1!(VarI1FromCy, self.get_data().cyVal),
                 VT_DATE     => var_to_i1!(VarI1FromDate, self.get_data().date),
                 VT_DECIMAL  => var_to_i1!(VarI1FromDec, self.get_data().pdecVal),
@@ -689,6 +704,58 @@ impl TryInto<i8> for Variant {
     type Error = Error;
 
     fn try_into(self) -> Result<i8> {
+        (&self).try_into()
+    }
+}
+
+impl From<i16> for Variant {
+    fn from(value: i16) -> Self {
+        Value::I2(value).into()
+    }
+}
+
+impl TryInto<i16> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<i16> {
+        let val: i16 = unsafe {
+            match self.get_type() {
+                VT_BOOL     => VarI2FromBool(self.get_data().boolVal)?,
+                VT_CY       => {
+                    let mut v: [i16; 1] = [0];
+                    VarI2FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
+                    v[0]
+                },
+                VT_DATE     => VarI2FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarI2FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                    VarI2FromDisp(disp, 0)?
+                } else {
+                    0i16
+                },
+                VT_I1       => VarI2FromI1(self.get_data().cVal)?,
+                VT_I2       => self.get_data().iVal,
+                VT_I4 | VT_INT  => VarI2FromI4(self.get_data().lVal)?,
+                VT_I8       => VarI2FromI8(self.get_data().llVal)?,
+                VT_R4       => VarI2FromR4(self.get_data().fltVal)?,
+                VT_R8       => VarI2FromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarI2FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => VarI2FromUI1(self.get_data().bVal)?,
+                VT_UI2      => VarI2FromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT    => VarI2FromUI4(self.get_data().ulVal)?,
+                VT_UI8      => VarI2FromUI8(self.get_data().ullVal)?,
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }    
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<i16> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<i16> {
         (&self).try_into()
     }
 }
