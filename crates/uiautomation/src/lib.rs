@@ -1,8 +1,9 @@
-pub mod variants;
 pub mod errors;
+pub mod variants;
 pub mod core;
 pub mod patterns;
 pub mod conditions;
+pub mod controls;
 
 pub use crate::errors::Error;
 pub use crate::errors::Result;

@@ -15,9 +15,11 @@ use windows::Win32::System::Com::CoInitializeEx;
 use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
+use windows::Win32::UI::Accessibility::IUIAutomationElement3;
 use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
+use windows::core::Interface;
 
 use crate::conditions::AndCondition;
 use crate::conditions::Condition;
@@ -27,6 +29,7 @@ use crate::errors::ERR_TIMEOUT;
 use crate::errors::Error;
 use crate::errors::Result;
 use crate::patterns::UIPattern;
+use crate::variants::Variant;
 
 #[derive(Clone, Debug)]
 pub struct UIAutomation {
@@ -165,7 +168,7 @@ impl UIElement {
         let control_type = unsafe {
             self.element.CurrentControlType()?
         };
-
+        
         Ok(control_type)
     }
 
@@ -385,6 +388,22 @@ impl UIElement {
         T::new(pattern)
     }
 
+    pub fn get_property_value(&self, property_id: i32) -> Result<Variant> {
+        let value = unsafe {
+            self.element.GetCurrentPropertyValue(property_id)?
+        };
+
+        Ok(value.into())
+    }
+
+    pub fn show_context_menu(&self) -> Result<()> {
+        let element3: IUIAutomationElement3 = self.element.cast()?;
+        unsafe {
+            element3.ShowContextMenu()?
+        }
+        
+        Ok(())
+    }
 
     pub(crate) fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
         let mut arr: Vec<UIElement> = Vec::new();

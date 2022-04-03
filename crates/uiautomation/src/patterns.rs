@@ -1,6 +1,7 @@
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::POINT;
+use windows::Win32::System::Com::VARIANT;
 use windows::Win32::UI::Accessibility::DockPosition;
 use windows::Win32::UI::Accessibility::ExpandCollapseState;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
@@ -12,6 +13,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationItemContainerPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern;
@@ -55,6 +57,7 @@ use windows::Win32::UI::Accessibility::UIA_ExpandCollapsePatternId;
 use windows::Win32::UI::Accessibility::UIA_GridItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_GridPatternId;
 use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
+use windows::Win32::UI::Accessibility::UIA_ItemContainerPatternId;
 use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
 use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
 use windows::Win32::UI::Accessibility::UIA_ScrollItemPatternId;
@@ -82,9 +85,11 @@ use windows::core::IUnknown;
 use windows::core::Interface;
 
 use crate::core::UIElement;
-use crate::errors::ERR_INACTIVE;
+use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
 use crate::errors::Result;
+use crate::variants::SafeArray;
+use crate::variants::Variant;
 
 pub trait UIPattern : Sized {
     fn pattern_id() -> i32;
@@ -367,6 +372,15 @@ impl UIDragPattern {
         Ok(effect.to_string())
     }
 
+    pub fn get_drop_effects(&self) -> Result<Vec<String>> {
+        let effects = unsafe {
+            self.pattern.CurrentDropEffects()?
+        };
+
+        let effects: SafeArray = effects.into();
+        effects.try_into()
+    }
+
     pub fn get_grabbed_items(&self) -> Result<Vec<UIElement>> {
         let elements = unsafe {
             self.pattern.GetCurrentGrabbedItems()?
@@ -440,6 +454,15 @@ impl UIDropTargetPattern {
             self.pattern.CurrentDropTargetEffect()?
         };
         Ok(effect.to_string())        
+    }
+
+    pub fn get_drop_target_effects(&self) -> Result<Vec<String>> {
+        let effects = unsafe {
+            self.pattern.CurrentDropTargetEffects()?
+        };
+
+        let effects: SafeArray = effects.into();
+        effects.try_into()
     }
 }
 
@@ -696,12 +719,79 @@ impl AsRef<IUIAutomationGridItemPattern> for UIGridItemPattern {
     }
 }
 
+/// A wrapper for `IUIAutomationItemContainerPattern`.
+#[derive(Debug, Clone)]
+pub struct UIItemContainerPattern {
+    pattern: IUIAutomationItemContainerPattern
+}
+
+impl UIItemContainerPattern {
+    pub fn find_item_by_property(&self, start_after: UIElement, property_id: i32, value: Variant) -> Result<UIElement> {
+        let val: VARIANT = value.into();
+        let element = unsafe {
+            self.pattern.FindItemByProperty(start_after.as_ref(), property_id, val)?
+        };
+
+        Ok(element.into())
+    }
+}
+
+impl UIPattern for UIItemContainerPattern {
+    fn pattern_id() -> i32 {
+        UIA_ItemContainerPatternId
+    }
+
+    fn new(pattern: IUnknown) -> Result<Self> {
+        Self::try_from(pattern)
+    }
+}
+
+impl TryFrom<IUnknown> for UIItemContainerPattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationItemContainerPattern = value.cast()?;
+        Ok(Self {
+            pattern
+        })
+    }
+}
+
+impl From<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
+    fn from(pattern: IUIAutomationItemContainerPattern) -> Self {
+        Self {
+            pattern
+        }
+    }
+}
+
+impl Into<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
+    fn into(self) -> IUIAutomationItemContainerPattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
+    fn as_ref(&self) -> &IUIAutomationItemContainerPattern {
+        &self.pattern
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct UIMultipleViewPattern {
     pattern: IUIAutomationMultipleViewPattern
 }
 
 impl UIMultipleViewPattern {
+    pub fn get_supported_views(&self) -> Result<Vec<i32>> {
+        let views = unsafe {
+            self.pattern.GetCurrentSupportedViews()?
+        };
+
+        let views: SafeArray = views.into();
+        views.try_into()
+    }
+
     pub fn get_view_name(&self, view: i32) -> Result<String> {
         let name = unsafe {
             self.pattern.GetViewName(view)?
@@ -719,10 +809,6 @@ impl UIMultipleViewPattern {
         Ok(unsafe {
             self.pattern.CurrentCurrentView()?
         })
-    }
-
-    pub fn get_supported_views(&self) -> Result<Vec<i32>> {
-        todo!("get supported views")
     }
 }
 
@@ -1262,7 +1348,14 @@ impl UISpreadsheetItemPattern {
         Ok(elements)
     }
 
-    // TODO
+    pub fn get_annotation_types(&self) -> Result<Vec<i32>> {
+        let types = unsafe {
+            self.pattern.GetCurrentAnnotationTypes()?
+        };
+
+        let types: SafeArray = types.into();
+        types.try_into()
+    }
 }
 
 impl UIPattern for UISpreadsheetItemPattern {
@@ -1719,7 +1812,7 @@ impl UITextPattern {
         Ok(range.into())
     }
 
-    pub fn get_caret_range(&self) -> Result<UITextRange> {
+    pub fn get_caret_range(&self) -> Result<(bool, UITextRange)> {
         let pattern2: IUIAutomationTextPattern2 = self.pattern.cast()?;
         let mut active = BOOL::default();
         let mut range = Option::None;
@@ -1727,11 +1820,11 @@ impl UITextPattern {
             pattern2.GetCaretRange(&mut active, &mut range)?
         };
 
-        if active.as_bool() && range.is_some() {
+        if range.is_some() {
             let range = range.unwrap();
-            Ok(range.into())
+            Ok((active.as_bool(), range.into()))
         } else {
-            Err(Error::new(ERR_INACTIVE, "INACTIVE ELEMENT"))
+            Err(Error::new(ERR_NOTFOUND, "Range Not Found"))
         }
     }
 }
@@ -1879,11 +1972,25 @@ impl UITextRange {
         })
     }
 
+    pub fn find_attribute(&self, attr: i32, value: Variant, backward: bool) -> Result<UITextRange> {
+        let range = unsafe {
+            self.range.FindAttribute(attr, value.as_ref(), backward)?
+        };
+        Ok(range.into())
+    }
+
     pub fn find_text(&self, text: &str, backward: bool, ignorecase: bool) -> Result<UITextRange> {
         let range = unsafe {
             self.range.FindText(BSTR::from(text), backward, ignorecase)?
         };
         Ok(range.into())
+    }
+
+    pub fn get_attribute_value(&self, attr: i32) -> Result<Variant> {
+        let value = unsafe {
+            self.range.GetAttributeValue(attr)?
+        };
+        Ok(value.into())
     }
 
     pub fn get_enclosing_element(&self) -> Result<UIElement> {
