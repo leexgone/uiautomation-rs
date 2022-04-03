@@ -50,6 +50,9 @@ use windows::Win32::System::Ole::VT_UINT;
 use windows::Win32::System::Ole::VT_UNKNOWN;
 use windows::Win32::System::Ole::VT_VARIANT;
 use windows::Win32::System::Ole::VT_VOID;
+use windows::Win32::System::Ole::VarAbs;
+use windows::Win32::System::Ole::VarAdd;
+use windows::Win32::System::Ole::VarAnd;
 use windows::Win32::System::Ole::VarBoolFromCy;
 use windows::Win32::System::Ole::VarBoolFromDate;
 use windows::Win32::System::Ole::VarBoolFromDec;
@@ -80,6 +83,7 @@ use windows::Win32::System::Ole::VarBstrFromUI1;
 use windows::Win32::System::Ole::VarBstrFromUI2;
 use windows::Win32::System::Ole::VarBstrFromUI4;
 use windows::Win32::System::Ole::VarBstrFromUI8;
+use windows::Win32::System::Ole::VarDiv;
 use windows::Win32::System::Ole::VarI1FromBool;
 use windows::Win32::System::Ole::VarI1FromCy;
 use windows::Win32::System::Ole::VarI1FromDate;
@@ -139,6 +143,11 @@ use windows::Win32::System::Ole::VarI8FromUI1;
 use windows::Win32::System::Ole::VarI8FromUI2;
 use windows::Win32::System::Ole::VarI8FromUI4;
 use windows::Win32::System::Ole::VarI8FromUI8;
+use windows::Win32::System::Ole::VarMod;
+use windows::Win32::System::Ole::VarMul;
+use windows::Win32::System::Ole::VarNeg;
+use windows::Win32::System::Ole::VarNot;
+use windows::Win32::System::Ole::VarOr;
 use windows::Win32::System::Ole::VarR4FromBool;
 use windows::Win32::System::Ole::VarR4FromCy;
 use windows::Win32::System::Ole::VarR4FromDate;
@@ -169,6 +178,7 @@ use windows::Win32::System::Ole::VarR8FromUI1;
 use windows::Win32::System::Ole::VarR8FromUI2;
 use windows::Win32::System::Ole::VarR8FromUI4;
 use windows::Win32::System::Ole::VarR8FromUI8;
+use windows::Win32::System::Ole::VarSub;
 use windows::Win32::System::Ole::VarUI1FromBool;
 use windows::Win32::System::Ole::VarUI1FromCy;
 use windows::Win32::System::Ole::VarUI1FromDate;
@@ -228,6 +238,7 @@ use windows::Win32::System::Ole::VarUI8FromStr;
 use windows::Win32::System::Ole::VarUI8FromUI1;
 use windows::Win32::System::Ole::VarUI8FromUI2;
 use windows::Win32::System::Ole::VarUI8FromUI4;
+use windows::Win32::System::Ole::VarXor;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
 use windows::core::PSTR;
@@ -411,6 +422,94 @@ impl Variant {
             Value::ARRAY(arr) => Ok(arr),
             _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
         }
+    }
+
+    pub fn abs(&self) -> Result<Variant> {
+        let v = unsafe {
+            VarAbs(&self.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn add(&self, augend: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarAdd(&self.value, &augend.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn subtract(&self, subtrahend: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarSub(&self.value, &subtrahend.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn multiply(&self, multiplicand: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarMul(&self.value, &multiplicand.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn divide(&self, divisor: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarDiv(&self.value, &divisor.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn mod_by(&self, m: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarMod(&self.value, &m.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn negate(&self) -> Result<Variant> {
+        let v = unsafe {
+            VarNeg(&self.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn not(&self) -> Result<Variant> {
+        let v = unsafe {
+            VarNot(&self.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn and(&self, val: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarAnd(&self.value, &val.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn or(&self, val: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarOr(&self.value, &val.value)?
+        };
+
+        Ok(v.into())
+    }
+
+    pub fn xor(&self, val: &Variant) -> Result<Variant> {
+        let v = unsafe {
+            VarXor(&self.value, &val.value)?
+        };
+
+        Ok(v.into())
     }
 }
 
