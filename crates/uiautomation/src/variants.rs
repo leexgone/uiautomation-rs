@@ -154,6 +154,80 @@ use windows::Win32::System::Ole::VarR4FromUI1;
 use windows::Win32::System::Ole::VarR4FromUI2;
 use windows::Win32::System::Ole::VarR4FromUI4;
 use windows::Win32::System::Ole::VarR4FromUI8;
+use windows::Win32::System::Ole::VarR8FromBool;
+use windows::Win32::System::Ole::VarR8FromCy;
+use windows::Win32::System::Ole::VarR8FromDate;
+use windows::Win32::System::Ole::VarR8FromDec;
+use windows::Win32::System::Ole::VarR8FromDisp;
+use windows::Win32::System::Ole::VarR8FromI1;
+use windows::Win32::System::Ole::VarR8FromI2;
+use windows::Win32::System::Ole::VarR8FromI4;
+use windows::Win32::System::Ole::VarR8FromI8;
+use windows::Win32::System::Ole::VarR8FromR4;
+use windows::Win32::System::Ole::VarR8FromStr;
+use windows::Win32::System::Ole::VarR8FromUI1;
+use windows::Win32::System::Ole::VarR8FromUI2;
+use windows::Win32::System::Ole::VarR8FromUI4;
+use windows::Win32::System::Ole::VarR8FromUI8;
+use windows::Win32::System::Ole::VarUI1FromBool;
+use windows::Win32::System::Ole::VarUI1FromCy;
+use windows::Win32::System::Ole::VarUI1FromDate;
+use windows::Win32::System::Ole::VarUI1FromDec;
+use windows::Win32::System::Ole::VarUI1FromDisp;
+use windows::Win32::System::Ole::VarUI1FromI1;
+use windows::Win32::System::Ole::VarUI1FromI2;
+use windows::Win32::System::Ole::VarUI1FromI4;
+use windows::Win32::System::Ole::VarUI1FromI8;
+use windows::Win32::System::Ole::VarUI1FromR4;
+use windows::Win32::System::Ole::VarUI1FromR8;
+use windows::Win32::System::Ole::VarUI1FromStr;
+use windows::Win32::System::Ole::VarUI1FromUI2;
+use windows::Win32::System::Ole::VarUI1FromUI4;
+use windows::Win32::System::Ole::VarUI1FromUI8;
+use windows::Win32::System::Ole::VarUI2FromBool;
+use windows::Win32::System::Ole::VarUI2FromCy;
+use windows::Win32::System::Ole::VarUI2FromDate;
+use windows::Win32::System::Ole::VarUI2FromDec;
+use windows::Win32::System::Ole::VarUI2FromDisp;
+use windows::Win32::System::Ole::VarUI2FromI1;
+use windows::Win32::System::Ole::VarUI2FromI2;
+use windows::Win32::System::Ole::VarUI2FromI4;
+use windows::Win32::System::Ole::VarUI2FromI8;
+use windows::Win32::System::Ole::VarUI2FromR4;
+use windows::Win32::System::Ole::VarUI2FromR8;
+use windows::Win32::System::Ole::VarUI2FromStr;
+use windows::Win32::System::Ole::VarUI2FromUI1;
+use windows::Win32::System::Ole::VarUI2FromUI4;
+use windows::Win32::System::Ole::VarUI2FromUI8;
+use windows::Win32::System::Ole::VarUI4FromBool;
+use windows::Win32::System::Ole::VarUI4FromCy;
+use windows::Win32::System::Ole::VarUI4FromDate;
+use windows::Win32::System::Ole::VarUI4FromDec;
+use windows::Win32::System::Ole::VarUI4FromDisp;
+use windows::Win32::System::Ole::VarUI4FromI1;
+use windows::Win32::System::Ole::VarUI4FromI2;
+use windows::Win32::System::Ole::VarUI4FromI4;
+use windows::Win32::System::Ole::VarUI4FromI8;
+use windows::Win32::System::Ole::VarUI4FromR4;
+use windows::Win32::System::Ole::VarUI4FromR8;
+use windows::Win32::System::Ole::VarUI4FromStr;
+use windows::Win32::System::Ole::VarUI4FromUI1;
+use windows::Win32::System::Ole::VarUI4FromUI2;
+use windows::Win32::System::Ole::VarUI4FromUI8;
+use windows::Win32::System::Ole::VarUI8FromBool;
+use windows::Win32::System::Ole::VarUI8FromCy;
+use windows::Win32::System::Ole::VarUI8FromDate;
+use windows::Win32::System::Ole::VarUI8FromDec;
+use windows::Win32::System::Ole::VarUI8FromDisp;
+use windows::Win32::System::Ole::VarUI8FromI1;
+use windows::Win32::System::Ole::VarUI8FromI2;
+use windows::Win32::System::Ole::VarUI8FromI8;
+use windows::Win32::System::Ole::VarUI8FromR4;
+use windows::Win32::System::Ole::VarUI8FromR8;
+use windows::Win32::System::Ole::VarUI8FromStr;
+use windows::Win32::System::Ole::VarUI8FromUI1;
+use windows::Win32::System::Ole::VarUI8FromUI2;
+use windows::Win32::System::Ole::VarUI8FromUI4;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
 use windows::core::PSTR;
@@ -688,12 +762,34 @@ impl From<i8> for Variant {
     }
 }
 
-macro_rules! var_to_i1 {
+macro_rules! variant_as_i1 {
     ($func:ident, $value:expr) => {
         {
             let pc = PSTR::default();
             $func($value, pc)?;
             (*pc.0) as i8
+        }
+    };
+}
+
+macro_rules! variant_as_type {
+    ($f:ident, $T:ty, $value:expr) => {
+        {
+            let mut v: [$T; 1] = [0 as _];
+            $f($value, v.as_mut_ptr())?;
+            v[0]
+        }
+    };
+}
+
+macro_rules! dispatch_as_type {
+    ($self:ident, $f:ident) => {
+        {
+            if let Some(ref disp) = *$self.get_data().pdispVal {
+                $f(disp, 0)?
+            } else {
+                0 as _
+            }
         }
     };
 }
@@ -709,10 +805,10 @@ impl TryInto<i8> for &Variant {
                 //     VarI1FromBool(self.get_data().iVal, pc)?;
                 //     (*pc.0) as i8
                 // }
-                VT_BOOL     => var_to_i1!(VarI1FromBool, self.get_data().boolVal),
-                VT_CY       => var_to_i1!(VarI1FromCy, self.get_data().cyVal),
-                VT_DATE     => var_to_i1!(VarI1FromDate, self.get_data().date),
-                VT_DECIMAL  => var_to_i1!(VarI1FromDec, self.get_data().pdecVal),
+                VT_BOOL     => variant_as_i1!(VarI1FromBool, self.get_data().boolVal),
+                VT_CY       => variant_as_i1!(VarI1FromCy, self.get_data().cyVal),
+                VT_DATE     => variant_as_i1!(VarI1FromDate, self.get_data().date),
+                VT_DECIMAL  => variant_as_i1!(VarI1FromDec, self.get_data().pdecVal),
                 VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                     let pc = PSTR::default();
                     VarI1FromDisp(disp, 0, pc)?;
@@ -721,21 +817,21 @@ impl TryInto<i8> for &Variant {
                     0i8
                 },
                 VT_I1   => self.get_data().bVal as i8,
-                VT_I2   => var_to_i1!(VarI1FromI2, self.get_data().iVal),
-                VT_I4 | VT_INT  => var_to_i1!(VarI1FromI4, self.get_data().lVal),
-                VT_I8   => var_to_i1!(VarI1FromI8, self.get_data().llVal),
-                VT_R4   => var_to_i1!(VarI1FromR4, self.get_data().fltVal),
-                VT_R8   => var_to_i1!(VarI1FromR8, self.get_data().dblVal),
+                VT_I2   => variant_as_i1!(VarI1FromI2, self.get_data().iVal),
+                VT_I4 | VT_INT  => variant_as_i1!(VarI1FromI4, self.get_data().lVal),
+                VT_I8   => variant_as_i1!(VarI1FromI8, self.get_data().llVal),
+                VT_R4   => variant_as_i1!(VarI1FromR4, self.get_data().fltVal),
+                VT_R8   => variant_as_i1!(VarI1FromR8, self.get_data().dblVal),
                 VT_BSTR | VT_LPWSTR | VT_LPSTR => {
                     let str = self.get_string()?;
                     let pc = PSTR::default();
                     VarI1FromStr(str, 0, 0, pc)?;
                     (*pc.0) as i8
                 },
-                VT_UI1  => var_to_i1!(VarI1FromUI1, self.get_data().bVal),
-                VT_UI2  => var_to_i1!(VarI1FromUI2, self.get_data().uiVal),
-                VT_UI4 | VT_UINT => var_to_i1!(VarI1FromUI4, self.get_data().ulVal),
-                VT_UI8  => var_to_i1!(VarI1FromUI8, self.get_data().ullVal),
+                VT_UI1  => variant_as_i1!(VarI1FromUI1, self.get_data().bVal),
+                VT_UI2  => variant_as_i1!(VarI1FromUI2, self.get_data().uiVal),
+                VT_UI4 | VT_UINT => variant_as_i1!(VarI1FromUI4, self.get_data().ulVal),
+                VT_UI8  => variant_as_i1!(VarI1FromUI8, self.get_data().ullVal),
                 _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
             }
         };
@@ -765,18 +861,20 @@ impl TryInto<i16> for &Variant {
         let val: i16 = unsafe {
             match self.get_type() {
                 VT_BOOL     => VarI2FromBool(self.get_data().boolVal)?,
-                VT_CY       => {
-                    let mut v: [i16; 1] = [0];
-                    VarI2FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
-                    v[0]
-                },
+                VT_CY       => variant_as_type!(VarI2FromCy, i16, self.get_data().cyVal),
+                // VT_CY       => {
+                //     let mut v: [i16; 1] = [0];
+                //     VarI2FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
+                //     v[0]
+                // },
                 VT_DATE     => VarI2FromDate(self.get_data().date)?,
                 VT_DECIMAL  => VarI2FromDec(self.get_data().pdecVal)?,
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
-                    VarI2FromDisp(disp, 0)?
-                } else {
-                    0i16
-                },
+                VT_DISPATCH => dispatch_as_type!(self, VarI2FromDisp),
+                // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                //     VarI2FromDisp(disp, 0)?
+                // } else {
+                //     0i16
+                // },
                 VT_I1       => VarI2FromI1(self.get_data().cVal)?,
                 VT_I2       => self.get_data().iVal,
                 VT_I4 | VT_INT  => VarI2FromI4(self.get_data().lVal)?,
@@ -820,11 +918,12 @@ impl TryInto<i32> for &Variant {
                 VT_CY       => VarI4FromCy(self.get_data().cyVal)?,
                 VT_DATE     => VarI4FromDate(self.get_data().date)?,
                 VT_DECIMAL  => VarI4FromDec(self.get_data().pdecVal)?,
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
-                    VarI4FromDisp(disp, 0)?
-                } else {
-                    0i32
-                },
+                VT_DISPATCH => dispatch_as_type!(self, VarI4FromDisp),
+                // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                //     VarI4FromDisp(disp, 0)?
+                // } else {
+                //     0i32
+                // },
                 VT_I1       => VarI4FromI1(self.get_data().cVal)?,
                 VT_I2       => VarI4FromI2(self.get_data().iVal)?,
                 VT_I4 | VT_INT  => self.get_data().lVal,
@@ -868,11 +967,12 @@ impl TryInto<i64> for &Variant {
                 VT_CY       => VarI8FromCy(self.get_data().cyVal)?,
                 VT_DATE     => VarI8FromDate(self.get_data().date)?,
                 VT_DECIMAL  => VarI8FromDec(self.get_data().pdecVal)?,
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
-                    VarI8FromDisp(disp, 0)?
-                } else {
-                    0i64
-                },
+                VT_DISPATCH => dispatch_as_type!(self, VarI8FromDisp),
+                // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                //     VarI8FromDisp(disp, 0)?
+                // } else {
+                //     0i64
+                // },
                 VT_I1       => VarI8FromI1(self.get_data().cVal)?,
                 VT_I2       => VarI8FromI2(self.get_data().iVal)?,
                 VT_I4 | VT_INT  => self.get_data().lVal as i64,
@@ -913,18 +1013,20 @@ impl TryInto<f32> for &Variant {
         let val: f32 = unsafe {
             match self.get_type() {
                 VT_BOOL     => VarR4FromBool(self.get_data().boolVal)?,
-                VT_CY       => {
-                    let mut v: [f32; 1] = [0f32];
-                    VarR4FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
-                    v[0]
-                },
+                VT_CY       => variant_as_type!(VarR4FromCy, f32, self.get_data().cyVal),
+                // VT_CY       => {
+                //     let mut v: [f32; 1] = [f32::default()];
+                //     VarR4FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
+                //     v[0]
+                // },
                 VT_DATE     => VarR4FromDate(self.get_data().date)?,
                 VT_DECIMAL  => VarR4FromDec(self.get_data().pdecVal)?,
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
-                    VarR4FromDisp(disp, 0)?
-                } else {
-                    0f32
-                },
+                VT_DISPATCH => dispatch_as_type!(self, VarR4FromDisp),
+                // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                //     VarR4FromDisp(disp, 0)?
+                // } else {
+                //     0f32
+                // },
                 VT_I1       => VarR4FromI1(self.get_data().cVal)?,
                 VT_I2       => VarR4FromI2(self.get_data().iVal)?,
                 VT_I4 | VT_INT  => VarR4FromI4(self.get_data().lVal)?,
@@ -948,6 +1050,226 @@ impl TryInto<f32> for Variant {
     type Error = Error;
 
     fn try_into(self) -> Result<f32> {
+        (&self).try_into()
+    }
+}
+
+impl From<f64> for Variant {
+    fn from(value: f64) -> Self {
+        Value::R8(value).into()
+    }
+}
+
+impl TryInto<f64> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<f64> {
+        let val: f64 = unsafe {
+            match self.get_type() {
+                VT_BOOL     => VarR8FromBool(self.get_data().boolVal)?,
+                VT_CY       => variant_as_type!(VarR8FromCy, f64, self.get_data().cyVal),
+                VT_DATE     => VarR8FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarR8FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => dispatch_as_type!(self, VarR8FromDisp),
+                VT_I1       => variant_as_type!(VarR8FromI1, f64, self.get_data().cVal),
+                VT_I2       => VarR8FromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT  => VarR8FromI4(self.get_data().lVal)?,
+                VT_I8       => VarR8FromI8(self.get_data().llVal)?,
+                VT_R4       => VarR8FromR4(self.get_data().fltVal)?,
+                VT_R8       => self.get_data().dblVal,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarR8FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => VarR8FromUI1(self.get_data().bVal)?,
+                VT_UI2      => VarR8FromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT    => VarR8FromUI4(self.get_data().ulVal)?,
+                VT_UI8      => VarR8FromUI8(self.get_data().ullVal)?,
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<f64> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<f64> {
+        (&self).try_into()
+    }
+}
+
+impl From<u8> for Variant {
+    fn from(value: u8) -> Self {
+        Value::UI1(value).into()
+    }
+}
+
+impl TryInto<u8> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u8> {
+        let val: u8 = unsafe {
+            match self.get_type() {
+                VT_BOOL     => VarUI1FromBool(self.get_data().boolVal)?,
+                VT_CY       => VarUI1FromCy(self.get_data().cyVal)?,
+                VT_DATE     => VarUI1FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarUI1FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => dispatch_as_type!(self, VarUI1FromDisp),
+                VT_I1       => VarUI1FromI1(self.get_data().cVal)?,
+                VT_I2       => VarUI1FromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT  => VarUI1FromI4(self.get_data().lVal)?,
+                VT_I8       => VarUI1FromI8(self.get_data().llVal)?,
+                VT_R4       => VarUI1FromR4(self.get_data().fltVal)?,
+                VT_R8       => VarUI1FromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI1FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => self.get_data().bVal,
+                VT_UI2      => VarUI1FromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT    => VarUI1FromUI4(self.get_data().ulVal)?,
+                VT_UI8      => VarUI1FromUI8(self.get_data().ullVal)?,
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<u8> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u8> {
+        (&self).try_into()
+    }
+}
+
+impl From<u16> for Variant {
+    fn from(value: u16) -> Self {
+        Value::UI2(value).into()
+    }
+}
+
+impl TryInto<u16> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u16> {
+        let val: u16 = unsafe {
+            match self.get_type() {
+                VT_BOOL     => VarUI2FromBool(self.get_data().boolVal)?,
+                VT_CY       => VarUI2FromCy(self.get_data().cyVal)?,
+                VT_DATE     => VarUI2FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarUI2FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => dispatch_as_type!(self, VarUI2FromDisp),
+                VT_I1       => VarUI2FromI1(self.get_data().cVal)?,
+                VT_I2       => VarUI2FromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT  => VarUI2FromI4(self.get_data().lVal)?,
+                VT_I8       => VarUI2FromI8(self.get_data().llVal)?,
+                VT_R4       => VarUI2FromR4(self.get_data().fltVal)?,
+                VT_R8       => variant_as_type!(VarUI2FromR8, u16, self.get_data().dblVal), // VarUI2FromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI2FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => VarUI2FromUI1(self.get_data().bVal)?,
+                VT_UI2      => self.get_data().uiVal,
+                VT_UI4 | VT_UINT    => VarUI2FromUI4(self.get_data().ulVal)?,
+                VT_UI8      => VarUI2FromUI8(self.get_data().ullVal)?,
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<u16> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u16> {
+        (&self).try_into()
+    }
+}
+
+impl From<u32> for Variant {
+    fn from(value: u32) -> Self {
+        Value::UI4(value).into()
+    }
+}
+
+impl TryInto<u32> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u32> {
+        let val: u32 = unsafe {
+            match self.get_type() {
+                VT_BOOL     => VarUI4FromBool(self.get_data().boolVal)?,
+                VT_CY       => VarUI4FromCy(self.get_data().cyVal)?,
+                VT_DATE     => VarUI4FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarUI4FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => dispatch_as_type!(self, VarUI4FromDisp),
+                VT_I1       => VarUI4FromI1(self.get_data().cVal)?,
+                VT_I2       => VarUI4FromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT  => VarUI4FromI4(self.get_data().lVal)?,
+                VT_I8       => VarUI4FromI8(self.get_data().llVal)?,
+                VT_R4       => VarUI4FromR4(self.get_data().fltVal)?,
+                VT_R8       => VarUI4FromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI4FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => VarUI4FromUI1(self.get_data().bVal)?,
+                VT_UI2      => VarUI4FromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT    => self.get_data().ulVal,
+                VT_UI8      => VarUI4FromUI8(self.get_data().ullVal)?,
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<u32> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u32> {
+        (&self).try_into()
+    }
+}
+
+impl From<u64> for Variant {
+    fn from(value: u64) -> Self {
+        Value::UI8(value).into()
+    }
+}
+
+impl TryInto<u64> for &Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u64> {
+        let val: u64 = unsafe {
+            match self.get_type() {
+                VT_BOOL     => VarUI8FromBool(self.get_data().boolVal)?,
+                VT_CY       => VarUI8FromCy(self.get_data().cyVal)?,
+                VT_DATE     => VarUI8FromDate(self.get_data().date)?,
+                VT_DECIMAL  => VarUI8FromDec(self.get_data().pdecVal)?,
+                VT_DISPATCH => dispatch_as_type!(self, VarUI8FromDisp),
+                VT_I1       => VarUI8FromI1(self.get_data().cVal)?,
+                VT_I2       => VarUI8FromI2(self.get_data().iVal)?,
+                VT_I4 | VT_INT  => self.get_data().lVal as _,
+                VT_I8       => VarUI8FromI8(self.get_data().llVal)?,
+                VT_R4       => VarUI8FromR4(self.get_data().fltVal)?,
+                VT_R8       => VarUI8FromR8(self.get_data().dblVal)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI8FromStr(self.get_string()?, 0, 0)?,
+                VT_UI1      => VarUI8FromUI1(self.get_data().bVal)?,
+                VT_UI2      => VarUI8FromUI2(self.get_data().uiVal)?,
+                VT_UI4 | VT_UINT    => VarUI8FromUI4(self.get_data().ulVal)?,
+                VT_UI8      => self.get_data().ullVal,
+                _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
+            }
+        };
+
+        Ok(val)
+    }
+}
+
+impl TryInto<u64> for Variant {
+    type Error = Error;
+
+    fn try_into(self) -> Result<u64> {
         (&self).try_into()
     }
 }
