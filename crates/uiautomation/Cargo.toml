@@ -1,0 +1,27 @@
+[package]
+name = "uiautomation"
+version = "0.0.3"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["Steven Lee <leexgone@163.com>"]
+description = "UI Automation Framework for Windows"
+repository = "https://github.com/leexgone/uiautomation-rs"
+homepage = "https://github.com/leexgone"
+readme = "../../README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+chrono = "0.4.19"
+
+[dependencies.windows]
+version = "0.34.0"
+features = [
+    "alloc",
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Ole",
+    "Win32_UI_Accessibility",
+    "UI_UIAutomation"
+]

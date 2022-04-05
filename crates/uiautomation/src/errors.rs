@@ -2,9 +2,18 @@ use std::fmt::Display;
 
 use windows::core::HRESULT;
 
+/// Error caused by unknown reason.
 pub const ERR_NONE: i32 = 0;
+/// Error occurs when an element or object is not found.
 pub const ERR_NOTFOUND: i32 = 1;
+/// Error occurs when the operation is timeout.
 pub const ERR_TIMEOUT: i32 = 2;
+/// Error occurs when the element is inactive.
+pub const ERR_INACTIVE: i32 = 3;
+/// Error caused by unsupported or mismatched type
+pub const ERR_TYPE: i32 = 4;
+/// Error when a pointer is null.
+pub const ERR_NULL_PTR:  i32 = 5;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
@@ -81,3 +90,5 @@ impl From<&str> for Error {
         }
     }
 }
+
+pub type Result<T> = core::result::Result<T, Error>;

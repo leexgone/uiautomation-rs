@@ -1,5 +1,9 @@
+use std::fmt::Display;
 use std::ptr::null_mut;
+use std::thread::sleep;
+use std::time::Duration;
 
+use chrono::Local;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
@@ -11,31 +15,35 @@ use windows::Win32::System::Com::CoInitializeEx;
 use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
+use windows::Win32::UI::Accessibility::IUIAutomationElement3;
 use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
-use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
-use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
-use windows::core::IUnknown;
 use windows::core::Interface;
 
+use crate::conditions::AndCondition;
+use crate::conditions::ClassNameCondition;
+use crate::conditions::Condition;
+use crate::conditions::ControlTypeCondition;
+use crate::conditions::NameCondition;
 use crate::errors::ERR_NOTFOUND;
+use crate::errors::ERR_TIMEOUT;
 use crate::errors::Error;
+use crate::errors::Result;
+use crate::patterns::UIPattern;
+use crate::variants::Variant;
 
-pub type Result<T> = core::result::Result<T, Error>;
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UIAutomation {
     automation: IUIAutomation
 }
 
 impl UIAutomation {
     pub fn new() -> Result<UIAutomation> {
-        let automation: IUIAutomation;
-        unsafe {
+        let automation: IUIAutomation = unsafe {
             CoInitializeEx(null_mut(), COINIT_MULTITHREADED)?;
-            automation = CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?;
-        }
+            CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?
+        };
 
         Ok(UIAutomation {
             automation
@@ -118,7 +126,7 @@ impl AsRef<IUIAutomation> for UIAutomation {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UIElement {
     element: IUIAutomationElement
 }
@@ -162,7 +170,7 @@ impl UIElement {
         let control_type = unsafe {
             self.element.CurrentControlType()?
         };
-
+        
         Ok(control_type)
     }
 
@@ -339,7 +347,7 @@ impl UIElement {
             self.element.CurrentControllerFor()?
         };
 
-        to_elements(elements)
+        Self::to_elements(elements)
     }
 
     pub fn get_described_by(&self) -> Result<Vec<UIElement>> {
@@ -347,7 +355,7 @@ impl UIElement {
             self.element.CurrentDescribedBy()?
         };
 
-        to_elements(elements)
+        Self::to_elements(elements)
     }
 
     pub fn get_flows_to(&self) -> Result<Vec<UIElement>> {
@@ -355,7 +363,7 @@ impl UIElement {
             self.element.CurrentFlowsTo()?
         };
 
-        to_elements(elements)
+        Self::to_elements(elements)
     }
 
     pub fn get_provider_description(&self) -> Result<String> {
@@ -381,19 +389,35 @@ impl UIElement {
 
         T::new(pattern)
     }
-}
 
-fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
-    let mut arr: Vec<UIElement> = Vec::new();
-    unsafe {
-        for i in 0..elements.Length()? {
-            let elem = UIElement::from(elements.GetElement(i)?);
-            arr.push(elem);
-        }
+    pub fn get_property_value(&self, property_id: i32) -> Result<Variant> {
+        let value = unsafe {
+            self.element.GetCurrentPropertyValue(property_id)?
+        };
+
+        Ok(value.into())
     }
 
-    Ok(arr)
+    pub fn show_context_menu(&self) -> Result<()> {
+        let element3: IUIAutomationElement3 = self.element.cast()?;
+        unsafe {
+            element3.ShowContextMenu()?
+        }
+        
+        Ok(())
+    }
 
+    pub(crate) fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
+        let mut arr: Vec<UIElement> = Vec::new();
+        unsafe {
+            for i in 0..elements.Length()? {
+                let elem = UIElement::from(elements.GetElement(i)?);
+                arr.push(elem);
+            }
+        }
+
+        Ok(arr)
+    }
 }
 
 impl From<IUIAutomationElement> for UIElement {
@@ -413,6 +437,15 @@ impl Into<IUIAutomationElement> for UIElement {
 impl AsRef<IUIAutomationElement> for UIElement {
     fn as_ref(&self) -> &IUIAutomationElement {
         &self.element
+    }
+}
+
+impl Display for UIElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = self.get_name();
+        let control_type = self.get_localized_control_type();
+
+        write!(f, "{} {}", name.unwrap_or_default(), control_type.unwrap_or_default())
     }
 }
 
@@ -492,16 +525,20 @@ pub struct UIMatcher {
     automation: UIAutomation,
     depth: u32,
     from: Option<UIElement>,
-    condition: Option<Box<dyn Condition>>
+    condition: Option<Box<dyn Condition>>,
+    timeout: u64,
+    interval: u64
 }
 
 impl UIMatcher {
     pub fn new(automation: UIAutomation) -> Self {
         UIMatcher {
             automation,
-            depth: 5,
+            depth: 7,
             from: None,
-            condition: None
+            condition: None,
+            timeout: 3000,
+            interval: 100
         }
     }
 
@@ -512,6 +549,16 @@ impl UIMatcher {
 
     pub fn depth(mut self, depth: u32) -> Self {
         self.depth = depth;
+        self
+    }
+
+    pub fn timeout(mut self, timeout: u64) -> Self {
+        self.timeout = timeout;
+        self
+    }
+
+    pub fn interval(mut self, interval: u64) -> Self {
+        self.interval = interval;
         self
     }
 
@@ -543,30 +590,64 @@ impl UIMatcher {
         self.filter(Box::new(condition))
     }
 
-    pub fn find_first(&self) -> Result<UIElement> {
-        let (root, walker) = self.prepare()?;
+    pub fn classname<S: Into<String>>(self, classname: S) -> Self {
+        let condition = ClassNameCondition {
+            classname: classname.into()
+        };
+        self.filter(Box::new(condition))        
+    }
 
-        let mut elements: Vec<UIElement> = Vec::new();
-        self.search(&walker, &root, &mut elements, 1, true)?;
+    pub fn control_type(self, control_type: i32) -> Self {
+        let condition = ControlTypeCondition {
+            control_type
+        };
+        self.filter(Box::new(condition))
+    }
+
+    pub fn find_first(&self) -> Result<UIElement> {
+        let elements = self.find(true)?;
 
         if elements.is_empty() {
             Err(Error::new(ERR_NOTFOUND, "can not find element"))
         } else {
-            Ok(elements.remove(0))
+            Ok(elements[0].clone())
         }
     }
 
     pub fn find_all(&self) -> Result<Vec<UIElement>> {
-        let (root, walker) = self.prepare()?;
+        // let (root, walker) = self.prepare()?;
 
-        let mut elements: Vec<UIElement> = Vec::new();
-        self.search(&walker, &root, &mut elements, 1, false)?;
+        // let mut elements: Vec<UIElement> = Vec::new();
+        // self.search(&walker, &root, &mut elements, 1, false)?;
+        let elements = self.find(false)?;
 
         if elements.is_empty() {
             Err(Error::new(ERR_NOTFOUND, "can not find element"))
         } else {
             Ok(elements)
         }
+    }
+
+    fn find(&self, first_only: bool) -> Result<Vec<UIElement>> {
+        let mut elements: Vec<UIElement> = Vec::new();
+        let start = Local::now().timestamp_millis();
+        loop {
+            let (root, walker) = self.prepare()?;
+            self.search(&walker, &root, &mut elements, 1, first_only)?;
+
+            if !elements.is_empty() || self.timeout <= 0 {
+                break;
+            }
+
+            let now = Local::now().timestamp_millis();
+            if now - start >= self.timeout as i64 {
+                return Err(Error::new(ERR_TIMEOUT, "find time out"));
+            }
+
+            sleep(Duration::from_millis(self.interval));
+        } 
+
+        Ok(elements)
     }
 
     fn prepare(&self) -> Result<(UIElement, UITreeWalker)> {
@@ -610,154 +691,5 @@ impl UIMatcher {
         } else {
             Ok(true)
         }
-    }
-}
-
-pub trait Condition {
-    fn judge(&self, element: &UIElement) -> Result<bool>;
-}
-
-pub struct AndCondition {
-    pub left: Box<dyn Condition>,
-    pub right: Box<dyn Condition>
-}
-
-impl AndCondition {
-    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
-        Self {
-            left,
-            right
-        }
-    }
-}
-
-impl Condition for AndCondition {
-    fn judge(&self, element: &UIElement) -> Result<bool> {
-        let ret = self.left.judge(element)? && self.right.judge(element)?;
-
-        Ok(ret)
-    }
-}
-
-pub struct OrCondition {
-    pub left: Box<dyn Condition>,
-    pub right: Box<dyn Condition>
-}
-
-impl OrCondition {
-    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
-        Self {
-            left,
-            right
-        }
-    }
-}
-
-impl Condition for OrCondition {
-    fn judge(&self, element: &UIElement) -> Result<bool> {
-        let ret = self.left.judge(element)? || self.right.judge(element)?;
-        Ok(ret)
-    }
-}
-
-pub struct NameCondition {
-    pub value: String,
-    pub casesensitive: bool,
-    pub partial: bool
-}
-
-impl Default for NameCondition {
-    fn default() -> Self {
-        Self { 
-            value: Default::default(), 
-            casesensitive: false, 
-            partial: true
-        }
-    }
-}
-
-impl Condition for NameCondition {
-    fn judge(&self, element: &UIElement) -> Result<bool> {
-        let element_name = element.get_name()?;
-        let element_name = element_name.as_str();
-        let condition_name = self.value.as_str();
-
-        Ok(
-            if self.partial {
-                if self.casesensitive {
-                    element_name.contains(condition_name)
-                } else {
-                    let element_name = element_name.to_lowercase();
-                    let condition_name = condition_name.to_lowercase();
-
-                    element_name.contains(&condition_name)
-                }
-            } else {
-                if self.casesensitive {
-                    element_name == condition_name
-                } else {
-                    element_name.eq_ignore_ascii_case(condition_name)
-                }
-            }
-        )
-    }
-}
-
-pub trait UIPattern : Sized {
-    fn pattern_id() -> i32;
-    fn new(pattern: IUnknown) -> Result<Self>;
-}
-
-pub struct UIInvokePattern {
-    pattern: IUIAutomationInvokePattern
-}
-
-impl UIInvokePattern {
-    pub fn invoke(&self) -> Result<()> {
-        unsafe {
-            self.pattern.Invoke()?;
-        }
-        Ok(())
-    }
-}
-
-impl UIPattern for UIInvokePattern {
-    fn pattern_id() -> i32 {
-        UIA_InvokePatternId
-    }
-
-    fn new(pattern: IUnknown) -> Result<Self> {
-        UIInvokePattern::try_from(pattern)
-    }
-}
-
-impl From<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn from(pattern: IUIAutomationInvokePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
-
-impl TryFrom<IUnknown> for UIInvokePattern {
-    type Error = Error;
-
-    fn try_from(pattern: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationInvokePattern = pattern.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
-
-impl Into<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn into(self) -> IUIAutomationInvokePattern {
-        self.pattern
-    }
-}
-
-impl AsRef<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn as_ref(&self) -> &IUIAutomationInvokePattern {
-        &self.pattern
     }
 }
