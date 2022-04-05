@@ -1,6 +1,9 @@
+use std::fmt::Debug;
+
 use crate::core::UIElement;
 use crate::errors::Result;
 
+/// `Condition` is a element filter that can be used in `UIMatcher`.
 pub trait Condition {
     fn judge(&self, element: &UIElement) -> Result<bool>;
 }
@@ -48,21 +51,22 @@ impl Condition for OrCondition {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct NameCondition {
     pub value: String,
     pub casesensitive: bool,
     pub partial: bool
 }
 
-impl Default for NameCondition {
-    fn default() -> Self {
-        Self { 
-            value: Default::default(), 
-            casesensitive: false, 
-            partial: true
-        }
-    }
-}
+// impl Default for NameCondition {
+//     fn default() -> Self {
+//         Self { 
+//             value: Default::default(), 
+//             casesensitive: false, 
+//             partial: true
+//         }
+//     }
+// }
 
 impl Condition for NameCondition {
     fn judge(&self, element: &UIElement) -> Result<bool> {
@@ -91,21 +95,34 @@ impl Condition for NameCondition {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct ClassNameCondition {
     pub classname: String
 }
 
-impl Default for ClassNameCondition {
-    fn default() -> Self {
-        Self { 
-            classname: Default::default() 
-        }
-    }
-}
+// impl Default for ClassNameCondition {
+//     fn default() -> Self {
+//         Self { 
+//             classname: Default::default() 
+//         }
+//     }
+// }
 
 impl Condition for ClassNameCondition {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let cur_classname = element.get_classname()?;
         Ok(self.classname == cur_classname)
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct ControlTypeCondition {
+    pub control_type: i32
+}
+
+impl Condition for ControlTypeCondition {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        let ctrl_type = element.get_control_type()?;
+        Ok(self.control_type == ctrl_type)
     }
 }

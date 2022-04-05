@@ -24,6 +24,7 @@ use windows::core::Interface;
 use crate::conditions::AndCondition;
 use crate::conditions::ClassNameCondition;
 use crate::conditions::Condition;
+use crate::conditions::ControlTypeCondition;
 use crate::conditions::NameCondition;
 use crate::errors::ERR_NOTFOUND;
 use crate::errors::ERR_TIMEOUT;
@@ -594,6 +595,13 @@ impl UIMatcher {
             classname: classname.into()
         };
         self.filter(Box::new(condition))        
+    }
+
+    pub fn control_type(self, control_type: i32) -> Self {
+        let condition = ControlTypeCondition {
+            control_type
+        };
+        self.filter(Box::new(condition))
     }
 
     pub fn find_first(&self) -> Result<UIElement> {
