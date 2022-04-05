@@ -590,7 +590,7 @@ impl UIMatcher {
         self.filter(Box::new(condition))
     }
 
-    pub fn match_classname<S: Into<String>>(self, classname: S) -> Self {
+    pub fn classname<S: Into<String>>(self, classname: S) -> Self {
         let condition = ClassNameCondition {
             classname: classname.into()
         };
@@ -605,10 +605,6 @@ impl UIMatcher {
     }
 
     pub fn find_first(&self) -> Result<UIElement> {
-        // let (root, walker) = self.prepare()?;
-
-        // let mut elements: Vec<UIElement> = Vec::new();
-        // self.search(&walker, &root, &mut elements, 1, true)?;
         let elements = self.find(true)?;
 
         if elements.is_empty() {
