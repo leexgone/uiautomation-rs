@@ -22,6 +22,7 @@ use windows::Win32::UI::Accessibility::OrientationType;
 use windows::core::Interface;
 
 use crate::conditions::AndCondition;
+use crate::conditions::ClassNameCondition;
 use crate::conditions::Condition;
 use crate::conditions::NameCondition;
 use crate::errors::ERR_NOTFOUND;
@@ -532,7 +533,7 @@ impl UIMatcher {
     pub fn new(automation: UIAutomation) -> Self {
         UIMatcher {
             automation,
-            depth: 5,
+            depth: 7,
             from: None,
             condition: None,
             timeout: 3000,
@@ -586,6 +587,13 @@ impl UIMatcher {
             partial: false
         };
         self.filter(Box::new(condition))
+    }
+
+    pub fn match_classname<S: Into<String>>(self, classname: S) -> Self {
+        let condition = ClassNameCondition {
+            classname: classname.into()
+        };
+        self.filter(Box::new(condition))        
     }
 
     pub fn find_first(&self) -> Result<UIElement> {

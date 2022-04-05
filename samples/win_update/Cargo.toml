@@ -1,0 +1,8 @@
+[package]
+name = "win_update"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+
+uiautomation = { path = "../../crates/uiautomation" }

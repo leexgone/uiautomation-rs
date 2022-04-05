@@ -90,3 +90,22 @@ impl Condition for NameCondition {
         )
     }
 }
+
+pub struct ClassNameCondition {
+    pub classname: String
+}
+
+impl Default for ClassNameCondition {
+    fn default() -> Self {
+        Self { 
+            classname: Default::default() 
+        }
+    }
+}
+
+impl Condition for ClassNameCondition {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        let cur_classname = element.get_classname()?;
+        Ok(self.classname == cur_classname)
+    }
+}
