@@ -4,5 +4,6 @@ members = [
     "crates/uiautomation",
     "samples/uia_print",
     "samples/uia_notepad",
+    "samples/uia_varaint",
     "samples/win_update"
 ]
