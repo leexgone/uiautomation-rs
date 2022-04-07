@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation"
-version = "0.0.5"
+version = "0.0.6"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -19,7 +19,7 @@ targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows
 chrono = "0.4.19"
 
 [dependencies.windows]
-version = "0.34.0"
+version = "0.35.0"
 features = [
     "alloc",
     "Win32_Foundation",
