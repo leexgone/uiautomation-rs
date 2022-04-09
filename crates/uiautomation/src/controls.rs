@@ -51,7 +51,12 @@ impl AsRef<UIElement> for ButtonControl {
     }
 }
 
-/// Wrapper a listitem element as a control.
+/// Wrapper a list element as a control. The control type of the element must be `UIA_ListControlTypeId`.
+pub struct ListControl {
+    control: UIElement
+}
+
+/// Wrapper a listitem element as a control. The control type of the element must be `UIA_ListItemControlTypeId`.
 pub struct ListItemControl {
     control: UIElement
 }
