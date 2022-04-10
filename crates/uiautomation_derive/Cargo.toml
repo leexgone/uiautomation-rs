@@ -2,11 +2,19 @@
 name = "uiautomation_derive"
 version = "0.0.1"
 edition = "2021"
+license = "Apache-2.0"
+authors = ["Steven Lee <leexgone@163.com>"]
+description = "UI Automation Derive"
+repository = "https://github.com/leexgone/uiautomation-rs"
+homepage = "https://github.com/leexgone"
+readme = "README.md"
 
 [lib]
 proc_macro = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
+targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
 [dependencies]
 syn = "1.0.91"

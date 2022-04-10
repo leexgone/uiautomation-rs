@@ -23,7 +23,7 @@ fn main() {
     settings.set_focus().unwrap();
     let matcher = automation.create_matcher().from(settings.clone()).match_name("Windows 更新").control_type(UIA_ListItemControlTypeId);
     let update = matcher.find_first().unwrap();
-    println!("{}", update.get_control_type().unwrap());
+    // println!("{}", update.get_control_type().unwrap());
     let update_item: ListItemControl = update.try_into().unwrap();
     update_item.select().unwrap();
 
