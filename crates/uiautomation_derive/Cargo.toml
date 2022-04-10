@@ -1,0 +1,13 @@
+[package]
+name = "uiautomation_derive"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+proc_macro = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+syn = "1.0.91"
+quote = "1.0.17"

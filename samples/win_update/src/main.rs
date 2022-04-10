@@ -1,6 +1,8 @@
 use uiautomation::UIAutomation;
 use uiautomation::controls::ButtonControl;
+use uiautomation::controls::Click;
 use uiautomation::controls::ListItemControl;
+use uiautomation::controls::Select;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
 

@@ -1,9 +1,8 @@
-use windows::Win32::UI::Accessibility::IUIAutomationElement;
+use uiautomation_derive::Click;
+use uiautomation_derive::Select;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
 use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_SelectionItemPatternId;
 
 use crate::Error;
 use crate::Result;
@@ -16,18 +15,40 @@ use crate::patterns::UIScrollItemPattern;
 use crate::patterns::UISelectionItemPattern;
 use crate::variants::Variant;
 
+/// Define a clickable control trait for uielement.
+pub trait Click {
+    /// Perform a click event on this control.
+    fn click(&self) -> Result<()>;
+}
+
+/// Define a selectable control trait for uielement.
+pub trait Select {
+    /// Select current item.
+    fn select(&self) -> Result<()>;
+
+    /// Add current item to selection.
+    fn add_to_selection(&self) -> Result<()>;
+
+    /// Remove current item from selection.
+    fn remove_from_selection(&self) -> Result<()>;
+
+    /// Determines whether this item is selected.
+    fn is_selected(&self) -> Result<bool>;
+}
+
 /// Wrapper an button element as a control.
+#[derive(Click)]
 pub struct ButtonControl {
     control: UIElement
 }
 
-impl ButtonControl {
-    /// Perform a click event on this control.
-    pub fn click(&self) -> Result<()> {
-        let pattern: UIInvokePattern = self.as_ref().get_pattern()?;
-        pattern.invoke()
-    }
-}
+// impl ButtonControl {
+//     /// Perform a click event on this control.
+//     pub fn click(&self) -> Result<()> {
+//         let pattern: UIInvokePattern = self.as_ref().get_pattern()?;
+//         pattern.invoke()
+//     }
+// }
 
 impl TryFrom<UIElement> for ButtonControl {
     type Error = Error;
@@ -123,25 +144,26 @@ impl AsRef<UIElement> for ListControl {
 }
 
 /// Wrapper a listitem element as a control. The control type of the element must be `UIA_ListItemControlTypeId`.
+#[derive(Click, Select)]
 pub struct ListItemControl {
     control: UIElement
 }
 
 impl ListItemControl {
-    /// Determines whether this control is clickable.
-    pub fn is_clickable(&self) -> bool {
-        let element: &IUIAutomationElement = self.control.as_ref();
-        let pattern = unsafe { 
-            element.GetCurrentPattern(UIA_InvokePatternId)
-        };
-        pattern.is_ok()
-    }
+    // /// Determines whether this control is clickable.
+    // pub fn is_clickable(&self) -> bool {
+    //     let element: &IUIAutomationElement = self.control.as_ref();
+    //     let pattern = unsafe { 
+    //         element.GetCurrentPattern(UIA_InvokePatternId)
+    //     };
+    //     pattern.is_ok()
+    // }
 
-    /// Perform a click event on this control.
-    pub fn click(&self) -> Result<()> {
-        let pattern: UIInvokePattern = self.control.get_pattern()?;
-        pattern.invoke()
-    }
+    // /// Perform a click event on this control.
+    // pub fn click(&self) -> Result<()> {
+    //     let pattern: UIInvokePattern = self.control.get_pattern()?;
+    //     pattern.invoke()
+    // }
 
     /// Scroll this item into view.
     pub fn scroll_into_view(&self) -> Result<()> {
@@ -149,38 +171,38 @@ impl ListItemControl {
         pattern.scroll_into_view()
     }
 
-    /// Determines whether this control is slectable.
-    pub fn is_selectable(&self) -> bool {
-        let element: &IUIAutomationElement = self.control.as_ref();
-        let pattern = unsafe {
-            element.GetCurrentPattern(UIA_SelectionItemPatternId)
-        };
-        pattern.is_ok()
-    }
+    // /// Determines whether this control is slectable.
+    // pub fn is_selectable(&self) -> bool {
+    //     let element: &IUIAutomationElement = self.control.as_ref();
+    //     let pattern = unsafe {
+    //         element.GetCurrentPattern(UIA_SelectionItemPatternId)
+    //     };
+    //     pattern.is_ok()
+    // }
 
-    /// Select current item.
-    pub fn select(&self) -> Result<()> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.select()
-    }
+    // /// Select current item.
+    // pub fn select(&self) -> Result<()> {
+    //     let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
+    //     pattern.select()
+    // }
 
-    /// Add current item to selection.
-    pub fn add_to_selection(&self) -> Result<()> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.add_to_selection()
-    }
+    // /// Add current item to selection.
+    // pub fn add_to_selection(&self) -> Result<()> {
+    //     let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
+    //     pattern.add_to_selection()
+    // }
 
-    /// Remove current item from selection.
-    pub fn remove_from_selection(&self) -> Result<()> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.remove_from_selection()
-    }
+    // /// Remove current item from selection.
+    // pub fn remove_from_selection(&self) -> Result<()> {
+    //     let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
+    //     pattern.remove_from_selection()
+    // }
 
-    /// Determines whether this item is selected.
-    pub fn is_selected(&self) -> Result<bool> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.is_selected()
-    }
+    // /// Determines whether this item is selected.
+    // pub fn is_selected(&self) -> Result<bool> {
+    //     let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
+    //     pattern.is_selected()
+    // }
 }
 
 impl TryFrom<UIElement> for ListItemControl {
