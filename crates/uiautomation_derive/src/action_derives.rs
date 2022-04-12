@@ -1,11 +1,11 @@
 use proc_macro::TokenStream;
 use quote::quote;
 
-pub(crate) fn impl_click(ast: &syn::DeriveInput) -> TokenStream {
+pub(crate) fn impl_invoke(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
-        impl Click for #name {
-            fn click(&self) -> Result<()> {
+        impl Invoke for #name {
+            fn invoke(&self) -> Result<()> {
                 let pattern: UIInvokePattern = self.as_ref().get_pattern()?;
                 pattern.invoke()
             }
@@ -14,10 +14,10 @@ pub(crate) fn impl_click(ast: &syn::DeriveInput) -> TokenStream {
     gen.into()
 }
 
-pub(crate) fn impl_select(ast: &syn::DeriveInput) -> TokenStream {
+pub(crate) fn impl_selection_item(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
-        impl Select for #name {
+        impl SelectionItem for #name {
             fn select(&self) -> Result<()> {
                 let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
                 pattern.select()

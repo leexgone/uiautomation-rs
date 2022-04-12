@@ -1,8 +1,8 @@
 use uiautomation::UIAutomation;
+use uiautomation::actions::Invoke;
+use uiautomation::actions::SelectionItem;
 use uiautomation::controls::ButtonControl;
-use uiautomation::controls::Click;
 use uiautomation::controls::ListItemControl;
-use uiautomation::controls::Select;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
 
@@ -11,12 +11,12 @@ fn main() {
     let matcher = automation.create_matcher().match_name("开始").classname("Start");
     let start = matcher.find_first().unwrap();
     let button: ButtonControl = start.try_into().unwrap();
-    button.click().unwrap();
+    button.invoke().unwrap();
 
     let matcher = automation.create_matcher().match_name("设置").classname("GridViewItem");
     let config = matcher.find_first().unwrap();
     let item: ListItemControl = config.try_into().unwrap();
-    item.click().unwrap();
+    item.invoke().unwrap();
 
     let matcher = automation.create_matcher().match_name("设置").classname("ApplicationFrameWindow");
     let settings = matcher.find_first().unwrap();
@@ -30,5 +30,5 @@ fn main() {
     let matcher = automation.create_matcher().from(settings.clone()).match_name("检查更新").control_type(UIA_ButtonControlTypeId);
     let find_update = matcher.find_first().unwrap();
     let button: ButtonControl = find_update.try_into().unwrap();
-    button.click().unwrap();
+    button.invoke().unwrap();
 }

@@ -1,9 +1,10 @@
-use uiautomation_derive::Click;
-use uiautomation_derive::Select;
+use uiautomation_derive::Invoke;
+use uiautomation_derive::SelectionItem;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
 
+use crate::actions::*;
 use crate::Error;
 use crate::Result;
 use crate::UIElement;
@@ -15,29 +16,8 @@ use crate::patterns::UIScrollItemPattern;
 use crate::patterns::UISelectionItemPattern;
 use crate::variants::Variant;
 
-/// Define a clickable control trait for uielement.
-pub trait Click {
-    /// Perform a click event on this control.
-    fn click(&self) -> Result<()>;
-}
-
-/// Define a selectable control trait for uielement.
-pub trait Select {
-    /// Select current item.
-    fn select(&self) -> Result<()>;
-
-    /// Add current item to selection.
-    fn add_to_selection(&self) -> Result<()>;
-
-    /// Remove current item from selection.
-    fn remove_from_selection(&self) -> Result<()>;
-
-    /// Determines whether this item is selected.
-    fn is_selected(&self) -> Result<bool>;
-}
-
 /// Wrapper an button element as a control.
-#[derive(Click)]
+#[derive(Invoke)]
 pub struct ButtonControl {
     control: UIElement
 }
@@ -144,7 +124,7 @@ impl AsRef<UIElement> for ListControl {
 }
 
 /// Wrapper a listitem element as a control. The control type of the element must be `UIA_ListItemControlTypeId`.
-#[derive(Click, Select)]
+#[derive(Invoke, SelectionItem)]
 pub struct ListItemControl {
     control: UIElement
 }
