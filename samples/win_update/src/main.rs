@@ -28,7 +28,9 @@ fn main() {
     update_item.select().unwrap();
 
     let matcher = automation.create_matcher().from(settings.clone()).match_name("检查更新").control_type(UIA_ButtonControlTypeId);
-    let find_update = matcher.find_first().unwrap();
-    let button: ButtonControl = find_update.try_into().unwrap();
-    button.invoke().unwrap();
+    let update = matcher.find_first().unwrap();
+    if update.is_enabled().unwrap() {
+        let button: ButtonControl = update.try_into().unwrap();
+        button.invoke().unwrap();
+    }
 }
