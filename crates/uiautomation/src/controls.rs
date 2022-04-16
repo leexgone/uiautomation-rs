@@ -3,9 +3,15 @@ use uiautomation_derive::ItemContainer;
 use uiautomation_derive::MultipleView;
 use uiautomation_derive::ScrollItem;
 use uiautomation_derive::SelectionItem;
+use uiautomation_derive::Transform;
+use uiautomation_derive::Window;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
+use windows::Win32::UI::Accessibility::WindowVisualState_Maximized;
+use windows::Win32::UI::Accessibility::WindowVisualState_Minimized;
+use windows::Win32::UI::Accessibility::WindowVisualState_Normal;
 
 use crate::actions::*;
 use crate::Error;
@@ -17,6 +23,8 @@ use crate::patterns::UIItemContainerPattern;
 use crate::patterns::UIMultipleViewPattern;
 use crate::patterns::UIScrollItemPattern;
 use crate::patterns::UISelectionItemPattern;
+use crate::patterns::UITransformPattern;
+use crate::patterns::UIWindowPattern;
 use crate::variants::Variant;
 
 /// Wrapper an button element as a control.
@@ -110,6 +118,38 @@ impl Into<UIElement> for ListItemControl {
 }
 
 impl AsRef<UIElement> for ListItemControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+/// Wrapper a window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
+#[derive(Window, Transform)]
+pub struct WindowControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for WindowControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        if control.get_control_type()? == UIA_WindowControlTypeId {
+            Ok(Self {
+                control
+            })
+        } else {
+            Err(Error::new(ERR_TYPE, "Error Control Type"))
+        }
+    }
+}
+
+impl Into<UIElement> for WindowControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for WindowControl {
     fn as_ref(&self) -> &UIElement {
         &self.control
     }
