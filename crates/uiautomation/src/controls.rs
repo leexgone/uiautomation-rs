@@ -9,9 +9,6 @@ use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
-use windows::Win32::UI::Accessibility::WindowVisualState_Maximized;
-use windows::Win32::UI::Accessibility::WindowVisualState_Minimized;
-use windows::Win32::UI::Accessibility::WindowVisualState_Normal;
 
 use crate::actions::*;
 use crate::Error;
