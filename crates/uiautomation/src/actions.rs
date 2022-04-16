@@ -137,3 +137,15 @@ pub trait Transform {
     /// Zoom the control by `zoom_unit` unit.
     fn zoom_by_unit(&self, zoom_unit: ZoomUnit) -> Result<()>;
 }
+
+/// Define a value action for ui element.
+pub trait Value {
+    /// Set the edit value by `&str` type.
+    fn set_value(&self, value: &str) -> Result<()>;
+
+    /// Get the edit value as `String`.
+    fn get_value(&self) -> Result<String>;
+
+    /// Check whether the edit is readonly.
+    fn is_readonly(&self) -> Result<bool>;
+}

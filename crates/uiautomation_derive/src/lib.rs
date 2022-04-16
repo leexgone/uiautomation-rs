@@ -10,6 +10,7 @@ use crate::action_derives::impl_multiple_view;
 use crate::action_derives::impl_scroll_item;
 use crate::action_derives::impl_selection_item;
 use crate::action_derives::impl_transform;
+use crate::action_derives::impl_value;
 use crate::action_derives::impl_window;
 
 #[proc_macro_derive(Invoke)]
@@ -59,4 +60,11 @@ pub fn derive_transform(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
     impl_transform(&ast)
+}
+
+#[proc_macro_derive(Value)]
+pub fn derive_value(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_value(&ast)
 }

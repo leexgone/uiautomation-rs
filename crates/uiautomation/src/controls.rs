@@ -6,8 +6,10 @@ use uiautomation_derive::MultipleView;
 use uiautomation_derive::ScrollItem;
 use uiautomation_derive::SelectionItem;
 use uiautomation_derive::Transform;
+use uiautomation_derive::Value;
 use uiautomation_derive::Window;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_EditControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
@@ -23,8 +25,21 @@ use crate::patterns::UIMultipleViewPattern;
 use crate::patterns::UIScrollItemPattern;
 use crate::patterns::UISelectionItemPattern;
 use crate::patterns::UITransformPattern;
+use crate::patterns::UIValuePattern;
 use crate::patterns::UIWindowPattern;
 use crate::variants::Variant;
+
+macro_rules! as_control {
+    ($control: ident, $type_id: ident) => {
+        if $control.get_control_type()? == $type_id {
+            Ok(Self {
+                $control
+            })
+        } else {
+            Err(Error::new(ERR_TYPE, "Error Control Type"))
+        }
+    };
+}
 
 /// Wrapper a window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
 #[derive(Window, Transform)]
@@ -36,13 +51,7 @@ impl TryFrom<UIElement> for WindowControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        if control.get_control_type()? == UIA_WindowControlTypeId {
-            Ok(Self {
-                control
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
+        as_control!(control, UIA_WindowControlTypeId)
     }
 }
 
@@ -73,13 +82,7 @@ impl TryFrom<UIElement> for ButtonControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        if control.get_control_type()? == UIA_ButtonControlTypeId {
-            Ok(Self {
-                control
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
+        as_control!(control, UIA_ButtonControlTypeId)
     }
 }
 
@@ -111,13 +114,7 @@ impl TryFrom<UIElement> for ListControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        if control.get_control_type()? == UIA_ListControlTypeId {
-            Ok(Self {
-                control
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
+        as_control!(control, UIA_ListControlTypeId)
     }
 }
 
@@ -149,13 +146,7 @@ impl TryFrom<UIElement> for ListItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        if control.get_control_type()? == UIA_ListItemControlTypeId {
-            Ok(Self {
-                control
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
+        as_control!(control, UIA_ListItemControlTypeId)
     }
 }
 
@@ -174,5 +165,37 @@ impl AsRef<UIElement> for ListItemControl {
 impl Display for ListItemControl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ListItem({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
+/// Wrapper a edit element as a control. The control type of the element must be `UIA_EditControlTypeId`.
+#[derive(ScrollItem, Value)]
+pub struct EditControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for EditControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_EditControlTypeId)
+    }
+}
+
+impl Into<UIElement> for EditControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for EditControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+impl Display for EditControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Edit({})", self.control.get_name().unwrap_or_default())
     }
 }

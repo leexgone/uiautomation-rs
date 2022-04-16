@@ -236,3 +236,26 @@ pub(crate) fn impl_transform(ast: &syn::DeriveInput) -> TokenStream {
     };
     gen.into()
 }
+
+pub(crate) fn impl_value(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Value for #name {
+            fn set_value(&self, value: &str) -> Result<()> {
+                let pattern: UIValuePattern = self.as_ref().get_pattern()?;
+                pattern.set_value(value)
+            }
+        
+            fn get_value(&self) -> Result<String> {
+                let pattern: UIValuePattern = self.as_ref().get_pattern()?;
+                pattern.get_value()
+            }
+        
+            fn is_readonly(&self) -> Result<bool> {
+                let pattern: UIValuePattern = self.as_ref().get_pattern()?;
+                pattern.is_readonly()
+            }
+        }        
+    };
+    gen.into()
+}
