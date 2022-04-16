@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use uiautomation_derive::Invoke;
 use uiautomation_derive::ItemContainer;
 use uiautomation_derive::MultipleView;
@@ -24,6 +26,43 @@ use crate::patterns::UITransformPattern;
 use crate::patterns::UIWindowPattern;
 use crate::variants::Variant;
 
+/// Wrapper a window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
+#[derive(Window, Transform)]
+pub struct WindowControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for WindowControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        if control.get_control_type()? == UIA_WindowControlTypeId {
+            Ok(Self {
+                control
+            })
+        } else {
+            Err(Error::new(ERR_TYPE, "Error Control Type"))
+        }
+    }
+}
+
+impl Into<UIElement> for WindowControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for WindowControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+impl Display for WindowControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Window({})", self.control.get_name().unwrap_or_default())
+    }
+}
 /// Wrapper an button element as a control.
 #[derive(Invoke)]
 pub struct ButtonControl {
@@ -47,6 +86,12 @@ impl TryFrom<UIElement> for ButtonControl {
 impl Into<UIElement> for ButtonControl {
     fn into(self) -> UIElement {
         self.control
+    }
+}
+
+impl Display for ButtonControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Button({})", self.control.get_name().unwrap_or_default())
     }
 }
 
@@ -88,6 +133,12 @@ impl AsRef<UIElement> for ListControl {
     }
 }
 
+impl Display for ListControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "List({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
 /// Wrapper a listitem element as a control. The control type of the element must be `UIA_ListItemControlTypeId`.
 #[derive(Invoke, SelectionItem, ScrollItem)]
 pub struct ListItemControl {
@@ -120,34 +171,8 @@ impl AsRef<UIElement> for ListItemControl {
     }
 }
 
-/// Wrapper a window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
-#[derive(Window, Transform)]
-pub struct WindowControl {
-    control: UIElement
-}
-
-impl TryFrom<UIElement> for WindowControl {
-    type Error = Error;
-
-    fn try_from(control: UIElement) -> Result<Self> {
-        if control.get_control_type()? == UIA_WindowControlTypeId {
-            Ok(Self {
-                control
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
-    }
-}
-
-impl Into<UIElement> for WindowControl {
-    fn into(self) -> UIElement {
-        self.control
-    }
-}
-
-impl AsRef<UIElement> for WindowControl {
-    fn as_ref(&self) -> &UIElement {
-        &self.control
+impl Display for ListItemControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ListItem({})", self.control.get_name().unwrap_or_default())
     }
 }
