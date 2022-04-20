@@ -28,5 +28,6 @@ features = [
     "Win32_System_Com",
     "Win32_System_Ole",
     "Win32_UI_Accessibility",
+    "Win32_UI_Input_KeyboardAndMouse",
     "UI_UIAutomation"
 ]
