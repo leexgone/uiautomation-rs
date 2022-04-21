@@ -2,6 +2,7 @@
 mod tests {
     use std::mem;
 
+    use windows::Win32::Foundation::GetLastError;
     use windows::Win32::UI::Input::KeyboardAndMouse::INPUT;
     use windows::Win32::UI::Input::KeyboardAndMouse::INPUT_0;
     use windows::Win32::UI::Input::KeyboardAndMouse::INPUT_KEYBOARD;
@@ -65,6 +66,13 @@ mod tests {
         let sent = unsafe {
             SendInput(&inputs, size as _)
         };
+
+        if sent == 0 {
+            let err = unsafe {
+                GetLastError()
+            };
+            println!("error code: {}", err.0);
+        }
         
         assert_eq!(sent as usize, inputs.len());
     }
