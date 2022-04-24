@@ -60,11 +60,9 @@ mod tests {
                 }
             }
         }];
-        let size = mem::size_of_val(&inputs);
-        println!("{}", size);
 
         let sent = unsafe {
-            SendInput(&inputs, size as _)
+            SendInput(&inputs, mem::size_of::<INPUT>() as _)
         };
 
         if sent == 0 {
