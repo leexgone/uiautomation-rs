@@ -1,3 +1,11 @@
+use phf::phf_map;
+use windows::Win32::UI::Input::KeyboardAndMouse::*;
+
+const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
+    "LBUTTON" => VK_LBUTTON,
+    "RBUTTON" => VK_RBUTTON
+};
+
 #[cfg(test)]
 mod tests {
     use std::mem;
@@ -11,7 +19,16 @@ mod tests {
     use windows::Win32::UI::Input::KeyboardAndMouse::KEYEVENTF_KEYUP;
     use windows::Win32::UI::Input::KeyboardAndMouse::SendInput;
     use windows::Win32::UI::Input::KeyboardAndMouse::VK_D;
+    use windows::Win32::UI::Input::KeyboardAndMouse::VK_LBUTTON;
     use windows::Win32::UI::Input::KeyboardAndMouse::VK_LWIN;
+
+    use crate::inputs::VIRTUAL_KEYS;
+
+    #[test]
+    fn test_virtual_keys() {
+        let key = VIRTUAL_KEYS.get("LBUTTON");
+        assert_eq!(key, Some(&VK_LBUTTON));
+    }
 
     #[test]
     fn show_desktop() {

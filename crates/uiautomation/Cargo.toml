@@ -17,11 +17,12 @@ targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows
 [dependencies]
 
 chrono = "0.4.19"
+phf = { version = "0.10.1", features = ["macros"] }
 uiautomation_derive = { path = "../uiautomation_derive" }
 # uiautomation_derive = "0.0.2"
 
 [dependencies.windows]
-version = "0.35.0"
+version = "0.36.0"
 features = [
     "alloc",
     "Win32_Foundation",
