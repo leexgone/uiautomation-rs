@@ -5,7 +5,6 @@ use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
 use crate::Result;
-use crate::inputs;
 
 pub const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
@@ -30,6 +29,7 @@ pub const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
     "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum InputItem {
     HoldKey(VIRTUAL_KEY),
     VirtualKey(VIRTUAL_KEY),
@@ -41,22 +41,68 @@ struct Input {
     items: Vec<InputItem>
 }
 
+impl Input {
+    fn new() -> Self {
+        Self {
+            holdkeys: Vec::new(),
+            items: Vec::new()
+        }
+    }
+
+    fn is_holdkey_only(&self) -> bool {
+        !self.holdkeys.is_empty() && self.items.is_empty()
+    }
+
+    fn push(&mut self, item: InputItem) {
+        if let InputItem::HoldKey(key) = item {
+            if !self.holdkeys.contains(&key) {
+                self.holdkeys.push(key);
+            }
+        } else {
+            self.items.push(item);
+        }
+    }
+
+    fn push_all(&mut self, items: &Vec<InputItem>) {
+        for item in items {
+            self.push(*item);
+        }
+    }
+}
+
 fn parse_input(expression: &str) -> Result<Vec<Input>> {
-    let mut inputs = Vec::new();
+    let mut inputs: Vec<Input> = Vec::new();
 
     let expr = expression.chars();
     loop {
-        let items = next_input(&expr)?;
+        let (items, is_holdkey) = next_input(&expr)?;
         if items.is_empty() {
             break;
         }
+
+        if let Some(prev) = inputs.last_mut() {
+            if !is_holdkey && prev.is_holdkey_only() {
+                prev.push_all(&items);
+                continue;
+            }
+        }
+
+        let mut input = Input::new();
+        input.push_all(&items);
+
+        inputs.push(input);
     }
 
     Ok(inputs)
 }
 
-fn next_input(expr: &Chars<'_>) -> Result<Vec<InputItem>> {
+fn next_input(expr: &Chars<'_>) -> Result<(Vec<InputItem>, bool)> {
     todo!()
+}
+
+pub fn send_keys(keys: &str) -> Result<()> {
+    let inputs = parse_input(keys);
+    Ok(())
 }
 
 #[cfg(test)]
