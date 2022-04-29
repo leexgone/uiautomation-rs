@@ -1,6 +1,11 @@
+use std::str::Chars;
+
 use phf::phf_map;
 use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
+
+use crate::Result;
+use crate::inputs;
 
 pub const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
@@ -24,6 +29,35 @@ pub const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
     "SHIFT", "LSHIFT", "RSHIFT",
     "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
 };
+
+enum InputItem {
+    HoldKey(VIRTUAL_KEY),
+    VirtualKey(VIRTUAL_KEY),
+    Character(char)
+}
+
+struct Input {
+    holdkeys: Vec<VIRTUAL_KEY>,
+    items: Vec<InputItem>
+}
+
+fn parse_input(expression: &str) -> Result<Vec<Input>> {
+    let mut inputs = Vec::new();
+
+    let expr = expression.chars();
+    loop {
+        let items = next_input(&expr)?;
+        if items.is_empty() {
+            break;
+        }
+    }
+
+    Ok(inputs)
+}
+
+fn next_input(expr: &Chars<'_>) -> Result<Vec<InputItem>> {
+    todo!()
+}
 
 #[cfg(test)]
 mod tests {
@@ -109,5 +143,15 @@ mod tests {
         }
         
         assert_eq!(sent as usize, inputs.len());
+    }
+
+    #[test]
+    fn test_chars() {
+        let text = "Hello,\t假期！";
+
+        println!("{}", text);
+        for ch in text.chars() {
+            println!("{}", ch);
+        }
     }
 }
