@@ -14,6 +14,8 @@ pub const ERR_INACTIVE: i32 = 3;
 pub const ERR_TYPE: i32 = 4;
 /// Error when a pointer is null.
 pub const ERR_NULL_PTR:  i32 = 5;
+/// Error format.
+pub const ERR_FORMAT: i32 = 6;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {

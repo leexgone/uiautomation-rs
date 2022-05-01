@@ -4,7 +4,9 @@ use phf::phf_map;
 use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
+use crate::Error;
 use crate::Result;
+use crate::errors::ERR_FORMAT;
 
 pub const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
@@ -45,6 +47,7 @@ impl InputItem {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 struct Input {
     holdkeys: Vec<VIRTUAL_KEY>,
     items: Vec<InputItem>
@@ -124,11 +127,55 @@ fn next_input(expr: &mut Chars<'_>) -> Result<Option<(Vec<InputItem>, bool)>> {
 }
 
 fn read_special_item(expr: &mut Chars<'_>) -> Result<InputItem> {
-    todo!()
+    let mut token = String::new();
+    let mut matched = false;
+    while let Some(ch) = expr.next() {
+        if ch == '}' && !token.is_empty() {
+            matched = true;
+            break;
+        } else {
+            token.push(ch);
+        }
+    };
+
+    if matched {
+        if token == "(" || token == ")" || token == "{" || token == "}" {
+            Ok(InputItem::Character(token.chars().nth(0).unwrap()))
+        } else {
+            let token = token.to_uppercase();
+            if let Some(key) = VIRTUAL_KEYS.get(&token) {
+                if HOLD_KEYS.contains(&token) {
+                    Ok(InputItem::HoldKey(*key))
+                } else {
+                    Ok(InputItem::VirtualKey(*key))
+                }
+            } else {
+                Err(Error::new(ERR_FORMAT, "Error Input Format"))
+            }
+        }
+    } else {
+        Err(Error::new(ERR_FORMAT, "Error Input Format"))
+    }
 }
 
 fn read_group_items(expr: &mut Chars<'_>) -> Result<Vec<InputItem>> {
-    todo!()
+    let mut items: Vec<InputItem> = Vec::new();
+    let mut matched = false;
+
+    while let Some((next, _)) = next_input(expr)? {
+        if next.len() == 1 && next[0] == InputItem::Character(')') {
+            matched = true;
+            break;
+        } 
+
+        items.extend(next);
+    }
+
+    if matched {
+        Ok(items)
+    } else {
+        Err(Error::new(ERR_FORMAT, "Error Input Format"))
+    }
 }
 
 pub fn send_keys(keys: &str) -> Result<()> {
@@ -148,11 +195,15 @@ mod tests {
     use windows::Win32::UI::Input::KeyboardAndMouse::KEYBD_EVENT_FLAGS;
     use windows::Win32::UI::Input::KeyboardAndMouse::KEYEVENTF_KEYUP;
     use windows::Win32::UI::Input::KeyboardAndMouse::SendInput;
+    use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
     use windows::Win32::UI::Input::KeyboardAndMouse::VK_D;
     use windows::Win32::UI::Input::KeyboardAndMouse::VK_LBUTTON;
     use windows::Win32::UI::Input::KeyboardAndMouse::VK_LWIN;
 
+    use crate::inputs::Input;
+    use crate::inputs::InputItem;
     use crate::inputs::VIRTUAL_KEYS;
+    use crate::inputs::parse_input;
 
     #[test]
     fn test_virtual_keys() {
@@ -223,12 +274,11 @@ mod tests {
     }
 
     #[test]
-    fn test_chars() {
-        let text = "Hello,\t假期！";
-
-        println!("{}", text);
-        for ch in text.chars() {
-            println!("{}", ch);
-        }
+    fn test_parse_input() {
+        let inputs = parse_input("{ctrl}c").unwrap();
+        assert_eq!(inputs, vec![Input {
+            holdkeys: vec![VK_CONTROL],
+            items: vec![InputItem::Character('c')]
+        }]);
     }
 }
