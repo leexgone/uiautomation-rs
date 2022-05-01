@@ -8,7 +8,7 @@ use crate::Error;
 use crate::Result;
 use crate::errors::ERR_FORMAT;
 
-pub const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
+const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
     "ALT" => VK_MENU, "MENU" => VK_MENU, "LALT" => VK_LMENU, "LMENU" => VK_LMENU, "RALT" => VK_RMENU, "RMENU" => VK_RMENU,
     "SHIFT" => VK_SHIFT, "LSHIFT" => VK_LSHIFT, "RSHIFT" => VK_RSHIFT,
@@ -24,7 +24,7 @@ pub const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "F20" => VK_F20, "F21" => VK_F21, "F22" => VK_F22, "F23" => VK_F23, "F24" => VK_F24,
 };
 
-pub const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
+const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
     "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL",
     "ALT", "MENU", "LALT", "LMENU", "RALT", "RMENU",
     "SHIFT", "LSHIFT", "RSHIFT",
