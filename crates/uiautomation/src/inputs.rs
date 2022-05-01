@@ -36,6 +36,15 @@ enum InputItem {
     Character(char)
 }
 
+impl InputItem {
+    fn is_holdkey(&self) -> bool {
+        match self {
+            Self::HoldKey(_) => true,
+            _ => false
+        }
+    }
+}
+
 struct Input {
     holdkeys: Vec<VIRTUAL_KEY>,
     items: Vec<InputItem>
@@ -47,6 +56,10 @@ impl Input {
             holdkeys: Vec::new(),
             items: Vec::new()
         }
+    }
+
+    fn has_holdkey(&self) -> bool {
+        !self.holdkeys.is_empty()
     }
 
     fn is_holdkey_only(&self) -> bool {
@@ -73,15 +86,10 @@ impl Input {
 fn parse_input(expression: &str) -> Result<Vec<Input>> {
     let mut inputs: Vec<Input> = Vec::new();
 
-    let expr = expression.chars();
-    loop {
-        let (items, is_holdkey) = next_input(&expr)?;
-        if items.is_empty() {
-            break;
-        }
-
+    let mut expr = expression.chars();
+    while let Some((items, is_holdkey)) = next_input(&mut expr)? {
         if let Some(prev) = inputs.last_mut() {
-            if !is_holdkey && prev.is_holdkey_only() {
+            if !is_holdkey && (prev.is_holdkey_only() || !prev.has_holdkey()) {
                 prev.push_all(&items);
                 continue;
             }
@@ -96,7 +104,30 @@ fn parse_input(expression: &str) -> Result<Vec<Input>> {
     Ok(inputs)
 }
 
-fn next_input(expr: &Chars<'_>) -> Result<(Vec<InputItem>, bool)> {
+fn next_input(expr: &mut Chars<'_>) -> Result<Option<(Vec<InputItem>, bool)>> {
+    if let Some(ch) = expr.next() {
+        let next = match ch {
+            '{' => {
+                let item = read_special_item(expr)?;
+                Some((vec![item], item.is_holdkey()))
+            },
+            '(' => {
+                let items = read_group_items(expr)?;
+                Some((items, false))
+            },
+            _ => Some((vec![InputItem::Character(ch)], false))
+        };
+        Ok(next)
+    } else {
+        Ok(None)
+    }
+}
+
+fn read_special_item(expr: &mut Chars<'_>) -> Result<InputItem> {
+    todo!()
+}
+
+fn read_group_items(expr: &mut Chars<'_>) -> Result<Vec<InputItem>> {
     todo!()
 }
 
