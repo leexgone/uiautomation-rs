@@ -1,3 +1,4 @@
+use std::mem;
 use std::str::Chars;
 use std::thread::sleep;
 use std::time::Duration;
@@ -108,7 +109,8 @@ impl Input {
                     inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYUP));
                 },
                 InputItem::Character(ch) => {
-                    Self::create_char_key(&mut inputs, *ch, self.has_holdkey())?;
+                    let keys = Self::create_char_key(*ch, self.has_holdkey());
+                    inputs.extend(keys);
                 },
                 _ => (),
             }
@@ -137,8 +139,139 @@ impl Input {
         }
     }
 
-    fn create_char_key(inputs: &mut Vec<INPUT>, ch: char, hold_mode: bool) -> Result<()> {
-        todo!()
+    fn create_char_key(ch: char, hold_mode: bool) -> Vec<INPUT> {
+        let code = ch as i32;
+        let vk: i16 = if code > 0 && code < 256 {
+            unsafe { VkKeyScanW(code as _) }
+        } else {
+            -1
+        };
+        
+        if vk == -1 {   // Unicode
+            vec![
+                INPUT {
+                    r#type: INPUT_KEYBOARD,
+                    Anonymous: INPUT_0 {
+                        ki: KEYBDINPUT {
+                            wVk: VIRTUAL_KEY(0),
+                            wScan: ch as _,
+                            dwFlags: KEYEVENTF_UNICODE,
+                            time: 0,
+                            dwExtraInfo: 0,
+                            },
+                        }
+                }, INPUT {
+                    r#type: INPUT_KEYBOARD,
+                    Anonymous: INPUT_0 {
+                        ki: KEYBDINPUT {
+                            wVk: VIRTUAL_KEY(0),
+                            wScan: ch as _,
+                            dwFlags: KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
+                            time: 0,
+                            dwExtraInfo: 0,
+                        },
+                    }
+                }
+            ]
+        } else {        // ASCII
+            let key: VIRTUAL_KEY = VIRTUAL_KEY((vk & 0xFF) as _);
+            if hold_mode {
+                vec![
+                    INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: key,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYDOWN,
+                                time: 0,
+                                dwExtraInfo: 0,
+                                },
+                            }
+                    }, INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: key,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYUP,
+                                time: 0,
+                                dwExtraInfo: 0,
+                            },
+                        }
+                    }
+                ]    
+            } else {
+                let mut shift: bool = (vk >> 8 & 0x01) != 0;
+                let state = unsafe { GetKeyState(VK_CAPITAL.0 as _) };
+                if (state & 0x01) != 0 {
+                    if (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') {
+                        shift = !shift;
+                    }
+                };
+                let mut char_inputs: Vec<INPUT> = Vec::new();
+                if shift {
+                    char_inputs.push(
+                        INPUT {
+                            r#type: INPUT_KEYBOARD,
+                            Anonymous: INPUT_0 {
+                                ki: KEYBDINPUT {
+                                    wVk: VK_SHIFT,
+                                    wScan: 0,
+                                    dwFlags: KEYEVENTF_KEYDOWN,
+                                    time: 0,
+                                    dwExtraInfo: 0,
+                                    },
+                                }
+                        }
+                    );
+                }
+                char_inputs.push(
+                    INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: key,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYDOWN,
+                                time: 0,
+                                dwExtraInfo: 0,
+                                },
+                            }
+                    }
+                );
+                char_inputs.push(INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: key,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYUP,
+                                time: 0,
+                                dwExtraInfo: 0,
+                            },
+                        }
+                    }
+                );
+                if shift {
+                    char_inputs.push(
+                        INPUT {
+                            r#type: INPUT_KEYBOARD,
+                            Anonymous: INPUT_0 {
+                                ki: KEYBDINPUT {
+                                    wVk: VK_SHIFT,
+                                    wScan: 0,
+                                    dwFlags: KEYEVENTF_KEYUP,
+                                    time: 0,
+                                    dwExtraInfo: 0,
+                                    },
+                                }
+                        }
+                    );
+                };
+                char_inputs
+            }
+        }
     }
 }
 
@@ -261,9 +394,9 @@ impl Keyboard {
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
     /// 
-    /// `()` is used for group keys. For example: `{ctrl}(AB)`.
+    /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     /// 
-    /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types as `{Hi,(rust)}`.
+    /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
     pub fn send_keys(&self, keys: &str) -> Result<()> {
         let inputs = parse_input(keys)?;
         for ref input in inputs {
@@ -275,8 +408,9 @@ impl Keyboard {
 
     fn send_input(&self, input: &Input) -> Result<()> {
         let input_keys = input.create_inputs()?;
-        let events = input_keys.as_slice();
-
+        let _sent = unsafe {
+            SendInput(&input_keys.as_slice(), mem::size_of::<INPUT>() as _)
+        };
         self.wait();
         Ok(())
     }
@@ -290,24 +424,9 @@ impl Keyboard {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
+    use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
-    use windows::Win32::Foundation::GetLastError;
-    use windows::Win32::UI::Input::KeyboardAndMouse::SendInput;
-    use windows::Win32::UI::Input::KeyboardAndMouse::INPUT;
-    use windows::Win32::UI::Input::KeyboardAndMouse::INPUT_0;
-    use windows::Win32::UI::Input::KeyboardAndMouse::INPUT_KEYBOARD;
-    use windows::Win32::UI::Input::KeyboardAndMouse::KEYBDINPUT;
-    use windows::Win32::UI::Input::KeyboardAndMouse::KEYBD_EVENT_FLAGS;
-    use windows::Win32::UI::Input::KeyboardAndMouse::KEYEVENTF_KEYUP;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_D;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_DELETE;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_LBUTTON;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_LWIN;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_MENU;
-    use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
-
+    use crate::inputs::Keyboard;
     use crate::inputs::parse_input;
     use crate::inputs::Input;
     use crate::inputs::InputItem;
@@ -321,65 +440,67 @@ mod tests {
 
     #[test]
     fn show_desktop() {
-        let inputs: [INPUT; 4] = [
-            INPUT {
-                r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 {
-                    ki: KEYBDINPUT {
-                        wVk: VK_LWIN,
-                        wScan: 0,
-                        dwFlags: KEYBD_EVENT_FLAGS::default(),
-                        time: 0,
-                        dwExtraInfo: 0,
-                    },
-                },
-            },
-            INPUT {
-                r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 {
-                    ki: KEYBDINPUT {
-                        wVk: VK_D,
-                        wScan: 0,
-                        dwFlags: KEYBD_EVENT_FLAGS::default(),
-                        time: 0,
-                        dwExtraInfo: 0,
-                    },
-                },
-            },
-            INPUT {
-                r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 {
-                    ki: KEYBDINPUT {
-                        wVk: VK_D,
-                        wScan: 0,
-                        dwFlags: KEYEVENTF_KEYUP,
-                        time: 0,
-                        dwExtraInfo: 0,
-                    },
-                },
-            },
-            INPUT {
-                r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 {
-                    ki: KEYBDINPUT {
-                        wVk: VK_LWIN,
-                        wScan: 0,
-                        dwFlags: KEYEVENTF_KEYUP,
-                        time: 0,
-                        dwExtraInfo: 0,
-                    },
-                },
-            },
-        ];
+        // let inputs: [INPUT; 4] = [
+        //     INPUT {
+        //         r#type: INPUT_KEYBOARD,
+        //         Anonymous: INPUT_0 {
+        //             ki: KEYBDINPUT {
+        //                 wVk: VK_LWIN,
+        //                 wScan: 0,
+        //                 dwFlags: KEYBD_EVENT_FLAGS::default(),
+        //                 time: 0,
+        //                 dwExtraInfo: 0,
+        //             },
+        //         },
+        //     },
+        //     INPUT {
+        //         r#type: INPUT_KEYBOARD,
+        //         Anonymous: INPUT_0 {
+        //             ki: KEYBDINPUT {
+        //                 wVk: VK_D,
+        //                 wScan: 0,
+        //                 dwFlags: KEYBD_EVENT_FLAGS::default(),
+        //                 time: 0,
+        //                 dwExtraInfo: 0,
+        //             },
+        //         },
+        //     },
+        //     INPUT {
+        //         r#type: INPUT_KEYBOARD,
+        //         Anonymous: INPUT_0 {
+        //             ki: KEYBDINPUT {
+        //                 wVk: VK_D,
+        //                 wScan: 0,
+        //                 dwFlags: KEYEVENTF_KEYUP,
+        //                 time: 0,
+        //                 dwExtraInfo: 0,
+        //             },
+        //         },
+        //     },
+        //     INPUT {
+        //         r#type: INPUT_KEYBOARD,
+        //         Anonymous: INPUT_0 {
+        //             ki: KEYBDINPUT {
+        //                 wVk: VK_LWIN,
+        //                 wScan: 0,
+        //                 dwFlags: KEYEVENTF_KEYUP,
+        //                 time: 0,
+        //                 dwExtraInfo: 0,
+        //             },
+        //         },
+        //     },
+        // ];
 
-        let sent = unsafe { SendInput(&inputs, mem::size_of::<INPUT>() as _) };
+        // let sent = unsafe { SendInput(&inputs, mem::size_of::<INPUT>() as _) };
+        let kb = Keyboard::default();
+        kb.send_keys("{win}D").unwrap();
 
-        if sent == 0 {
-            let err = unsafe { GetLastError() };
-            println!("error code: {}", err.0);
-        }
+        // if sent == 0 {
+        //     let err = unsafe { GetLastError() };
+        //     println!("error code: {}", err.0);
+        // }
 
-        assert_eq!(sent as usize, inputs.len());
+        // assert_eq!(sent as usize, inputs.len());
     }
 
     #[test]

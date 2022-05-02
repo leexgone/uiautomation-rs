@@ -30,6 +30,7 @@ use crate::errors::ERR_NOTFOUND;
 use crate::errors::ERR_TIMEOUT;
 use crate::errors::Error;
 use crate::errors::Result;
+use crate::inputs::Keyboard;
 use crate::patterns::UIPattern;
 use crate::variants::Variant;
 
@@ -417,6 +418,11 @@ impl UIElement {
         }
 
         Ok(arr)
+    }
+
+    pub fn send_keys(&self, keys: &str, interval: u64) -> Result<()> {
+        let kb = Keyboard::new();
+        kb.interval(interval).send_keys(keys)
     }
 }
 
