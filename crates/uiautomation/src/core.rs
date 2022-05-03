@@ -420,7 +420,29 @@ impl UIElement {
         Ok(arr)
     }
 
+    /// Simulate typing `keys` on keyboard.
+    /// 
+    /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
+    /// 
+    /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
+    /// 
+    /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
+    /// 
+    /// `interval` is the milliseconds between keys. `0` is the default value.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use uiautomation::core::UIAutomation;
+    /// 
+    /// let automation = UIAutomation::new().unwrap();
+    /// let root = automation.get_root_element().unwrap();
+    /// root.send_keys("{Win}D", 10).unwrap();
+    /// ```
+    /// 
     pub fn send_keys(&self, keys: &str, interval: u64) -> Result<()> {
+        self.set_focus()?;
+        
         let kb = Keyboard::new();
         kb.interval(interval).send_keys(keys)
     }

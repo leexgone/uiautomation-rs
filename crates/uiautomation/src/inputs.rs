@@ -384,7 +384,7 @@ impl Keyboard {
 
     /// Set the interval time between keys.
     /// 
-    /// `interval` is the time number of milliseconds.
+    /// `interval` is the time number of milliseconds, `0` is default value.
     pub fn interval(mut self, interval: u64) -> Self {
         self.interval = interval;
         self
@@ -408,11 +408,30 @@ impl Keyboard {
 
     fn send_input(&self, input: &Input) -> Result<()> {
         let input_keys = input.create_inputs()?;
-        let _sent = unsafe {
-            SendInput(&input_keys.as_slice(), mem::size_of::<INPUT>() as _)
-        };
-        self.wait();
-        Ok(())
+        if self.interval == 0 {
+            let sent = unsafe {
+                SendInput(&input_keys.as_slice(), mem::size_of::<INPUT>() as _)
+            };
+            if sent as usize == input_keys.len() {
+                Ok(())
+            } else {
+                Err(Error::last_os_error())
+            }
+        } else {
+            for input_key in &input_keys {
+                let input_key_slice: [INPUT; 1] = [input_key.clone()];
+                let sent = unsafe {
+                    SendInput(&input_key_slice, mem::size_of::<INPUT>() as _)
+                };
+                if sent != 1 {
+                    return Err(Error::last_os_error());
+                }
+
+                self.wait();
+            }
+
+            Ok(())
+        }
     }
 
     fn wait(&self) {
@@ -440,67 +459,8 @@ mod tests {
 
     #[test]
     fn show_desktop() {
-        // let inputs: [INPUT; 4] = [
-        //     INPUT {
-        //         r#type: INPUT_KEYBOARD,
-        //         Anonymous: INPUT_0 {
-        //             ki: KEYBDINPUT {
-        //                 wVk: VK_LWIN,
-        //                 wScan: 0,
-        //                 dwFlags: KEYBD_EVENT_FLAGS::default(),
-        //                 time: 0,
-        //                 dwExtraInfo: 0,
-        //             },
-        //         },
-        //     },
-        //     INPUT {
-        //         r#type: INPUT_KEYBOARD,
-        //         Anonymous: INPUT_0 {
-        //             ki: KEYBDINPUT {
-        //                 wVk: VK_D,
-        //                 wScan: 0,
-        //                 dwFlags: KEYBD_EVENT_FLAGS::default(),
-        //                 time: 0,
-        //                 dwExtraInfo: 0,
-        //             },
-        //         },
-        //     },
-        //     INPUT {
-        //         r#type: INPUT_KEYBOARD,
-        //         Anonymous: INPUT_0 {
-        //             ki: KEYBDINPUT {
-        //                 wVk: VK_D,
-        //                 wScan: 0,
-        //                 dwFlags: KEYEVENTF_KEYUP,
-        //                 time: 0,
-        //                 dwExtraInfo: 0,
-        //             },
-        //         },
-        //     },
-        //     INPUT {
-        //         r#type: INPUT_KEYBOARD,
-        //         Anonymous: INPUT_0 {
-        //             ki: KEYBDINPUT {
-        //                 wVk: VK_LWIN,
-        //                 wScan: 0,
-        //                 dwFlags: KEYEVENTF_KEYUP,
-        //                 time: 0,
-        //                 dwExtraInfo: 0,
-        //             },
-        //         },
-        //     },
-        // ];
-
-        // let sent = unsafe { SendInput(&inputs, mem::size_of::<INPUT>() as _) };
-        let kb = Keyboard::default();
+        let kb = Keyboard::default().interval(50);
         kb.send_keys("{win}D").unwrap();
-
-        // if sent == 0 {
-        //     let err = unsafe { GetLastError() };
-        //     println!("error code: {}", err.0);
-        // }
-
-        // assert_eq!(sent as usize, inputs.len());
     }
 
     #[test]
@@ -534,5 +494,18 @@ mod tests {
                 items: vec![InputItem::Character('a'), InputItem::Character('b')]
             }]
         );
+    }
+
+    #[test]
+    fn test_parse_input_4() {
+        assert_eq!(
+            parse_input("{{}{}}{(}{)}").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('{'), InputItem::Character('}'), InputItem::Character('('), InputItem::Character(')')]
+                }
+            ]
+        )
     }
 }

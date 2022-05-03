@@ -101,3 +101,15 @@ fn main() {
     println!("enabled = {}", enabled_str);
 }
 ```
+
+### Simulate Keyboard Input
+
+``` rust
+use uiautomation::core::UIAutomation;
+
+fn main() {
+    let automation = UIAutomation::new().unwrap();
+    let root = automation.get_root_element().unwrap();
+    root.send_keys("{Win}D", 10).unwrap();
+}
+```

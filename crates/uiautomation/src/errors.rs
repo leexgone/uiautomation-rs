@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use windows::Win32::Foundation::GetLastError;
 use windows::core::HRESULT;
 
 /// Error caused by unknown reason.
@@ -29,6 +30,17 @@ impl Error {
             code,
             message: String::from(message)
         }
+    }
+
+    pub fn last_os_error() -> Error {
+        let error = unsafe { GetLastError() };
+        let code: i32 = if (error.0 as i32) < 0 {
+            error.0 as _
+        } else { 
+            -(error.0 as i32 & 0x0000FFFF)
+        };
+
+        HRESULT(code).into()
     }
 
     pub fn code(&self) -> i32 {
