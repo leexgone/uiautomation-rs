@@ -508,4 +508,9 @@ mod tests {
             ]
         )
     }
+
+    #[test]
+    fn test_parse_input_5() {
+        assert!(parse_input("Hello,Rust UIAutomation!{enter}").is_ok());
+    }
 }
