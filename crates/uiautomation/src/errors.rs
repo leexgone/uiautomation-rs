@@ -37,7 +37,7 @@ impl Error {
         let code: i32 = if (error.0 as i32) < 0 {
             error.0 as _
         } else { 
-            -(error.0 as i32 & 0x0000FFFF)
+            ((error.0 & 0x0000FFFF) | 0x80070000) as _
         };
 
         HRESULT(code).into()

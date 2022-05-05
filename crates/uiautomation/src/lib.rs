@@ -6,6 +6,7 @@ pub mod conditions;
 pub mod controls;
 pub mod actions;
 pub mod inputs;
+pub mod processes;
 
 pub use crate::errors::Error;
 pub use crate::errors::Result;
