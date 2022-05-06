@@ -30,6 +30,7 @@ use crate::errors::ERR_NOTFOUND;
 use crate::errors::ERR_TIMEOUT;
 use crate::errors::Error;
 use crate::errors::Result;
+use crate::inputs::Keyboard;
 use crate::patterns::UIPattern;
 use crate::variants::Variant;
 
@@ -418,6 +419,32 @@ impl UIElement {
 
         Ok(arr)
     }
+
+    /// Simulate typing `keys` on keyboard.
+    /// 
+    /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
+    /// 
+    /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
+    /// 
+    /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
+    /// 
+    /// `interval` is the milliseconds between keys. `0` is the default value.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use uiautomation::core::UIAutomation;
+    /// 
+    /// let automation = UIAutomation::new().unwrap();
+    /// let root = automation.get_root_element().unwrap();
+    /// root.send_keys("{Win}D", 0).unwrap();
+    /// ```
+    pub fn send_keys(&self, keys: &str, interval: u64) -> Result<()> {
+        self.set_focus()?;
+        
+        let kb = Keyboard::new();
+        kb.interval(interval).send_keys(keys)
+    }
 }
 
 impl From<IUIAutomationElement> for UIElement {
@@ -615,10 +642,6 @@ impl UIMatcher {
     }
 
     pub fn find_all(&self) -> Result<Vec<UIElement>> {
-        // let (root, walker) = self.prepare()?;
-
-        // let mut elements: Vec<UIElement> = Vec::new();
-        // self.search(&walker, &root, &mut elements, 1, false)?;
         let elements = self.find(false)?;
 
         if elements.is_empty() {
@@ -690,6 +713,21 @@ impl UIMatcher {
             condition.judge(element)
         } else {
             Ok(true)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::UIAutomation;
+
+    #[test]
+    fn test_zh_input() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
+        if let Ok(notepad) = matcher.find_first() {
+            notepad.send_keys("你好！{enter}", 0).unwrap();
+            notepad.send_keys("Hello!", 0).unwrap();
         }
     }
 }

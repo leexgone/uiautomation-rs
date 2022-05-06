@@ -1,41 +1,88 @@
-use windows::Win32::UI::Accessibility::IUIAutomationElement;
-use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
-use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_SelectionItemPatternId;
+use std::fmt::Display;
 
+use uiautomation_derive::Invoke;
+use uiautomation_derive::ItemContainer;
+use uiautomation_derive::MultipleView;
+use uiautomation_derive::ScrollItem;
+use uiautomation_derive::SelectionItem;
+use uiautomation_derive::Transform;
+use uiautomation_derive::Value;
+use uiautomation_derive::Window;
+use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_EditControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
+
+use crate::actions::*;
 use crate::Error;
 use crate::Result;
 use crate::UIElement;
 use crate::errors::ERR_TYPE;
 use crate::patterns::UIInvokePattern;
+use crate::patterns::UIItemContainerPattern;
+use crate::patterns::UIMultipleViewPattern;
 use crate::patterns::UIScrollItemPattern;
 use crate::patterns::UISelectionItemPattern;
+use crate::patterns::UITransformPattern;
+use crate::patterns::UIValuePattern;
+use crate::patterns::UIWindowPattern;
+use crate::variants::Variant;
 
-/// Wrapper an button element as a control.
-pub struct ButtonControl {
+macro_rules! as_control {
+    ($control: ident, $type_id: ident) => {
+        if $control.get_control_type()? == $type_id {
+            Ok(Self {
+                $control
+            })
+        } else {
+            Err(Error::new(ERR_TYPE, "Error Control Type"))
+        }
+    };
+}
+
+/// Wrapper a window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
+#[derive(Window, Transform)]
+pub struct WindowControl {
     control: UIElement
 }
 
-impl ButtonControl {
-    /// Perform a click event on this control.
-    pub fn click(&self) -> Result<()> {
-        let pattern: UIInvokePattern = self.control.get_pattern()?;
-        pattern.invoke()
+impl TryFrom<UIElement> for WindowControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_WindowControlTypeId)
     }
+}
+
+impl Into<UIElement> for WindowControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for WindowControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+impl Display for WindowControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Window({})", self.control.get_name().unwrap_or_default())
+    }
+}
+/// Wrapper an button element as a control.
+#[derive(Invoke)]
+pub struct ButtonControl {
+    control: UIElement
 }
 
 impl TryFrom<UIElement> for ButtonControl {
     type Error = Error;
 
-    fn try_from(value: UIElement) -> Result<Self> {
-        if value.get_control_type()? == UIA_ButtonControlTypeId {
-            Ok(Self {
-                control: value
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_ButtonControlTypeId)
     }
 }
 
@@ -45,84 +92,61 @@ impl Into<UIElement> for ButtonControl {
     }
 }
 
+impl Display for ButtonControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Button({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
 impl AsRef<UIElement> for ButtonControl {
     fn as_ref(&self) -> &UIElement {
         &self.control
     }
 }
 
-/// Wrapper a listitem element as a control.
-pub struct ListItemControl {
+/// Wrapper a list element as a control. The control type of the element must be `UIA_ListControlTypeId`.
+#[derive(MultipleView, ItemContainer)]
+pub struct ListControl {
     control: UIElement
 }
 
-impl ListItemControl {
-    /// Determines whether this control is clickable.
-    pub fn is_clickable(&self) -> bool {
-        let element: &IUIAutomationElement = self.control.as_ref();
-        let pattern = unsafe { 
-            element.GetCurrentPattern(UIA_InvokePatternId)
-        };
-        pattern.is_ok()
-    }
+impl TryFrom<UIElement> for ListControl {
+    type Error = Error;
 
-    /// Perform a click event on this control.
-    pub fn click(&self) -> Result<()> {
-        let pattern: UIInvokePattern = self.control.get_pattern()?;
-        pattern.invoke()
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_ListControlTypeId)
     }
+}
 
-    /// Scroll this item into view.
-    pub fn scroll_into_view(&self) -> Result<()> {
-        let pattern: UIScrollItemPattern = self.control.get_pattern()?;
-        pattern.scroll_into_view()
+impl Into<UIElement> for ListControl {
+    fn into(self) -> UIElement {
+        self.control
     }
+}
 
-    /// Determines whether this control is slectable.
-    pub fn is_selectable(&self) -> bool {
-        let element: &IUIAutomationElement = self.control.as_ref();
-        let pattern = unsafe {
-            element.GetCurrentPattern(UIA_SelectionItemPatternId)
-        };
-        pattern.is_ok()
+impl AsRef<UIElement> for ListControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
     }
+}
 
-    /// Select current item.
-    pub fn select(&self) -> Result<()> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.select()
+impl Display for ListControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "List({})", self.control.get_name().unwrap_or_default())
     }
+}
 
-    /// Add current item to selection.
-    pub fn add_to_selection(&self) -> Result<()> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.add_to_selection()
-    }
-
-    /// Remove current item from selection.
-    pub fn remove_from_selection(&self) -> Result<()> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.remove_from_selection()
-    }
-
-    /// Determines whether this item is selected.
-    pub fn is_selected(&self) -> Result<bool> {
-        let pattern: UISelectionItemPattern = self.control.get_pattern()?;
-        pattern.is_selected()
-    }
+/// Wrapper a listitem element as a control. The control type of the element must be `UIA_ListItemControlTypeId`.
+#[derive(Invoke, SelectionItem, ScrollItem)]
+pub struct ListItemControl {
+    control: UIElement
 }
 
 impl TryFrom<UIElement> for ListItemControl {
     type Error = Error;
 
-    fn try_from(value: UIElement) -> Result<Self> {
-        if value.get_control_type()? == UIA_ListItemControlTypeId {
-            Ok(Self {
-                control: value
-            })
-        } else {
-            Err(Error::new(ERR_TYPE, "Error Control Type"))
-        }
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_ListItemControlTypeId)
     }
 }
 
@@ -135,5 +159,43 @@ impl Into<UIElement> for ListItemControl {
 impl AsRef<UIElement> for ListItemControl {
     fn as_ref(&self) -> &UIElement {
         &self.control
+    }
+}
+
+impl Display for ListItemControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ListItem({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
+/// Wrapper a edit element as a control. The control type of the element must be `UIA_EditControlTypeId`.
+#[derive(ScrollItem, Value)]
+pub struct EditControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for EditControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_EditControlTypeId)
+    }
+}
+
+impl Into<UIElement> for EditControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for EditControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+impl Display for EditControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Edit({})", self.control.get_name().unwrap_or_default())
     }
 }

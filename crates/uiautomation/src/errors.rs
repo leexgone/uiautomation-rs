@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use windows::Win32::Foundation::GetLastError;
 use windows::core::HRESULT;
 
 /// Error caused by unknown reason.
@@ -14,6 +15,8 @@ pub const ERR_INACTIVE: i32 = 3;
 pub const ERR_TYPE: i32 = 4;
 /// Error when a pointer is null.
 pub const ERR_NULL_PTR:  i32 = 5;
+/// Error format.
+pub const ERR_FORMAT: i32 = 6;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
@@ -27,6 +30,17 @@ impl Error {
             code,
             message: String::from(message)
         }
+    }
+
+    pub fn last_os_error() -> Error {
+        let error = unsafe { GetLastError() };
+        let code: i32 = if (error.0 as i32) < 0 {
+            error.0 as _
+        } else { 
+            ((error.0 & 0x0000FFFF) | 0x80070000) as _
+        };
+
+        HRESULT(code).into()
     }
 
     pub fn code(&self) -> i32 {
