@@ -642,10 +642,6 @@ impl UIMatcher {
     }
 
     pub fn find_all(&self) -> Result<Vec<UIElement>> {
-        // let (root, walker) = self.prepare()?;
-
-        // let mut elements: Vec<UIElement> = Vec::new();
-        // self.search(&walker, &root, &mut elements, 1, false)?;
         let elements = self.find(false)?;
 
         if elements.is_empty() {
@@ -717,6 +713,21 @@ impl UIMatcher {
             condition.judge(element)
         } else {
             Ok(true)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::UIAutomation;
+
+    #[test]
+    fn test_zh_input() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
+        if let Ok(notepad) = matcher.find_first() {
+            notepad.send_keys("你好！{enter}", 0).unwrap();
+            notepad.send_keys("Hello!", 0).unwrap();
         }
     }
 }
