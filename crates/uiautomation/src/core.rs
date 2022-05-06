@@ -437,7 +437,7 @@ impl UIElement {
     /// 
     /// let automation = UIAutomation::new().unwrap();
     /// let root = automation.get_root_element().unwrap();
-    /// root.send_keys("{Win}D", 10).unwrap();
+    /// root.send_keys("{Win}D", 0).unwrap();
     /// ```
     pub fn send_keys(&self, keys: &str, interval: u64) -> Result<()> {
         self.set_focus()?;
