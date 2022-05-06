@@ -17,7 +17,7 @@ const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "SHIFT" => VK_SHIFT, "LSHIFT" => VK_LSHIFT, "RSHIFT" => VK_RSHIFT,
     "WIN" => VK_LWIN, "WINDOWS" => VK_LWIN, "LWIN" => VK_LWIN, "LWINDOWS" => VK_LWIN, "RWIN" => VK_RWIN, "RWINDOWS" => VK_RWIN,
     "LBUTTON" => VK_LBUTTON, "RBUTTON" => VK_RBUTTON, "MBUTTON" => VK_MBUTTON, "XBUTTON1" => VK_XBUTTON1, "XBUTTON2" => VK_XBUTTON2,
-    "CANCEL" => VK_CANCEL, "BACK" => VK_BACK, "TAB" => VK_TAB, "RETURN" => VK_RETURN, "PAUSE" => VK_PAUSE, "CAPITAL" => VK_CAPITAL,
+    "CANCEL" => VK_CANCEL, "BACK" => VK_BACK, "TAB" => VK_TAB, "RETURN" => VK_RETURN, "ENTER" => VK_RETURN, "PAUSE" => VK_PAUSE, "CAPITAL" => VK_CAPITAL,
     "ESCAPE" => VK_ESCAPE, "ESC" => VK_ESCAPE, "SPACE" => VK_SPACE,
     "PRIOR" => VK_PRIOR, "PAGE_UP" => VK_PRIOR, "NEXT" => VK_NEXT, "PAGE_DOWN" => VK_NEXT, "HOME" => VK_HOME, "END" => VK_END,
     "LEFT" => VK_LEFT, "UP" => VK_UP, "RIGHT" => VK_RIGHT, "DOWN" => VK_DOWN, "PRINT" => VK_PRINT,
@@ -109,8 +109,12 @@ impl Input {
                     inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYUP));
                 },
                 InputItem::Character(ch) => {
-                    let keys = Self::create_char_key(*ch, self.has_holdkey());
-                    inputs.extend(keys);
+                    let mut buffer = [0; 2];
+                    let chars = ch.encode_utf16(&mut buffer);
+                    for ch_u16 in chars {
+                        let keys = Self::create_char_key(*ch_u16, self.has_holdkey());
+                        inputs.extend(keys);
+                    }
                 },
                 _ => (),
             }
@@ -139,10 +143,10 @@ impl Input {
         }
     }
 
-    fn create_char_key(ch: char, hold_mode: bool) -> Vec<INPUT> {
-        let code = ch as i32;
-        let vk: i16 = if code > 0 && code < 256 {
-            unsafe { VkKeyScanW(code as _) }
+    fn create_char_key(ch: u16, hold_mode: bool) -> Vec<INPUT> {
+        // let code = ch as i32;
+        let vk: i16 = if ch < 256 {
+            unsafe { VkKeyScanW(ch) }
         } else {
             -1
         };
@@ -154,7 +158,7 @@ impl Input {
                     Anonymous: INPUT_0 {
                         ki: KEYBDINPUT {
                             wVk: VIRTUAL_KEY(0),
-                            wScan: ch as _,
+                            wScan: ch,
                             dwFlags: KEYEVENTF_UNICODE,
                             time: 0,
                             dwExtraInfo: 0,
@@ -165,7 +169,7 @@ impl Input {
                     Anonymous: INPUT_0 {
                         ki: KEYBDINPUT {
                             wVk: VIRTUAL_KEY(0),
-                            wScan: ch as _,
+                            wScan: ch,
                             dwFlags: KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
                             time: 0,
                             dwExtraInfo: 0,
@@ -205,7 +209,7 @@ impl Input {
                 let mut shift: bool = (vk >> 8 & 0x01) != 0;
                 let state = unsafe { GetKeyState(VK_CAPITAL.0 as _) };
                 if (state & 0x01) != 0 {
-                    if (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') {
+                    if (ch >= 'a' as u16 && ch <= 'z' as u16) || (ch >= 'A' as u16 && ch <= 'Z' as u16) {
                         shift = !shift;
                     }
                 };
@@ -512,5 +516,27 @@ mod tests {
     #[test]
     fn test_parse_input_5() {
         assert!(parse_input("Hello,Rust UIAutomation!{enter}").is_ok());
+    }
+
+    #[test]
+    fn test_parse_input_6() {
+        assert_eq!(
+            parse_input("你好！").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('你'), InputItem::Character('好'), InputItem::Character('！')]
+                }
+            ]
+        )
+    }
+
+    #[test]
+    fn test_zh_input() {
+        let inputs = parse_input("你好").unwrap();
+        for input in &inputs {
+            let keys = input.create_inputs();
+            assert!(keys.is_ok());
+        }
     }
 }
