@@ -55,7 +55,7 @@ impl Display for WindowControl {
     }
 }
 /// Wrapper an button element as a control.
-#[derive(Invoke, Value, ExpandCollapse)]
+#[derive(Invoke, Value, ExpandCollapse, Toggle)]
 pub struct ButtonControl {
     control: UIElement
 }

@@ -68,3 +68,10 @@ pub fn derive_expand_collapse(input: TokenStream) -> TokenStream {
 
     impl_expand_collapse(&ast)
 }
+
+#[proc_macro_derive(Toggle)]
+pub fn derive_toggle(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_toggle(&ast)
+}
