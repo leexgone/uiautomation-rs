@@ -4,14 +4,7 @@ mod action_derives;
 
 use proc_macro::TokenStream;
 
-use crate::action_derives::impl_invoke;
-use crate::action_derives::impl_item_container;
-use crate::action_derives::impl_multiple_view;
-use crate::action_derives::impl_scroll_item;
-use crate::action_derives::impl_selection_item;
-use crate::action_derives::impl_transform;
-use crate::action_derives::impl_value;
-use crate::action_derives::impl_window;
+use crate::action_derives::*;
 
 #[proc_macro_derive(Invoke)]
 pub fn derive_invoke(input: TokenStream) -> TokenStream {
@@ -67,4 +60,11 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
     impl_value(&ast)
+}
+
+#[proc_macro_derive(ExpandCollapse)]
+pub fn derive_expand_collapse(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_expand_collapse(&ast)
 }

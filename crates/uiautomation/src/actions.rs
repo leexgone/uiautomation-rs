@@ -1,3 +1,5 @@
+use windows::Win32::UI::Accessibility::ExpandCollapseState;
+use windows::Win32::UI::Accessibility::ToggleState;
 use windows::Win32::UI::Accessibility::WindowInteractionState;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 
@@ -148,4 +150,25 @@ pub trait Value {
 
     /// Check whether the edit is readonly.
     fn is_readonly(&self) -> Result<bool>;
+}
+
+/// Define expand and collapse action for ui element.
+pub trait ExpandCollapse {
+    /// Expand the current control.
+    fn expand(&self) -> Result<()>;
+
+    /// Collapse the current control.
+    fn collapse(&self) -> Result<()>;
+
+    /// Get the state of the control.
+    fn get_state(&self) -> Result<ExpandCollapseState>;
+}
+
+/// Define a toggle action for ui element.
+pub trait Toggle {
+    /// Get the toggle state.
+    fn get_toggle_state(&self) -> Result<ToggleState>;
+
+    /// Toggle the control.
+    fn toggle(&self) -> Result<()>;
 }

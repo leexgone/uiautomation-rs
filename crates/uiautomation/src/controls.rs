@@ -1,13 +1,6 @@
 use std::fmt::Display;
 
-use uiautomation_derive::Invoke;
-use uiautomation_derive::ItemContainer;
-use uiautomation_derive::MultipleView;
-use uiautomation_derive::ScrollItem;
-use uiautomation_derive::SelectionItem;
-use uiautomation_derive::Transform;
-use uiautomation_derive::Value;
-use uiautomation_derive::Window;
+use uiautomation_derive::*;
 use windows::Win32::UI::Accessibility::*;
 
 use super::actions::*;
@@ -62,7 +55,7 @@ impl Display for WindowControl {
     }
 }
 /// Wrapper an button element as a control.
-#[derive(Invoke)]
+#[derive(Invoke, Value, ExpandCollapse)]
 pub struct ButtonControl {
     control: UIElement
 }

@@ -259,3 +259,26 @@ pub(crate) fn impl_value(ast: &syn::DeriveInput) -> TokenStream {
     };
     gen.into()
 }
+
+pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl ExpandCollapse for #name {
+            fn expand(&self) -> Result<()> {
+                let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
+                pattern.expand()
+            }
+        
+            fn collapse(&self) -> Result<()> {
+                let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
+                pattern.collapse()
+            }
+        
+            fn get_state(&self) -> Result<ExpandCollapseState> {
+                let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
+                pattern.get_state()
+            }
+        }
+            };
+    gen.into()
+}
