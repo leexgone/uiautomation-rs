@@ -8,10 +8,10 @@ pub mod actions;
 pub mod inputs;
 pub mod processes;
 
-pub use crate::errors::Error;
-pub use crate::errors::Result;
+pub use self::errors::Error;
+pub use self::errors::Result;
 
-pub use crate::core::UIAutomation;
-pub use crate::core::UIElement;
-pub use crate::core::UITreeWalker;
-pub use crate::core::UIMatcher;
+pub use self::core::UIAutomation;
+pub use self::core::UIElement;
+pub use self::core::UITreeWalker;
+pub use self::core::UIMatcher;

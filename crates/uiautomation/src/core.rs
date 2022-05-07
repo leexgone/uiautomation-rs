@@ -21,18 +21,18 @@ use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 use windows::core::Interface;
 
-use crate::conditions::AndCondition;
-use crate::conditions::ClassNameCondition;
-use crate::conditions::Condition;
-use crate::conditions::ControlTypeCondition;
-use crate::conditions::NameCondition;
-use crate::errors::ERR_NOTFOUND;
-use crate::errors::ERR_TIMEOUT;
-use crate::errors::Error;
-use crate::errors::Result;
-use crate::inputs::Keyboard;
-use crate::patterns::UIPattern;
-use crate::variants::Variant;
+use super::conditions::AndCondition;
+use super::conditions::ClassNameCondition;
+use super::conditions::Condition;
+use super::conditions::ControlTypeCondition;
+use super::conditions::NameCondition;
+use super::errors::ERR_NOTFOUND;
+use super::errors::ERR_TIMEOUT;
+use super::errors::Error;
+use super::errors::Result;
+use super::inputs::Keyboard;
+use super::patterns::UIPattern;
+use super::variants::Variant;
 
 #[derive(Clone, Debug)]
 pub struct UIAutomation {

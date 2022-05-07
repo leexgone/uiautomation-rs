@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
-use crate::core::UIElement;
-use crate::errors::Result;
+use super::core::UIElement;
+use super::errors::Result;
 
 /// `Condition` is a element filter that can be used in `UIMatcher`.
 pub trait Condition {

@@ -14,10 +14,10 @@ use windows::Win32::System::Threading::WaitForSingleObject;
 use windows::core::PCWSTR;
 use windows::core::PWSTR;
 
-use crate::Error;
-use crate::Result;
-use crate::errors::ERR_NONE;
-use crate::errors::ERR_TIMEOUT;
+use super::Error;
+use super::Result;
+use super::errors::ERR_NONE;
+use super::errors::ERR_TIMEOUT;
 
 /// Windows process wrapper.
 #[derive(Debug)]

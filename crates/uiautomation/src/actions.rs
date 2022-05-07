@@ -1,9 +1,9 @@
 use windows::Win32::UI::Accessibility::WindowInteractionState;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 
-use crate::Result;
-use crate::UIElement;
-use crate::variants::Variant;
+use super::Result;
+use super::UIElement;
+use super::variants::Variant;
 
 /// Define a invokable action for ui element.
 pub trait Invoke {

@@ -7,9 +7,9 @@ use phf::phf_map;
 use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
-use crate::errors::ERR_FORMAT;
-use crate::Error;
-use crate::Result;
+use super::errors::ERR_FORMAT;
+use super::Error;
+use super::Result;
 
 const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,

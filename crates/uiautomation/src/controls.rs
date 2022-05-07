@@ -8,26 +8,15 @@ use uiautomation_derive::SelectionItem;
 use uiautomation_derive::Transform;
 use uiautomation_derive::Value;
 use uiautomation_derive::Window;
-use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_EditControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_ListControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
+use windows::Win32::UI::Accessibility::*;
 
-use crate::actions::*;
-use crate::Error;
-use crate::Result;
-use crate::UIElement;
-use crate::errors::ERR_TYPE;
-use crate::patterns::UIInvokePattern;
-use crate::patterns::UIItemContainerPattern;
-use crate::patterns::UIMultipleViewPattern;
-use crate::patterns::UIScrollItemPattern;
-use crate::patterns::UISelectionItemPattern;
-use crate::patterns::UITransformPattern;
-use crate::patterns::UIValuePattern;
-use crate::patterns::UIWindowPattern;
-use crate::variants::Variant;
+use super::actions::*;
+use super::Error;
+use super::Result;
+use super::UIElement;
+use super::errors::ERR_TYPE;
+use super::patterns::*;
+use super::variants::Variant;
 
 macro_rules! as_control {
     ($control: ident, $type_id: ident) => {
