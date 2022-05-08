@@ -300,3 +300,140 @@ pub(crate) fn impl_toggle(ast: &syn::DeriveInput) -> TokenStream {
     };
     gen.into()    
 }
+
+pub(crate) fn impl_grid(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Grid for #name {
+            fn get_column_count(&self) -> Result<i32> {
+                let pattern: UIGridPattern = self.as_ref().get_pattern()?;
+                pattern.get_column_count()
+            }
+        
+            fn get_row_count(&self) -> Result<i32> {
+                let pattern: UIGridPattern = self.as_ref().get_pattern()?;
+                pattern.get_row_count()
+            }
+        
+            fn get_item(&self, row: i32, column: i32) -> Result<UIElement> {
+                let pattern: UIGridPattern = self.as_ref().get_pattern()?;
+                pattern.get_item(row, column)
+            }
+        }        
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_table(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Table for #name {
+            fn get_row_headers(&self) -> Result<Vec<UIElement>> {
+                let pattern: UITablePattern = self.as_ref().get_pattern()?;
+                pattern.get_row_headers()
+            }
+        
+            fn get_column_headers(&self) -> Result<Vec<UIElement>> {
+                let pattern: UITablePattern = self.as_ref().get_pattern()?;
+                pattern.get_column_headers()
+            }
+        
+            fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
+                let pattern: UITablePattern = self.as_ref().get_pattern()?;
+                pattern.get_row_or_column_major()
+            }
+        }        
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_scroll(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Scroll for #name {
+            fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.scroll(horizontal_amount, vertical_amount)
+            }
+        
+            fn set_scroll_percent(&self, horizontal_percent: f64, vertical_percent: f64) -> Result<()> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.set_scroll_percent(horizontal_percent, vertical_percent)
+            }
+        
+            fn get_horizontal_scroll_percent(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_horizontal_scroll_percent()
+            }
+        
+            fn get_vertical_scroll_percent(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_vertical_scroll_percent()
+            }
+        
+            fn get_horizontal_view_size(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_horizontal_view_size()
+            }
+        
+            fn get_vertical_view_size(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_vertical_view_size()
+            }
+        
+            fn is_horizontally_scrollable(&self) -> Result<bool> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.is_horizontally_scrollable()
+            }
+        
+            fn is_vertically_scrollable(&self) -> Result<bool> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.is_vertically_scrollable()
+            }
+        }
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_selection(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Selection for #name {
+            fn get_selection(&self) -> Result<Vec<UIElement>> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_selection()
+            }
+        
+            fn can_select_multiple(&self) -> Result<bool> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.can_select_multiple()
+            }
+        
+            fn is_selection_required(&self) -> Result<bool> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.is_selection_required()
+            }
+        
+            fn get_first_selected_item(&self) -> Result<UIElement> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_first_selected_item()
+            }
+        
+            fn get_last_selected_item(&self) -> Result<UIElement> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_last_selected_item()
+            }
+        
+            fn get_current_selected_item(&self) -> Result<UIElement> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_current_selected_item()
+            }
+        
+            fn get_item_count(&self) -> Result<i32> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_item_count()
+            }
+        }
+    };
+    gen.into()
+}

@@ -23,6 +23,111 @@ macro_rules! as_control {
     };
 }
 
+/// Wrapper a AppBar element as control. The control type of the element must be `UIA_AppBarControlTypeId`.
+/// 
+/// + Must support: `ExpandCollapse`, `Toggle`
+/// + Conditional support: None
+#[derive(Debug, ExpandCollapse, Toggle)]
+pub struct AppBarControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for AppBarControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_AppBarControlTypeId)
+    }
+}
+
+impl Into<UIElement> for AppBarControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for AppBarControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+impl Display for AppBarControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AppBar({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
+/// Wrapper a Button element as a control.
+/// 
+/// + Must support: None
+/// + Conditional support： `ExpandCollapse`, `Invoke`, `Toggle`, `Value`
+#[derive(Debug, Invoke, Value, ExpandCollapse, Toggle)]
+pub struct ButtonControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for ButtonControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_ButtonControlTypeId)
+    }
+}
+
+impl Into<UIElement> for ButtonControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl Display for ButtonControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Button({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
+impl AsRef<UIElement> for ButtonControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+/// Wrapper a Calendar element as control.
+/// 
+/// + Must support: `Grid`, `Table`
+/// + Conditional support： `Scroll`, `Selection`
+#[derive(Debug, Grid, Table, Scroll, Selection)]
+pub struct CalendarControl {
+    control: UIElement
+}
+
+impl TryFrom<UIElement> for CalendarControl {
+    type Error = Error;
+
+    fn try_from(control: UIElement) -> Result<Self> {
+        as_control!(control, UIA_CalendarControlTypeId)
+    }
+}
+
+impl Into<UIElement> for CalendarControl {
+    fn into(self) -> UIElement {
+        self.control
+    }
+}
+
+impl AsRef<UIElement> for CalendarControl {
+    fn as_ref(&self) -> &UIElement {
+        &self.control
+    }
+}
+
+impl Display for CalendarControl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Calendar({})", self.control.get_name().unwrap_or_default())
+    }
+}
+
 /// Wrapper a window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
 #[derive(Window, Transform)]
 pub struct WindowControl {
@@ -52,37 +157,6 @@ impl AsRef<UIElement> for WindowControl {
 impl Display for WindowControl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Window({})", self.control.get_name().unwrap_or_default())
-    }
-}
-/// Wrapper an button element as a control.
-#[derive(Invoke, Value, ExpandCollapse, Toggle)]
-pub struct ButtonControl {
-    control: UIElement
-}
-
-impl TryFrom<UIElement> for ButtonControl {
-    type Error = Error;
-
-    fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ButtonControlTypeId)
-    }
-}
-
-impl Into<UIElement> for ButtonControl {
-    fn into(self) -> UIElement {
-        self.control
-    }
-}
-
-impl Display for ButtonControl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Button({})", self.control.get_name().unwrap_or_default())
-    }
-}
-
-impl AsRef<UIElement> for ButtonControl {
-    fn as_ref(&self) -> &UIElement {
-        &self.control
     }
 }
 

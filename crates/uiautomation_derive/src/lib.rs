@@ -75,3 +75,31 @@ pub fn derive_toggle(input: TokenStream) -> TokenStream {
 
     impl_toggle(&ast)
 }
+
+#[proc_macro_derive(Grid)]
+pub fn derive_grid(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_grid(&ast)
+}
+
+#[proc_macro_derive(Table)]
+pub fn derive_table(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    
+    impl_table(&ast)
+}
+
+#[proc_macro_derive(Scroll)]
+pub fn derive_scroll(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_scroll(&ast)
+}
+
+#[proc_macro_derive(Selection)]
+pub fn derive_selection(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_selection(&ast)
+}

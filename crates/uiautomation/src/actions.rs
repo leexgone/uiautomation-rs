@@ -1,7 +1,4 @@
-use windows::Win32::UI::Accessibility::ExpandCollapseState;
-use windows::Win32::UI::Accessibility::ToggleState;
-use windows::Win32::UI::Accessibility::WindowInteractionState;
-use windows::Win32::UI::Accessibility::ZoomUnit;
+use windows::Win32::UI::Accessibility::*;
 
 use super::Result;
 use super::UIElement;
@@ -11,6 +8,23 @@ use super::variants::Variant;
 pub trait Invoke {
     /// Perform a click event on this control.
     fn invoke(&self) -> Result<()>;
+}
+
+/// Define a selection action for ui element.
+pub trait Selection {
+    fn get_selection(&self) -> Result<Vec<UIElement>>;
+
+    fn can_select_multiple(&self) -> Result<bool>;
+
+    fn is_selection_required(&self) -> Result<bool>;
+
+    fn get_first_selected_item(&self) -> Result<UIElement>;
+
+    fn get_last_selected_item(&self) -> Result<UIElement>;
+
+    fn get_current_selected_item(&self) -> Result<UIElement>;
+
+    fn get_item_count(&self) -> Result<i32>;
 }
 
 /// Define a selection item action for ui element.
@@ -51,6 +65,33 @@ pub trait ItemContainer {
     /// 
     /// Search `UIElement` from the `start_ater` item, return the first item which property is specified value.
     fn find_item_by_property(&self, start_after: UIElement, property_id: i32, value: Variant) -> Result<UIElement>;    
+}
+
+/// Define a scroll action for ui element.
+pub trait Scroll {
+    /// Scroll the control.
+    fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()>;
+
+    /// Set the scroll percent.
+    fn set_scroll_percent(&self, horizontal_percent: f64, vertical_percent: f64) -> Result<()>;
+
+    /// Get the horizontal scroll percent.
+    fn get_horizontal_scroll_percent(&self) -> Result<f64>;
+
+    /// Get the vertical scroll percent.
+    fn get_vertical_scroll_percent(&self) -> Result<f64>;
+
+    /// Get the horizontal view size.
+    fn get_horizontal_view_size(&self) -> Result<f64>;
+
+    /// Get the vertical view size.
+    fn get_vertical_view_size(&self) -> Result<f64>;
+
+    /// Get whether the control is horizontally scrollable.
+    fn is_horizontally_scrollable(&self) -> Result<bool>;
+
+    /// Get whether the control is vertically scrollable.
+    fn is_vertically_scrollable(&self) -> Result<bool>;
 }
 
 /// Define a scroll item action for ui element.
@@ -171,4 +212,28 @@ pub trait Toggle {
 
     /// Toggle the control.
     fn toggle(&self) -> Result<()>;
+}
+
+/// Define a grid action for ui element.
+pub trait Grid {
+    /// Get column count of the grid.
+    fn get_column_count(&self) -> Result<i32>;
+
+    /// Get row count of the grid.
+    fn get_row_count(&self) -> Result<i32>;
+
+    /// Get the item at [`row`, `column`] of the grid.
+    fn get_item(&self, row: i32, column: i32) -> Result<UIElement>;
+}
+
+/// Define a table action for ui element.
+pub trait Table {
+    /// Get the row headers of the table.
+    fn get_row_headers(&self) -> Result<Vec<UIElement>>;
+
+    /// Get the column headers of the table.
+    fn get_column_headers(&self) -> Result<Vec<UIElement>>;
+
+    /// Get whether the row or column is major.
+    fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor>;
 }
