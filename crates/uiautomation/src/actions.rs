@@ -12,18 +12,25 @@ pub trait Invoke {
 
 /// Define a selection action for ui element.
 pub trait Selection {
+    /// Retrieves the selected elements in the container.
     fn get_selection(&self) -> Result<Vec<UIElement>>;
 
+    /// Indicates whether more than one item in the container can be selected at one time.
     fn can_select_multiple(&self) -> Result<bool>;
 
+    /// Indicates whether at least one item must be selected at all times.
     fn is_selection_required(&self) -> Result<bool>;
 
+    /// Gets an IUIAutomationElement object representing the first item in a group of selected items.
     fn get_first_selected_item(&self) -> Result<UIElement>;
 
+    /// Gets an IUIAutomationElement object representing the last item in a group of selected items.
     fn get_last_selected_item(&self) -> Result<UIElement>;
 
+    /// Gets an IUIAutomationElement object representing the currently selected item.
     fn get_current_selected_item(&self) -> Result<UIElement>;
 
+    /// Gets an integer value indicating the number of selected items.
     fn get_item_count(&self) -> Result<i32>;
 }
 
