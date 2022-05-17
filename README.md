@@ -68,6 +68,9 @@ fn main() {
         println!("Found: {} - {}", notepad.get_name().unwrap(), notepad.get_classname().unwrap());
 
         notepad.send_keys("Hello,Rust UIAutomation!{enter}", 10).unwrap();
+
+        let window: WindowControl = notepad.try_into().unwrap();
+        window.maximize().unwrap();
     }
 }
 ```
