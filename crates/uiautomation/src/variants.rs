@@ -16,10 +16,10 @@ use windows::core::HRESULT;
 use windows::core::IUnknown;
 use windows::core::PSTR;
 
-use crate::Error;
-use crate::Result;
-use crate::errors::ERR_NULL_PTR;
-use crate::errors::ERR_TYPE;
+use super::Error;
+use super::Result;
+use super::errors::ERR_NULL_PTR;
+use super::errors::ERR_TYPE;
 
 const VARIANT_TRUE: i16 = -1;
 const VARIANT_FALSE: i16 = 0;

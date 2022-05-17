@@ -37,6 +37,11 @@ pub(crate) fn impl_selection_item(ast: &syn::DeriveInput) -> TokenStream {
                 let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
                 pattern.is_selected()
             }
+
+            fn get_selection_container(&self) -> Result<UIElement> {
+                let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_selection_container()
+            }
         }
     };
     gen.into()
@@ -256,6 +261,357 @@ pub(crate) fn impl_value(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.is_readonly()
             }
         }        
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl ExpandCollapse for #name {
+            fn expand(&self) -> Result<()> {
+                let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
+                pattern.expand()
+            }
+        
+            fn collapse(&self) -> Result<()> {
+                let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
+                pattern.collapse()
+            }
+        
+            fn get_state(&self) -> Result<ExpandCollapseState> {
+                let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
+                pattern.get_state()
+            }
+        }
+            };
+    gen.into()
+}
+
+pub(crate) fn impl_toggle(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Toggle for #name {
+            fn get_toggle_state(&self) -> Result<ToggleState> {
+                let pattern: UITogglePattern = self.as_ref().get_pattern()?;
+                pattern.get_toggle_state()
+            }
+        
+            fn toggle(&self) -> Result<()> {
+                let pattern: UITogglePattern = self.as_ref().get_pattern()?;
+                pattern.toggle()
+            }
+        }
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_grid(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Grid for #name {
+            fn get_column_count(&self) -> Result<i32> {
+                let pattern: UIGridPattern = self.as_ref().get_pattern()?;
+                pattern.get_column_count()
+            }
+        
+            fn get_row_count(&self) -> Result<i32> {
+                let pattern: UIGridPattern = self.as_ref().get_pattern()?;
+                pattern.get_row_count()
+            }
+        
+            fn get_item(&self, row: i32, column: i32) -> Result<UIElement> {
+                let pattern: UIGridPattern = self.as_ref().get_pattern()?;
+                pattern.get_item(row, column)
+            }
+        }        
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_table(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Table for #name {
+            fn get_row_headers(&self) -> Result<Vec<UIElement>> {
+                let pattern: UITablePattern = self.as_ref().get_pattern()?;
+                pattern.get_row_headers()
+            }
+        
+            fn get_column_headers(&self) -> Result<Vec<UIElement>> {
+                let pattern: UITablePattern = self.as_ref().get_pattern()?;
+                pattern.get_column_headers()
+            }
+        
+            fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
+                let pattern: UITablePattern = self.as_ref().get_pattern()?;
+                pattern.get_row_or_column_major()
+            }
+        }        
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_scroll(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Scroll for #name {
+            fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.scroll(horizontal_amount, vertical_amount)
+            }
+        
+            fn set_scroll_percent(&self, horizontal_percent: f64, vertical_percent: f64) -> Result<()> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.set_scroll_percent(horizontal_percent, vertical_percent)
+            }
+        
+            fn get_horizontal_scroll_percent(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_horizontal_scroll_percent()
+            }
+        
+            fn get_vertical_scroll_percent(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_vertical_scroll_percent()
+            }
+        
+            fn get_horizontal_view_size(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_horizontal_view_size()
+            }
+        
+            fn get_vertical_view_size(&self) -> Result<f64> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.get_vertical_view_size()
+            }
+        
+            fn is_horizontally_scrollable(&self) -> Result<bool> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.is_horizontally_scrollable()
+            }
+        
+            fn is_vertically_scrollable(&self) -> Result<bool> {
+                let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
+                pattern.is_vertically_scrollable()
+            }
+        }
+    };
+    gen.into()    
+}
+
+pub(crate) fn impl_selection(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Selection for #name {
+            fn get_selection(&self) -> Result<Vec<UIElement>> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_selection()
+            }
+        
+            fn can_select_multiple(&self) -> Result<bool> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.can_select_multiple()
+            }
+        
+            fn is_selection_required(&self) -> Result<bool> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.is_selection_required()
+            }
+        
+            fn get_first_selected_item(&self) -> Result<UIElement> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_first_selected_item()
+            }
+        
+            fn get_last_selected_item(&self) -> Result<UIElement> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_last_selected_item()
+            }
+        
+            fn get_current_selected_item(&self) -> Result<UIElement> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_current_selected_item()
+            }
+        
+            fn get_item_count(&self) -> Result<i32> {
+                let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
+                pattern.get_item_count()
+            }
+        }
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_custom_navigation(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl CustomNavigation for #name {
+            fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
+                let pattern: UICustomNavigationPattern = self.as_ref().get_pattern()?;
+                pattern.navigate(direction)
+            }
+        }        
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_grid_item(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl GridItem for #name {
+            fn get_containing_grid(&self) -> Result<UIElement> {
+                let pattern: UIGridItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_containing_grid()
+            }
+        
+            fn get_row(&self) -> Result<i32> {
+                let pattern: UIGridItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_row()
+            }
+        
+            fn get_column(&self) -> Result<i32> {
+                let pattern: UIGridItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_column()
+            }
+        
+            fn get_row_span(&self) -> Result<i32> {
+                let pattern: UIGridItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_row_span()
+            }
+        
+            fn get_column_span(&self) -> Result<i32> {
+                let pattern: UIGridItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_column_span()
+            }
+        }        
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_table_item(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TableItem for #name {
+            fn get_row_header_items(&self) -> Result<Vec<UIElement>> {
+                let pattern: UITableItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_row_header_items()
+            }
+        
+            fn get_column_header_items(&self) -> Result<Vec<UIElement>> {
+                let pattern: UITableItemPattern = self.as_ref().get_pattern()?;
+                pattern.get_column_header_items()
+            }
+        }
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_text(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Text for #name {
+            fn get_ragne_from_point(&self, pt: windows::Win32::Foundation::POINT) -> Result<UITextRange> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_ragne_from_point(pt)
+            }
+        
+            fn get_range_from_child(&self, child: &UIElement) -> Result<UITextRange> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_range_from_child(child)
+            }
+        
+            fn get_selection(&self) -> Result<Vec<UITextRange>> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_selection()
+            }
+        
+            fn get_visible_ranges(&self) -> Result<Vec<UITextRange>> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_visible_ranges()
+            }
+        
+            fn get_document_range(&self) -> Result<UITextRange> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_document_range()
+            }
+        
+            fn get_supported_text_selection(&self) -> Result<SupportedTextSelection> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_supported_text_selection()
+            }
+        
+            fn get_range_from_annotation(&self, annotation: &UIElement) -> Result<UITextRange> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_range_from_annotation(annotation)
+            }
+        
+            fn get_caret_range(&self) -> Result<(bool, UITextRange)> {
+                let pattern: UITextPattern = self.as_ref().get_pattern()?;
+                pattern.get_caret_range()
+            }
+        }
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_range_value(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl RangeValue for #name {
+            fn set_value(&self, value: f64) -> Result<()> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.set_value(value)
+            }
+        
+            fn get_value(&self) -> Result<f64> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.get_value()
+            }
+        
+            fn is_readonly(&self) -> Result<bool> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.is_readonly()
+            }
+        
+            fn get_maximum(&self) -> Result<f64> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.get_maximum()
+            }
+        
+            fn get_minimum(&self) -> Result<f64> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.get_minimum()
+            }
+        
+            fn get_large_change(&self) -> Result<f64> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.get_large_change()
+            }
+        
+            fn get_small_change(&self) -> Result<f64> {
+                let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
+                pattern.get_small_change()
+            }
+        }
+    };
+    gen.into()
+}
+
+pub(crate) fn impl_dock(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl Dock for #name {
+            fn get_dock_position(&self) -> Result<DockPosition> {
+                let pattern: UIDockPattern = self.as_ref().get_pattern()?;
+                pattern.get_dock_position()
+            }
+        
+            fn set_dock_position(&self, position: DockPosition) -> Result<()> {
+                let pattern: UIDockPattern = self.as_ref().get_pattern()?;
+                pattern.set_dock_position(position)
+            }
+        }
     };
     gen.into()
 }

@@ -2,94 +2,16 @@ use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::System::Com::VARIANT;
-use windows::Win32::UI::Accessibility::DockPosition;
-use windows::Win32::UI::Accessibility::ExpandCollapseState;
-use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationDragPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationDropTargetPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern;
-use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
-use windows::Win32::UI::Accessibility::IUIAutomationItemContainerPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
-use windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationScrollPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationSelectionItemPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern2;
-use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTableItemPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTextChildPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTextPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTextPattern2;
-use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
-use windows::Win32::UI::Accessibility::IUIAutomationTextRange2;
-use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
-use windows::Win32::UI::Accessibility::IUIAutomationTogglePattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
-use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
-use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
-use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
-use windows::Win32::UI::Accessibility::NavigateDirection;
-use windows::Win32::UI::Accessibility::RowOrColumnMajor;
-use windows::Win32::UI::Accessibility::ScrollAmount;
-use windows::Win32::UI::Accessibility::SupportedTextSelection;
-use windows::Win32::UI::Accessibility::SynchronizedInputType;
-use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
-use windows::Win32::UI::Accessibility::TextUnit;
-use windows::Win32::UI::Accessibility::ToggleState;
-use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
-use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
-use windows::Win32::UI::Accessibility::UIA_DockPatternId;
-use windows::Win32::UI::Accessibility::UIA_DragPatternId;
-use windows::Win32::UI::Accessibility::UIA_DropTargetPatternId;
-use windows::Win32::UI::Accessibility::UIA_ExpandCollapsePatternId;
-use windows::Win32::UI::Accessibility::UIA_GridItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_GridPatternId;
-use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
-use windows::Win32::UI::Accessibility::UIA_ItemContainerPatternId;
-use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
-use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
-use windows::Win32::UI::Accessibility::UIA_ScrollItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_ScrollPatternId;
-use windows::Win32::UI::Accessibility::UIA_SelectionItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_SelectionPatternId;
-use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
-use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
-use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
-use windows::Win32::UI::Accessibility::UIA_TableItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_TablePatternId;
-use windows::Win32::UI::Accessibility::UIA_TextChildPatternId;
-use windows::Win32::UI::Accessibility::UIA_TextEditPatternId;
-use windows::Win32::UI::Accessibility::UIA_TextPatternId;
-use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
-use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
-use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
-use windows::Win32::UI::Accessibility::UIA_VirtualizedItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_WindowPatternId;
-use windows::Win32::UI::Accessibility::WindowInteractionState;
-use windows::Win32::UI::Accessibility::WindowVisualState;
-use windows::Win32::UI::Accessibility::ZoomUnit;
+use windows::Win32::UI::Accessibility::*;
 use windows::core::IUnknown;
 use windows::core::Interface;
 
-use crate::core::UIElement;
-use crate::errors::ERR_NOTFOUND;
-use crate::errors::Error;
-use crate::errors::Result;
-use crate::variants::SafeArray;
-use crate::variants::Variant;
+use super::core::UIElement;
+use super::errors::ERR_NOTFOUND;
+use super::errors::Error;
+use super::errors::Result;
+use super::variants::SafeArray;
+use super::variants::Variant;
 
 pub trait UIPattern : Sized {
     fn pattern_id() -> i32;
@@ -302,7 +224,7 @@ impl UIDockPattern {
         Ok(pos)
     }
 
-    pub fn set_doc_position(&self, position: DockPosition) -> Result<()> {
+    pub fn set_dock_position(&self, position: DockPosition) -> Result<()> {
         unsafe {
             self.pattern.SetDockPosition(position)?
         };

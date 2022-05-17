@@ -4,14 +4,7 @@ mod action_derives;
 
 use proc_macro::TokenStream;
 
-use crate::action_derives::impl_invoke;
-use crate::action_derives::impl_item_container;
-use crate::action_derives::impl_multiple_view;
-use crate::action_derives::impl_scroll_item;
-use crate::action_derives::impl_selection_item;
-use crate::action_derives::impl_transform;
-use crate::action_derives::impl_value;
-use crate::action_derives::impl_window;
+use crate::action_derives::*;
 
 #[proc_macro_derive(Invoke)]
 pub fn derive_invoke(input: TokenStream) -> TokenStream {
@@ -67,4 +60,88 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
     impl_value(&ast)
+}
+
+#[proc_macro_derive(ExpandCollapse)]
+pub fn derive_expand_collapse(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_expand_collapse(&ast)
+}
+
+#[proc_macro_derive(Toggle)]
+pub fn derive_toggle(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_toggle(&ast)
+}
+
+#[proc_macro_derive(Grid)]
+pub fn derive_grid(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_grid(&ast)
+}
+
+#[proc_macro_derive(Table)]
+pub fn derive_table(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    
+    impl_table(&ast)
+}
+
+#[proc_macro_derive(Scroll)]
+pub fn derive_scroll(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_scroll(&ast)
+}
+
+#[proc_macro_derive(Selection)]
+pub fn derive_selection(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_selection(&ast)
+}
+
+#[proc_macro_derive(CustomNavigation)]
+pub fn derive_custom_navigation(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_custom_navigation(&ast)
+}
+
+#[proc_macro_derive(GridItem)]
+pub fn derive_grid_item(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_grid_item(&ast)
+}
+
+#[proc_macro_derive(TableItem)]
+pub fn derive_table_item(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_table_item(&ast)
+}
+
+#[proc_macro_derive(Text)]
+pub fn derive_text(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_text(&ast)
+}
+
+#[proc_macro_derive(RangeValue)]
+pub fn derive_range_value(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_range_value(&ast)    
+}
+
+#[proc_macro_derive(Dock)]
+pub fn derive_dock(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_dock(&ast)    
 }

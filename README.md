@@ -8,7 +8,7 @@ Start by adding the following to your Cargo.toml file:
 
 ``` toml
 [dependencies]
-uiautomation = "0.0.9"
+uiautomation = "0.1.0"
 ```
 
 Make use of any windows uiautomation calls as needed.
@@ -68,6 +68,9 @@ fn main() {
         println!("Found: {} - {}", notepad.get_name().unwrap(), notepad.get_classname().unwrap());
 
         notepad.send_keys("Hello,Rust UIAutomation!{enter}", 10).unwrap();
+
+        let window: WindowControl = notepad.try_into().unwrap();
+        window.maximize().unwrap();
     }
 }
 ```
