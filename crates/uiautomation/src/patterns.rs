@@ -224,7 +224,7 @@ impl UIDockPattern {
         Ok(pos)
     }
 
-    pub fn set_doc_position(&self, position: DockPosition) -> Result<()> {
+    pub fn set_dock_position(&self, position: DockPosition) -> Result<()> {
         unsafe {
             self.pattern.SetDockPosition(position)?
         };

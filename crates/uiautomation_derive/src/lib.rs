@@ -103,3 +103,45 @@ pub fn derive_selection(input: TokenStream) -> TokenStream {
 
     impl_selection(&ast)
 }
+
+#[proc_macro_derive(CustomNavigation)]
+pub fn derive_custom_navigation(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_custom_navigation(&ast)
+}
+
+#[proc_macro_derive(GridItem)]
+pub fn derive_grid_item(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_grid_item(&ast)
+}
+
+#[proc_macro_derive(TableItem)]
+pub fn derive_table_item(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_table_item(&ast)
+}
+
+#[proc_macro_derive(Text)]
+pub fn derive_text(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_text(&ast)
+}
+
+#[proc_macro_derive(RangeValue)]
+pub fn derive_range_value(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_range_value(&ast)    
+}
+
+#[proc_macro_derive(Dock)]
+pub fn derive_dock(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_dock(&ast)    
+}

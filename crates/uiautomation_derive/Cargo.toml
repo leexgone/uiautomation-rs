@@ -17,5 +17,5 @@ default-target = "x86_64-pc-windows-msvc"
 targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
 [dependencies]
-syn = "1.0.91"
-quote = "1.0.17"
+syn = "1.0.92"
+quote = "1.0.18"
