@@ -8,6 +8,7 @@ description = "UI Automation Derive"
 repository = "https://github.com/leexgone/uiautomation-rs"
 homepage = "https://github.com/leexgone"
 readme = "README.md"
+categories = ["development-tools::procedural-macro-helpers", "os::windows-apis"]
 
 [lib]
 proc_macro = true

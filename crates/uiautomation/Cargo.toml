@@ -9,6 +9,7 @@ repository = "https://github.com/leexgone/uiautomation-rs"
 homepage = "https://github.com/leexgone"
 readme = "../../README.md"
 keywords = ["windows", "uiautomation", "variant"]
+categories = ["api-bindings", "development-tools::ffi", "os::windows-apis", "accessibility"]
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
