@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::fmt::Display;
 use std::ptr::null_mut;
 use std::thread::sleep;
@@ -152,7 +153,7 @@ impl AsRef<IUIAutomation> for UIAutomation {
 /// A wrapper for windows `IUIAutomationElement` interface.
 /// 
 /// Exposes methods and properties for a UI Automation element, which represents a UI item.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct UIElement {
     element: IUIAutomationElement
 }
@@ -528,10 +529,28 @@ impl AsRef<IUIAutomationElement> for UIElement {
 
 impl Display for UIElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let name = self.get_name();
-        let control_type = self.get_localized_control_type();
+        let name = self.get_name().unwrap_or(String::from("(NONE)"));
+        let control_type = self.get_localized_control_type().unwrap_or(String::from("UNKNOWN_TYPE"));
 
-        write!(f, "{} {}", name.unwrap_or_default(), control_type.unwrap_or_default())
+        write!(f, "{} {}", name, control_type)
+    }
+}
+
+impl Debug for UIElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("UIElement");
+
+        if let Ok(name) = self.get_name() {
+            d.field("name", &name);
+        };
+        if let Ok(control_type) = self.get_control_type() {
+            d.field("control_type", &control_type);
+        };
+        if let Ok(classname) = self.get_classname() {
+            d.field("classname", &classname);
+        };
+
+        d.finish()
     }
 }
 
@@ -624,7 +643,8 @@ pub struct UIMatcher {
     from: Option<UIElement>,
     condition: Option<Box<dyn Condition>>,
     timeout: u64,
-    interval: u64
+    interval: u64,
+    debug: bool
 }
 
 impl UIMatcher {
@@ -636,7 +656,8 @@ impl UIMatcher {
             from: None,
             condition: None,
             timeout: 3000,
-            interval: 100
+            interval: 100,
+            debug: false
         }
     }
 
@@ -679,6 +700,17 @@ impl UIMatcher {
         self
     }
 
+    /// Append a filter whitch match specific casesensitive name.
+    pub fn name<S: Into<String>>(self, name: S) -> Self {
+        let condition = NameCondition {
+            value: name.into(),
+            casesensitive: true,
+            partial: false
+        };
+
+        self.filter(Box::new(condition))
+    }
+
     /// Append a filter whitch name contains specific text (ignore casesensitive).
     pub fn contains_name<S: Into<String>>(self, name: S) -> Self {
         let condition = NameCondition {
@@ -715,6 +747,12 @@ impl UIMatcher {
         self.filter(Box::new(condition))
     }
 
+    /// Set `debug` as `true` to enable debug mode. The debug mode is `false` by default.
+    pub fn debug(mut self, debug: bool) -> Self {
+        self.debug = debug;
+        self
+    }
+
     /// Finds first element.
     pub fn find_first(&self) -> Result<UIElement> {
         let elements = self.find(true)?;
@@ -741,6 +779,10 @@ impl UIMatcher {
         let mut elements: Vec<UIElement> = Vec::new();
         let start = Local::now().timestamp_millis();
         loop {
+            if self.debug {
+                println!("Try to match element...")
+            }
+            
             let (root, walker) = self.prepare()?;
             self.search(&walker, &root, &mut elements, 1, first_only)?;
 
@@ -795,11 +837,17 @@ impl UIMatcher {
     }
 
     fn is_matched(&self, element: &UIElement) -> Result<bool> {
-        if let Some(ref condition) = self.condition {
-            condition.judge(element)
+        let ret = if let Some(ref condition) = self.condition {
+            condition.judge(element)?
         } else {
-            Ok(true)
+            true
+        };
+
+        if self.debug {
+            println!("{:?} -> {}", element, ret);
         }
+
+        Ok(ret)
     }
 }
 
