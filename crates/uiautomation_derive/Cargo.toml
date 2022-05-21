@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation_derive"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -8,6 +8,7 @@ description = "UI Automation Derive"
 repository = "https://github.com/leexgone/uiautomation-rs"
 homepage = "https://github.com/leexgone"
 readme = "README.md"
+categories = ["development-tools::procedural-macro-helpers", "os::windows-apis"]
 
 [lib]
 proc_macro = true
