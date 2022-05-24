@@ -445,6 +445,29 @@ impl Keyboard {
     }
 }
 
+/// Simulate mouse event.
+#[derive(Debug, Default)]
+pub struct Mouse {
+    interval: u64    
+}
+
+impl Mouse {
+    /// Create a `Mouse` to simulate mouse event.
+    pub fn new() -> Self {
+        Self {
+            interval: 0
+        }
+    }
+
+    /// Set the interval time between events.
+    /// 
+    /// `interval` is the time number of milliseconds, `0` is default value.
+    pub fn interval(mut self, interval: u64) -> Self {
+        self.interval = interval;
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Input::KeyboardAndMouse::*;
