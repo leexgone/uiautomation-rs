@@ -6,6 +6,7 @@ use std::time::Duration;
 use phf::phf_map;
 use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
+use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
 use super::errors::ERR_FORMAT;
 use super::Error;
@@ -466,6 +467,12 @@ impl Mouse {
         self.interval = interval;
         self
     }
+
+    // pub fn get_cursor_pos() {
+    //     unsafe {
+    //         GetCursorPos()
+    //     }
+    // }
 }
 
 #[cfg(test)]

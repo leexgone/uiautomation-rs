@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod types;
 pub mod variants;
 pub mod core;
 pub mod patterns;

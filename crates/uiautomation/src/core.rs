@@ -8,7 +8,6 @@ use chrono::Local;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
-use windows::Win32::Foundation::RECT;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -33,6 +32,7 @@ use super::errors::Error;
 use super::errors::Result;
 use super::inputs::Keyboard;
 use super::patterns::UIPattern;
+use super::types::Rect;
 use super::variants::Variant;
 
 /// A wrapper for windows `IUIAutomation` interface. 
@@ -378,12 +378,12 @@ impl UIElement {
     }
 
     /// Retrieves the coordinates of the rectangle that completely encloses the element.
-    pub fn get_bounding_rectangle(&self) -> Result<RECT> {
+    pub fn get_bounding_rectangle(&self) -> Result<Rect> {
         let rect = unsafe {
             self.element.CurrentBoundingRectangle()?
         };
 
-        Ok(rect)
+        Ok(rect.into())
     }
 
     /// Retrieves the element that contains the text label for this element.
