@@ -128,6 +128,16 @@ impl Rect {
     pub fn set_bottom(&mut self, bottom: i32) {
         self.0.bottom = bottom;
     }
+
+    /// Retrieves the top left point.
+    pub fn get_top_left(&self) -> Point {
+        Point::new(self.get_left(), self.get_top())
+    }
+
+    /// Retrieves the right bottom point.
+    pub fn get_right_bottom(&self) -> Point {
+        Point::new(self.get_right(), self.get_bottom())
+    }
 }
 
 impl Debug for Rect {

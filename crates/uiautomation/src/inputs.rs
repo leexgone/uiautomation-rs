@@ -7,10 +7,14 @@ use phf::phf_map;
 use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
+use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
+use windows::Win32::UI::WindowsAndMessaging::SM_CYSCREEN;
 
 use super::errors::ERR_FORMAT;
 use super::Error;
 use super::Result;
+use super::types::Point;
 
 const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
@@ -447,20 +451,19 @@ impl Keyboard {
 }
 
 /// Simulate mouse event.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Mouse {
-    interval: u64    
+    interval: u64,
+    move_time: u64
 }
 
 impl Mouse {
-    /// Create a `Mouse` to simulate mouse event.
+    /// Creates a `Mouse` to simulate mouse event.
     pub fn new() -> Self {
-        Self {
-            interval: 0
-        }
+        Self::default()
     }
 
-    /// Set the interval time between events.
+    /// Sets the interval time between events.
     /// 
     /// `interval` is the time number of milliseconds, `0` is default value.
     pub fn interval(mut self, interval: u64) -> Self {
@@ -468,11 +471,50 @@ impl Mouse {
         self
     }
 
-    // pub fn get_cursor_pos() {
-    //     unsafe {
-    //         GetCursorPos()
-    //     }
-    // }
+    /// Sets the mouse move time in millionseconds. `1000` is default value.
+    pub fn move_time(mut self, move_time: u64) -> Self {
+        self.move_time = move_time;
+        self
+    }
+
+    /// Retrieves the position of the mouse cursor, in screen coordinates.
+    pub fn get_cursor_pos() -> Result<Point> {
+        let mut pos: Point = Point::default();
+        let ret = unsafe {
+            GetCursorPos(pos.as_mut())
+        };
+
+        if ret.as_bool() {
+            Ok(pos)
+        } else {
+            Err(Error::last_os_error())
+        }
+    }
+
+}
+
+impl Default for Mouse {
+    fn default() -> Self {
+        Self { 
+            interval: 0, 
+            move_time: 1000 
+        }
+    }
+}
+
+/// Retrieves the `(width, height)` size of the primary screen.
+fn get_screen_size() -> Result<(i32, i32)> {
+    let width = unsafe { GetSystemMetrics(SM_CXSCREEN) };
+    if width == 0 {
+        return Err(Error::last_os_error());
+    }
+
+    let height = unsafe { GetSystemMetrics(SM_CYSCREEN) };
+    if height == 0 {
+        return Err(Error::last_os_error());
+    }
+
+    Ok((width, height))
 }
 
 #[cfg(test)]
