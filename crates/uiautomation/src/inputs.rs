@@ -1,3 +1,5 @@
+use std::cmp::max;
+use std::cmp::min;
 use std::mem;
 use std::str::Chars;
 use std::thread::sleep;
@@ -10,6 +12,7 @@ use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
 use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
 use windows::Win32::UI::WindowsAndMessaging::SM_CYSCREEN;
+use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use super::errors::ERR_FORMAT;
 use super::Error;
@@ -491,6 +494,58 @@ impl Mouse {
         }
     }
 
+    /// Moves the cursor to the specified screen coordinates. 
+    pub fn set_cursor_pos(pos: &Point) -> Result<()> {
+        let ret = unsafe { SetCursorPos(pos.get_x(), pos.get_y()) };
+        if ret.as_bool() {
+            Ok(())
+        } else {
+            Err(Error::last_os_error())
+        }
+    }
+
+    /// Moves the cursor from current position to the `target` position.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// use uiautomation::types::Point;
+    /// 
+    /// let mouse = Mouse::new().move_time(800);
+    /// mouse.move_to(Point::new(10, 20)).unwrap();
+    /// mouse.move_to(Point::new(1000,800)).unwrap();
+    /// ```
+    pub fn move_to(&self, target: Point) -> Result<()> {
+        let (width, height) = get_screen_size()?;
+        let x = min(max(0, target.get_x()), width);
+        let y = min(max(0, target.get_y()), height);
+        let target = Point::new(x, y);
+        
+        if self.move_time > 0 {
+            let source = Self::get_cursor_pos()?;
+            let delta_x = target.get_x() - source.get_x();
+            let delta_y = target.get_y() - source.get_y();
+
+            let delta = max(delta_x.abs(), delta_y.abs());
+            let steps = delta / 20;
+            if steps > 1 {
+                let step_x = delta_x / steps;
+                let step_y = delta_y / steps;
+                let interval = Duration::from_millis(self.move_time / steps as u64);
+                for i in 1..steps {
+                    let pos = Point::new(
+                        source.get_x() + step_x * i, 
+                        source.get_y() + step_y * i
+                    );
+                    Self::set_cursor_pos(&pos)?;
+                    sleep(interval);
+                }
+            }
+        }
+
+        Self::set_cursor_pos(&target)
+    }
 }
 
 impl Default for Mouse {
@@ -503,7 +558,7 @@ impl Default for Mouse {
 }
 
 /// Retrieves the `(width, height)` size of the primary screen.
-fn get_screen_size() -> Result<(i32, i32)> {
+pub fn get_screen_size() -> Result<(i32, i32)> {
     let width = unsafe { GetSystemMetrics(SM_CXSCREEN) };
     if width == 0 {
         return Err(Error::last_os_error());
