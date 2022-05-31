@@ -8,7 +8,7 @@ description = "UI Automation Framework for Windows"
 repository = "https://github.com/leexgone/uiautomation-rs"
 homepage = "https://github.com/leexgone"
 readme = "../../README.md"
-keywords = ["windows", "uiautomation", "variant"]
+keywords = ["windows", "uiautomation", "rpa"]
 categories = ["api-bindings", "os::windows-apis", "accessibility"]
 
 [package.metadata.docs.rs]
