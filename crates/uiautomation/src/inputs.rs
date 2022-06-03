@@ -1,3 +1,5 @@
+use std::cmp::max;
+use std::cmp::min;
 use std::mem;
 use std::str::Chars;
 use std::thread::sleep;
@@ -6,10 +8,16 @@ use std::time::Duration;
 use phf::phf_map;
 use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
+use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
+use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
+use windows::Win32::UI::WindowsAndMessaging::SM_CYSCREEN;
+use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use super::errors::ERR_FORMAT;
 use super::Error;
 use super::Result;
+use super::types::Point;
 
 const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
@@ -394,7 +402,7 @@ impl Keyboard {
         self
     }
 
-    /// Simulate typing `keys` on keyboard.
+    /// Simulates typing `keys` on keyboard.
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
     /// 
@@ -404,32 +412,20 @@ impl Keyboard {
     pub fn send_keys(&self, keys: &str) -> Result<()> {
         let inputs = parse_input(keys)?;
         for ref input in inputs {
-            self.send_input(input)?;
+            self.send_keyboard(input)?;
         }
 
         Ok(())
     }
 
-    fn send_input(&self, input: &Input) -> Result<()> {
+    fn send_keyboard(&self, input: &Input) -> Result<()> {
         let input_keys = input.create_inputs()?;
         if self.interval == 0 {
-            let sent = unsafe {
-                SendInput(&input_keys.as_slice(), mem::size_of::<INPUT>() as _)
-            };
-            if sent as usize == input_keys.len() {
-                Ok(())
-            } else {
-                Err(Error::last_os_error())
-            }
+            send_input(&input_keys.as_slice())
         } else {
             for input_key in &input_keys {
                 let input_key_slice: [INPUT; 1] = [input_key.clone()];
-                let sent = unsafe {
-                    SendInput(&input_key_slice, mem::size_of::<INPUT>() as _)
-                };
-                if sent != 1 {
-                    return Err(Error::last_os_error());
-                }
+                send_input(&input_key_slice)?;
 
                 self.wait();
             }
@@ -442,6 +438,236 @@ impl Keyboard {
         if self.interval > 0 {
             sleep(Duration::from_millis(self.interval));
         }
+    }
+}
+
+/// Simulate mouse event.
+#[derive(Debug)]
+pub struct Mouse {
+    interval: u64,
+    move_time: u64,
+    auto_move: bool
+}
+
+impl Mouse {
+    /// Creates a `Mouse` to simulate mouse event.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the interval time between events.
+    /// 
+    /// `interval` is the time number of milliseconds, `100` is default value.
+    pub fn interval(mut self, interval: u64) -> Self {
+        self.interval = interval;
+        self
+    }
+
+    /// Sets the mouse move time in millionseconds. `500` is default value.
+    pub fn move_time(mut self, move_time: u64) -> Self {
+        self.move_time = move_time;
+        self
+    }
+
+    /// Sets whether move the cursor to the click point automatically. Default is `true`.
+    pub fn auto_move(mut self, auto_move: bool) -> Self {
+        self.auto_move = auto_move;
+        self
+    }
+
+    /// Retrieves the position of the mouse cursor, in screen coordinates.
+    pub fn get_cursor_pos() -> Result<Point> {
+        let mut pos: Point = Point::default();
+        let ret = unsafe {
+            GetCursorPos(pos.as_mut())
+        };
+
+        if ret.as_bool() {
+            Ok(pos)
+        } else {
+            Err(Error::last_os_error())
+        }
+    }
+
+    /// Moves the cursor to the specified screen coordinates. 
+    pub fn set_cursor_pos(pos: Point) -> Result<()> {
+        let ret = unsafe { SetCursorPos(pos.get_x(), pos.get_y()) };
+        if ret.as_bool() {
+            Ok(())
+        } else {
+            Err(Error::last_os_error())
+        }
+    }
+
+    /// Moves the cursor from current position to the `target` position.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// use uiautomation::types::Point;
+    /// 
+    /// let mouse = Mouse::new().move_time(800);
+    /// mouse.move_to(Point::new(10, 20)).unwrap();
+    /// mouse.move_to(Point::new(1000,800)).unwrap();
+    /// ```
+    pub fn move_to(&self, target: Point) -> Result<()> {
+        let (width, height) = get_screen_size()?;
+        let x = min(max(0, target.get_x()), width);
+        let y = min(max(0, target.get_y()), height);
+        let target = Point::new(x, y);
+        
+        if self.move_time > 0 {
+            let source = Self::get_cursor_pos()?;
+            let delta_x = target.get_x() - source.get_x();
+            let delta_y = target.get_y() - source.get_y();
+
+            let delta = max(delta_x.abs(), delta_y.abs());
+            let steps = delta / 20;
+            if steps > 1 {
+                let step_x = delta_x / steps;
+                let step_y = delta_y / steps;
+                let interval = Duration::from_millis(self.move_time / steps as u64);
+                for i in 1..steps {
+                    let pos = Point::new(
+                        source.get_x() + step_x * i, 
+                        source.get_y() + step_y * i
+                    );
+                    Self::set_cursor_pos(pos)?;
+                    sleep(interval);
+                }
+            }
+        }
+
+        Self::set_cursor_pos(target)
+    }
+
+    /// Simulates a mouse click event.
+    /// 
+    /// # Examples
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// 
+    /// let mouse = Mouse::new();
+    /// let pos = Mouse::get_cursor_pos().unwrap();
+    /// mouse.click(pos).unwrap();
+    /// ```
+    pub fn click(&self, pos: Point) -> Result<()> {
+        if self.auto_move {
+            self.move_to(pos)?;
+        }
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)
+    }
+
+    /// Simulates a mouse double click event.
+    /// 
+    /// # Examples
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// 
+    /// let mouse = Mouse::new();
+    /// let pos = Mouse::get_cursor_pos().unwrap();
+    /// mouse.double_click(pos).unwrap();
+    /// ```
+    pub fn double_click(&self, pos: Point) -> Result<()> {
+        if self.auto_move {
+            self.move_to(pos)?;
+        }
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+
+        sleep(Duration::from_millis(max(200, self.interval)));
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+
+        Ok(())
+    }
+
+    /// Simulates a right mouse click event.
+    /// 
+    /// # Examples
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// 
+    /// let mouse = Mouse::new();
+    /// let pos = Mouse::get_cursor_pos().unwrap();
+    /// mouse.right_click(pos).unwrap();
+    /// ```
+    pub fn right_click(&self, pos: Point) -> Result<()> {
+        if self.auto_move {
+            self.move_to(pos)?;
+        }
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTUP)
+    }
+
+    fn wait(&self) {
+        if self.interval > 0 {
+            sleep(Duration::from_millis(self.interval));
+        }
+    }
+
+    fn mouse_event(x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
+        let input = [INPUT {
+            r#type: INPUT_MOUSE,
+            Anonymous: INPUT_0 { 
+                mi: MOUSEINPUT { 
+                    dx: x, 
+                    dy: y, 
+                    mouseData: 0, 
+                    dwFlags: flags, 
+                    time: 0, 
+                    dwExtraInfo: 0 
+                }
+            }
+        }];
+        send_input(&input)
+    }
+}
+
+impl Default for Mouse {
+    fn default() -> Self {
+        Self { 
+            interval: 100, 
+            move_time: 500,
+            auto_move: true
+        }
+    }
+}
+
+/// Retrieves the `(width, height)` size of the primary screen.
+pub fn get_screen_size() -> Result<(i32, i32)> {
+    let width = unsafe { GetSystemMetrics(SM_CXSCREEN) };
+    if width == 0 {
+        return Err(Error::last_os_error());
+    }
+
+    let height = unsafe { GetSystemMetrics(SM_CYSCREEN) };
+    if height == 0 {
+        return Err(Error::last_os_error());
+    }
+
+    Ok((width, height))
+}
+
+fn send_input(inputs: &[INPUT]) -> Result<()> {
+    let sent = unsafe {
+        SendInput(inputs, mem::size_of::<INPUT>() as _)
+    };
+
+    if sent == inputs.len() as u32 {
+        Ok(())
+    } else {
+        Err(Error::last_os_error())
     }
 }
 

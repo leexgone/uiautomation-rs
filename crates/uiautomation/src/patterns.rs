@@ -1,10 +1,11 @@
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::BSTR;
-use windows::Win32::Foundation::POINT;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::UI::Accessibility::*;
 use windows::core::IUnknown;
 use windows::core::Interface;
+
+use crate::types::Point;
 
 use super::core::UIElement;
 use super::errors::ERR_NOTFOUND;
@@ -1680,7 +1681,7 @@ pub struct UITextPattern {
 }
 
 impl UITextPattern {
-    pub fn get_ragne_from_point(&self, pt: POINT) -> Result<UITextRange> {
+    pub fn get_ragne_from_point(&self, pt: Point) -> Result<UITextRange> {
         let range = unsafe {
             self.pattern.RangeFromPoint(pt)?
         };

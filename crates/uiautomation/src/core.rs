@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::fmt::Display;
 use std::ptr::null_mut;
 use std::thread::sleep;
@@ -5,9 +6,6 @@ use std::time::Duration;
 
 use chrono::Local;
 use windows::Win32::Foundation::BSTR;
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Foundation::POINT;
-use windows::Win32::Foundation::RECT;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -21,6 +19,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 use windows::core::Interface;
 
+use crate::inputs::Mouse;
+
 use super::conditions::AndCondition;
 use super::conditions::ClassNameCondition;
 use super::conditions::Condition;
@@ -32,6 +32,9 @@ use super::errors::Error;
 use super::errors::Result;
 use super::inputs::Keyboard;
 use super::patterns::UIPattern;
+use super::types::Handle;
+use super::types::Rect;
+use super::types::Point;
 use super::variants::Variant;
 
 /// A wrapper for windows `IUIAutomation` interface. 
@@ -65,7 +68,7 @@ impl UIAutomation {
     }
 
     /// Retrieves a UI Automation element for the specified window.
-    pub fn element_from_handle(&self, hwnd: HWND) -> Result<UIElement> {
+    pub fn element_from_handle(&self, hwnd: Handle) -> Result<UIElement> {
         let element = unsafe {
             self.automation.ElementFromHandle(hwnd)?
         };
@@ -74,7 +77,7 @@ impl UIAutomation {
     }
 
     /// Retrieves the UI Automation element at the specified point on the desktop.
-    pub fn element_from_point(&self, point: POINT) -> Result<UIElement> {
+    pub fn element_from_point(&self, point: Point) -> Result<UIElement> {
         let element = unsafe {
             self.automation.ElementFromPoint(point)?
         };
@@ -152,7 +155,7 @@ impl AsRef<IUIAutomation> for UIAutomation {
 /// A wrapper for windows `IUIAutomationElement` interface.
 /// 
 /// Exposes methods and properties for a UI Automation element, which represents a UI item.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct UIElement {
     element: IUIAutomationElement
 }
@@ -305,12 +308,12 @@ impl UIElement {
     }
 
     /// Retrieves the window handle of the element.
-    pub fn get_native_window_handle(&self) -> Result<HWND> {
+    pub fn get_native_window_handle(&self) -> Result<Handle> {
         let handle = unsafe {
             self.element.CurrentNativeWindowHandle()?
         };
 
-        Ok(handle)
+        Ok(handle.into())
     }
 
     /// Retrieves a description of the type of UI item represented by the element.
@@ -377,12 +380,12 @@ impl UIElement {
     }
 
     /// Retrieves the coordinates of the rectangle that completely encloses the element.
-    pub fn get_bounding_rectangle(&self) -> Result<RECT> {
+    pub fn get_bounding_rectangle(&self) -> Result<Rect> {
         let rect = unsafe {
             self.element.CurrentBoundingRectangle()?
         };
 
-        Ok(rect)
+        Ok(rect.into())
     }
 
     /// Retrieves the element that contains the text label for this element.
@@ -504,6 +507,39 @@ impl UIElement {
         let kb = Keyboard::new();
         kb.interval(interval).send_keys(keys)
     }
+
+    /// Simulates mouse left click event on the element.
+    pub fn click(&self) -> Result<()> {
+        self.set_focus()?;
+
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default();
+        mouse.click(point)
+    }
+
+    /// Simulates mouse double click event on the element.
+    pub fn double_click(&self) -> Result<()> {
+        self.set_focus()?;
+        
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default();
+        mouse.double_click(point)
+    }
+
+    /// Simulates mouse right click event on the element.
+    pub fn right_click(&self) -> Result<()> {
+        self.set_focus()?;
+
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default();
+        mouse.right_click(point)
+    }
+
+    fn get_click_point(&self) -> Result<Point> {
+        let rect = self.get_bounding_rectangle()?;
+        let point = Point::new((rect.get_left() + rect.get_right()) / 2, (rect.get_top() + rect.get_bottom()) / 2);
+        Ok(point)
+    }
 }
 
 impl From<IUIAutomationElement> for UIElement {
@@ -528,10 +564,28 @@ impl AsRef<IUIAutomationElement> for UIElement {
 
 impl Display for UIElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let name = self.get_name();
-        let control_type = self.get_localized_control_type();
+        let name = self.get_name().unwrap_or(String::from("(NONE)"));
+        let control_type = self.get_localized_control_type().unwrap_or(String::from("UNKNOWN_TYPE"));
 
-        write!(f, "{} {}", name.unwrap_or_default(), control_type.unwrap_or_default())
+        write!(f, "{} {}", name, control_type)
+    }
+}
+
+impl Debug for UIElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("UIElement");
+
+        if let Ok(name) = self.get_name() {
+            d.field("name", &name);
+        };
+        if let Ok(control_type) = self.get_control_type() {
+            d.field("control_type", &control_type);
+        };
+        if let Ok(classname) = self.get_classname() {
+            d.field("classname", &classname);
+        };
+
+        d.finish()
     }
 }
 
@@ -624,7 +678,8 @@ pub struct UIMatcher {
     from: Option<UIElement>,
     condition: Option<Box<dyn Condition>>,
     timeout: u64,
-    interval: u64
+    interval: u64,
+    debug: bool
 }
 
 impl UIMatcher {
@@ -636,7 +691,8 @@ impl UIMatcher {
             from: None,
             condition: None,
             timeout: 3000,
-            interval: 100
+            interval: 100,
+            debug: false
         }
     }
 
@@ -679,6 +735,17 @@ impl UIMatcher {
         self
     }
 
+    /// Append a filter whitch match specific casesensitive name.
+    pub fn name<S: Into<String>>(self, name: S) -> Self {
+        let condition = NameCondition {
+            value: name.into(),
+            casesensitive: true,
+            partial: false
+        };
+
+        self.filter(Box::new(condition))
+    }
+
     /// Append a filter whitch name contains specific text (ignore casesensitive).
     pub fn contains_name<S: Into<String>>(self, name: S) -> Self {
         let condition = NameCondition {
@@ -715,6 +782,12 @@ impl UIMatcher {
         self.filter(Box::new(condition))
     }
 
+    /// Set `debug` as `true` to enable debug mode. The debug mode is `false` by default.
+    pub fn debug(mut self, debug: bool) -> Self {
+        self.debug = debug;
+        self
+    }
+
     /// Finds first element.
     pub fn find_first(&self) -> Result<UIElement> {
         let elements = self.find(true)?;
@@ -741,6 +814,10 @@ impl UIMatcher {
         let mut elements: Vec<UIElement> = Vec::new();
         let start = Local::now().timestamp_millis();
         loop {
+            if self.debug {
+                println!("Try to match element...")
+            }
+            
             let (root, walker) = self.prepare()?;
             self.search(&walker, &root, &mut elements, 1, first_only)?;
 
@@ -795,16 +872,24 @@ impl UIMatcher {
     }
 
     fn is_matched(&self, element: &UIElement) -> Result<bool> {
-        if let Some(ref condition) = self.condition {
-            condition.judge(element)
+        let ret = if let Some(ref condition) = self.condition {
+            condition.judge(element)?
         } else {
-            Ok(true)
+            true
+        };
+
+        if self.debug {
+            println!("{:?} -> {}", element, ret);
         }
+
+        Ok(ret)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
+
     use crate::UIAutomation;
 
     #[test]
@@ -814,6 +899,18 @@ mod tests {
         if let Ok(notepad) = matcher.find_first() {
             notepad.send_keys("你好！{enter}", 0).unwrap();
             notepad.send_keys("Hello!", 0).unwrap();
+        }
+    }
+
+    #[test]
+    fn test_menu_click() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
+        if let Ok(notepad) = matcher.find_first() {
+            let matcher = automation.create_matcher().control_type(UIA_MenuItemControlTypeId).from(notepad.clone()).name("文件").depth(5).timeout(1000);
+            if let Ok(menu_item) = matcher.find_first() {
+                menu_item.click().unwrap();
+            }
         }
     }
 }
