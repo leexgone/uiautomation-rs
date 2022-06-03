@@ -19,6 +19,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 use windows::core::Interface;
 
+use crate::inputs::Mouse;
+
 use super::conditions::AndCondition;
 use super::conditions::ClassNameCondition;
 use super::conditions::Condition;
@@ -504,6 +506,39 @@ impl UIElement {
         
         let kb = Keyboard::new();
         kb.interval(interval).send_keys(keys)
+    }
+
+    /// Simulates mouse left click event on the element.
+    pub fn click(&self) -> Result<()> {
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default();
+
+        self.set_focus()?;
+        mouse.click(point)
+    }
+
+    /// Simulates mouse double click event on the element.
+    pub fn double_click(&self) -> Result<()> {
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default();
+
+        self.set_focus()?;
+        mouse.double_click(point)
+    }
+
+    /// Simulates mouse right click event on the element.
+    pub fn right_click(&self) -> Result<()> {
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default();
+
+        self.set_focus()?;
+        mouse.right_click(point)
+    }
+
+    fn get_click_point(&self) -> Result<Point> {
+        let rect = self.get_bounding_rectangle()?;
+        let point = Point::new((rect.get_left() + rect.get_right()) / 2, (rect.get_top() + rect.get_bottom()) / 2);
+        Ok(point)
     }
 }
 

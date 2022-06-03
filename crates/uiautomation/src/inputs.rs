@@ -402,7 +402,7 @@ impl Keyboard {
         self
     }
 
-    /// Simulate typing `keys` on keyboard.
+    /// Simulates typing `keys` on keyboard.
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
     /// 
@@ -412,32 +412,20 @@ impl Keyboard {
     pub fn send_keys(&self, keys: &str) -> Result<()> {
         let inputs = parse_input(keys)?;
         for ref input in inputs {
-            self.send_input(input)?;
+            self.send_keyboard(input)?;
         }
 
         Ok(())
     }
 
-    fn send_input(&self, input: &Input) -> Result<()> {
+    fn send_keyboard(&self, input: &Input) -> Result<()> {
         let input_keys = input.create_inputs()?;
         if self.interval == 0 {
-            let sent = unsafe {
-                SendInput(&input_keys.as_slice(), mem::size_of::<INPUT>() as _)
-            };
-            if sent as usize == input_keys.len() {
-                Ok(())
-            } else {
-                Err(Error::last_os_error())
-            }
+            send_input(&input_keys.as_slice())
         } else {
             for input_key in &input_keys {
                 let input_key_slice: [INPUT; 1] = [input_key.clone()];
-                let sent = unsafe {
-                    SendInput(&input_key_slice, mem::size_of::<INPUT>() as _)
-                };
-                if sent != 1 {
-                    return Err(Error::last_os_error());
-                }
+                send_input(&input_key_slice)?;
 
                 self.wait();
             }
@@ -457,7 +445,8 @@ impl Keyboard {
 #[derive(Debug)]
 pub struct Mouse {
     interval: u64,
-    move_time: u64
+    move_time: u64,
+    auto_move: bool
 }
 
 impl Mouse {
@@ -468,7 +457,7 @@ impl Mouse {
 
     /// Sets the interval time between events.
     /// 
-    /// `interval` is the time number of milliseconds, `0` is default value.
+    /// `interval` is the time number of milliseconds, `100` is default value.
     pub fn interval(mut self, interval: u64) -> Self {
         self.interval = interval;
         self
@@ -477,6 +466,12 @@ impl Mouse {
     /// Sets the mouse move time in millionseconds. `1000` is default value.
     pub fn move_time(mut self, move_time: u64) -> Self {
         self.move_time = move_time;
+        self
+    }
+
+    /// Sets whether move the cursor to the click point automatically. Default is `true`.
+    pub fn auto_move(mut self, auto_move: bool) -> Self {
+        self.auto_move = auto_move;
         self
     }
 
@@ -495,7 +490,7 @@ impl Mouse {
     }
 
     /// Moves the cursor to the specified screen coordinates. 
-    pub fn set_cursor_pos(pos: &Point) -> Result<()> {
+    pub fn set_cursor_pos(pos: Point) -> Result<()> {
         let ret = unsafe { SetCursorPos(pos.get_x(), pos.get_y()) };
         if ret.as_bool() {
             Ok(())
@@ -538,21 +533,113 @@ impl Mouse {
                         source.get_x() + step_x * i, 
                         source.get_y() + step_y * i
                     );
-                    Self::set_cursor_pos(&pos)?;
+                    Self::set_cursor_pos(pos)?;
                     sleep(interval);
                 }
             }
         }
 
-        Self::set_cursor_pos(&target)
+        Self::set_cursor_pos(target)
+    }
+
+    /// Simulates a mouse click event.
+    /// 
+    /// # Examples
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// 
+    /// let mouse = Mouse::new();
+    /// let pos = Mouse::get_cursor_pos().unwrap();
+    /// mouse.click(pos).unwrap();
+    /// ```
+    pub fn click(&self, pos: Point) -> Result<()> {
+        if self.auto_move {
+            self.move_to(pos)?;
+        }
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)
+    }
+
+    /// Simulates a mouse double click event.
+    /// 
+    /// # Examples
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// 
+    /// let mouse = Mouse::new();
+    /// let pos = Mouse::get_cursor_pos().unwrap();
+    /// mouse.double_click(pos).unwrap();
+    /// ```
+    pub fn double_click(&self, pos: Point) -> Result<()> {
+        if self.auto_move {
+            self.move_to(pos)?;
+        }
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+
+        sleep(Duration::from_millis(max(200, self.interval)));
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+
+        Ok(())
+    }
+
+    /// Simulates a right mouse click event.
+    /// 
+    /// # Examples
+    /// ```
+    /// use uiautomation::inputs::Mouse;
+    /// 
+    /// let mouse = Mouse::new();
+    /// let pos = Mouse::get_cursor_pos().unwrap();
+    /// mouse.right_click(pos).unwrap();
+    /// ```
+    pub fn right_click(&self, pos: Point) -> Result<()> {
+        if self.auto_move {
+            self.move_to(pos)?;
+        }
+
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTDOWN)?;
+        self.wait();
+        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTUP)
+    }
+
+    fn wait(&self) {
+        if self.interval > 0 {
+            sleep(Duration::from_millis(self.interval));
+        }
+    }
+
+    fn mouse_event(x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
+        let input = [INPUT {
+            r#type: INPUT_MOUSE,
+            Anonymous: INPUT_0 { 
+                mi: MOUSEINPUT { 
+                    dx: x, 
+                    dy: y, 
+                    mouseData: 0, 
+                    dwFlags: flags, 
+                    time: 0, 
+                    dwExtraInfo: 0 
+                }
+            }
+        }];
+        send_input(&input)
     }
 }
 
 impl Default for Mouse {
     fn default() -> Self {
         Self { 
-            interval: 0, 
-            move_time: 1000 
+            interval: 100, 
+            move_time: 1000,
+            auto_move: true
         }
     }
 }
@@ -570,6 +657,18 @@ pub fn get_screen_size() -> Result<(i32, i32)> {
     }
 
     Ok((width, height))
+}
+
+fn send_input(inputs: &[INPUT]) -> Result<()> {
+    let sent = unsafe {
+        SendInput(inputs, mem::size_of::<INPUT>() as _)
+    };
+
+    if sent == inputs.len() as u32 {
+        Ok(())
+    } else {
+        Err(Error::last_os_error())
+    }
 }
 
 #[cfg(test)]
