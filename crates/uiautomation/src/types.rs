@@ -1,8 +1,11 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 
+use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
+use windows::core::IntoParam;
+use windows::core::Param;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -71,6 +74,12 @@ impl AsRef<POINT> for Point {
 impl AsMut<POINT> for Point {
     fn as_mut(&mut self) -> &mut POINT {
         &mut self.0
+    }
+}
+
+impl<'a> IntoParam<'a, POINT> for Point {
+    fn into_param(self) -> windows::core::Param<'a, POINT> {
+        Param::Owned(self.0)
     }
 }
 
@@ -173,5 +182,51 @@ impl AsRef<RECT> for Rect {
 impl AsMut<RECT> for Rect {
     fn as_mut(&mut self) -> &mut RECT {
         &mut self.0
+    }
+}
+
+impl<'a> IntoParam<'a, RECT> for Rect {
+    fn into_param(self) -> Param<'a, RECT> {
+        Param::Owned(self.0)
+    }
+}
+
+/// A Wrapper for windows `HWND`.
+#[derive(Default, Clone, Copy)]
+pub struct Handle(HWND);
+
+impl Debug for Handle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Handle(0x{:X})", self.0.0)
+    }
+}
+
+impl Display for Handle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "0x{:X}", self.0.0)
+    }
+}
+
+impl From<HWND> for Handle {
+    fn from(hwnd: HWND) -> Self {
+        Self(hwnd)
+    }
+}
+
+impl Into<HWND> for Handle {
+    fn into(self) -> HWND {
+        self.0
+    }
+}
+
+impl AsRef<HWND> for Handle {
+    fn as_ref(&self) -> &HWND {
+        &self.0
+    }
+}
+
+impl<'a> IntoParam<'a, HWND> for Handle {
+    fn into_param(self) -> Param<'a, HWND> {
+        Param::Owned(self.0)
     }
 }

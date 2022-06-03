@@ -6,8 +6,6 @@ use std::time::Duration;
 
 use chrono::Local;
 use windows::Win32::Foundation::BSTR;
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Foundation::POINT;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -32,7 +30,9 @@ use super::errors::Error;
 use super::errors::Result;
 use super::inputs::Keyboard;
 use super::patterns::UIPattern;
+use super::types::Handle;
 use super::types::Rect;
+use super::types::Point;
 use super::variants::Variant;
 
 /// A wrapper for windows `IUIAutomation` interface. 
@@ -66,7 +66,7 @@ impl UIAutomation {
     }
 
     /// Retrieves a UI Automation element for the specified window.
-    pub fn element_from_handle(&self, hwnd: HWND) -> Result<UIElement> {
+    pub fn element_from_handle(&self, hwnd: Handle) -> Result<UIElement> {
         let element = unsafe {
             self.automation.ElementFromHandle(hwnd)?
         };
@@ -75,7 +75,7 @@ impl UIAutomation {
     }
 
     /// Retrieves the UI Automation element at the specified point on the desktop.
-    pub fn element_from_point(&self, point: POINT) -> Result<UIElement> {
+    pub fn element_from_point(&self, point: Point) -> Result<UIElement> {
         let element = unsafe {
             self.automation.ElementFromPoint(point)?
         };
@@ -306,12 +306,12 @@ impl UIElement {
     }
 
     /// Retrieves the window handle of the element.
-    pub fn get_native_window_handle(&self) -> Result<HWND> {
+    pub fn get_native_window_handle(&self) -> Result<Handle> {
         let handle = unsafe {
             self.element.CurrentNativeWindowHandle()?
         };
 
-        Ok(handle)
+        Ok(handle.into())
     }
 
     /// Retrieves a description of the type of UI item represented by the element.
