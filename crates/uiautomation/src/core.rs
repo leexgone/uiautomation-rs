@@ -5,6 +5,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use chrono::Local;
+use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::BSTR;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
@@ -442,6 +443,11 @@ impl UIElement {
         Ok(())
     }
 
+    /// Try to set focus, return `true` if focus successfully.
+    pub fn try_focus(&self) -> bool {
+        self.set_focus().is_ok()
+    }
+
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     pub fn get_pattern<T: UIPattern>(&self) -> Result<T> {
         let pattern = unsafe {
@@ -449,6 +455,21 @@ impl UIElement {
         };
 
         T::new(pattern)
+    }
+
+    /// Retrieves a point on the element that can be clicked.
+    pub fn get_clickable_point(&self) -> Result<Option<Point>> {
+        let mut point = Point::default();
+        let mut got = BOOL::default();
+        unsafe {
+            self.element.GetClickablePoint(point.as_mut(), &mut got)?;
+        }
+
+        Ok(if got.as_bool() {
+            Some(point)
+        } else {
+            None
+        })
     }
 
     /// Retrieves the current value of a property for this UI Automation element.
@@ -510,16 +531,17 @@ impl UIElement {
 
     /// Simulates mouse left click event on the element.
     pub fn click(&self) -> Result<()> {
-        self.set_focus()?;
+        self.try_focus();
 
         let point = self.get_click_point()?;
+        // println!("{:?}", point);
         let mouse = Mouse::default();
         mouse.click(point)
     }
 
     /// Simulates mouse double click event on the element.
     pub fn double_click(&self) -> Result<()> {
-        self.set_focus()?;
+        self.try_focus();
         
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
@@ -528,7 +550,7 @@ impl UIElement {
 
     /// Simulates mouse right click event on the element.
     pub fn right_click(&self) -> Result<()> {
-        self.set_focus()?;
+        self.try_focus();
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
@@ -536,9 +558,13 @@ impl UIElement {
     }
 
     fn get_click_point(&self) -> Result<Point> {
-        let rect = self.get_bounding_rectangle()?;
-        let point = Point::new((rect.get_left() + rect.get_right()) / 2, (rect.get_top() + rect.get_bottom()) / 2);
-        Ok(point)
+        if let Ok(Some(point)) = self.get_clickable_point() {
+            Ok(point)
+        } else {
+            let rect = self.get_bounding_rectangle()?;
+            let point = Point::new((rect.get_left() + rect.get_right()) / 2, (rect.get_top() + rect.get_bottom()) / 2);
+            Ok(point)
+        }
     }
 }
 
