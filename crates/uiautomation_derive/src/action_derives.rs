@@ -511,7 +511,7 @@ pub(crate) fn impl_text(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Text for #name {
-            fn get_ragne_from_point(&self, pt: windows::Win32::Foundation::POINT) -> Result<UITextRange> {
+            fn get_ragne_from_point(&self, pt: super::types::Point) -> Result<UITextRange> {
                 let pattern: UITextPattern = self.as_ref().get_pattern()?;
                 pattern.get_ragne_from_point(pt)
             }

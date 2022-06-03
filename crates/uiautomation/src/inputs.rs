@@ -463,7 +463,7 @@ impl Mouse {
         self
     }
 
-    /// Sets the mouse move time in millionseconds. `1000` is default value.
+    /// Sets the mouse move time in millionseconds. `500` is default value.
     pub fn move_time(mut self, move_time: u64) -> Self {
         self.move_time = move_time;
         self
@@ -638,7 +638,7 @@ impl Default for Mouse {
     fn default() -> Self {
         Self { 
             interval: 100, 
-            move_time: 1000,
+            move_time: 500,
             auto_move: true
         }
     }

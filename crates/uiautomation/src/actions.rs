@@ -1,7 +1,7 @@
-use windows::Win32::Foundation::POINT;
 use windows::Win32::UI::Accessibility::*;
 
 use crate::patterns::UITextRange;
+use crate::types::Point;
 
 use super::Result;
 use super::UIElement;
@@ -287,7 +287,7 @@ pub trait TableItem {
 /// Define a Text action for uielement.
 pub trait Text {
     /// Retrieves the degenerate (empty) text range nearest to the specified screen coordinates.
-    fn get_ragne_from_point(&self, pt: POINT) -> Result<UITextRange>;
+    fn get_ragne_from_point(&self, pt: Point) -> Result<UITextRange>;
 
     /// Retrieves a text range enclosing a child element such as an image, hyperlink, Microsoft Excel spreadsheet, or other embedded object.
     fn get_range_from_child(&self, child: &UIElement) -> Result<UITextRange>;

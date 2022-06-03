@@ -510,28 +510,28 @@ impl UIElement {
 
     /// Simulates mouse left click event on the element.
     pub fn click(&self) -> Result<()> {
+        self.set_focus()?;
+
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
-
-        self.set_focus()?;
         mouse.click(point)
     }
 
     /// Simulates mouse double click event on the element.
     pub fn double_click(&self) -> Result<()> {
+        self.set_focus()?;
+        
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
-
-        self.set_focus()?;
         mouse.double_click(point)
     }
 
     /// Simulates mouse right click event on the element.
     pub fn right_click(&self) -> Result<()> {
+        self.set_focus()?;
+
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
-
-        self.set_focus()?;
         mouse.right_click(point)
     }
 
@@ -888,6 +888,8 @@ impl UIMatcher {
 
 #[cfg(test)]
 mod tests {
+    use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
+
     use crate::UIAutomation;
 
     #[test]
@@ -897,6 +899,18 @@ mod tests {
         if let Ok(notepad) = matcher.find_first() {
             notepad.send_keys("你好！{enter}", 0).unwrap();
             notepad.send_keys("Hello!", 0).unwrap();
+        }
+    }
+
+    #[test]
+    fn test_menu_click() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
+        if let Ok(notepad) = matcher.find_first() {
+            let matcher = automation.create_matcher().control_type(UIA_MenuItemControlTypeId).from(notepad.clone()).name("文件").depth(5).timeout(1000);
+            if let Ok(menu_item) = matcher.find_first() {
+                menu_item.click().unwrap();
+            }
         }
     }
 }
