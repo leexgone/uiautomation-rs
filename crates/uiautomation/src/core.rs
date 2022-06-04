@@ -41,7 +41,7 @@ use super::variants::Variant;
 /// A wrapper for windows `IUIAutomation` interface. 
 /// 
 /// Exposes methods that enable Microsoft UI Automation client applications to discover, access, and filter UI Automation elements.
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub struct UIAutomation {
     automation: IUIAutomation
 }
