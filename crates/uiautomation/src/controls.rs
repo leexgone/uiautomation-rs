@@ -61,6 +61,14 @@ impl TryFrom<UIElement> for AppBarControl {
     }
 }
 
+impl TryFrom<&UIElement> for AppBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for AppBarControl {
     fn into(self) -> UIElement {
         self.control
@@ -97,6 +105,14 @@ impl TryFrom<UIElement> for ButtonControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for ButtonControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -139,6 +155,13 @@ impl TryFrom<UIElement> for CalendarControl {
     }
 }
 
+impl TryFrom<&UIElement> for CalendarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
 impl Into<UIElement> for CalendarControl {
     fn into(self) -> UIElement {
         self.control
@@ -175,6 +198,14 @@ impl TryFrom<UIElement> for CheckBoxControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for CheckBoxControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -217,6 +248,14 @@ impl TryFrom<UIElement> for ComboBoxControl {
     }
 }
 
+impl TryFrom<&UIElement> for ComboBoxControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for ComboBoxControl {
     fn into(self) -> UIElement {
         self.control
@@ -253,6 +292,14 @@ impl TryFrom<UIElement> for DataGridControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for DataGridControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -295,6 +342,14 @@ impl TryFrom<UIElement> for DataItemControl {
     }
 }
 
+impl TryFrom<&UIElement> for DataItemControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for DataItemControl {
     fn into(self) -> UIElement {
         self.control
@@ -331,6 +386,14 @@ impl TryFrom<UIElement> for DocumentControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for DocumentControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -373,6 +436,14 @@ impl TryFrom<UIElement> for EditControl {
     }
 }
 
+impl TryFrom<&UIElement> for EditControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for EditControl {
     fn into(self) -> UIElement {
         self.control
@@ -409,6 +480,14 @@ impl TryFrom<UIElement> for GroupControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for GroupControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -451,6 +530,14 @@ impl TryFrom<UIElement> for HeaderControl {
     }
 }
 
+impl TryFrom<&UIElement> for HeaderControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for HeaderControl {
     fn into(self) -> UIElement {
         self.control
@@ -487,6 +574,14 @@ impl TryFrom<UIElement> for HeaderItemControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for HeaderItemControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -529,6 +624,14 @@ impl TryFrom<UIElement> for HyperlinkControl {
     }
 }
 
+impl TryFrom<&UIElement> for HyperlinkControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for HyperlinkControl {
     fn into(self) -> UIElement {
         self.control
@@ -565,6 +668,14 @@ impl TryFrom<UIElement> for ImageControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for ImageControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -607,6 +718,14 @@ impl TryFrom<UIElement> for ListControl {
     }
 }
 
+impl TryFrom<&UIElement> for ListControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for ListControl {
     fn into(self) -> UIElement {
         self.control
@@ -643,6 +762,14 @@ impl TryFrom<UIElement> for ListItemControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for ListItemControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -685,6 +812,14 @@ impl TryFrom<UIElement> for MenuControl {
     }
 }
 
+impl TryFrom<&UIElement> for MenuControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for MenuControl {
     fn into(self) -> UIElement {
         self.control
@@ -721,6 +856,14 @@ impl TryFrom<UIElement> for MenuBarControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for MenuBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -763,6 +906,14 @@ impl TryFrom<UIElement> for MenuItemControl {
     }
 }
 
+impl TryFrom<&UIElement> for MenuItemControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for MenuItemControl {
     fn into(self) -> UIElement {
         self.control
@@ -799,6 +950,14 @@ impl TryFrom<UIElement> for PaneControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for PaneControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -841,6 +1000,14 @@ impl TryFrom<UIElement> for ProgressBarControl {
     }
 }
 
+impl TryFrom<&UIElement> for ProgressBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for ProgressBarControl {
     fn into(self) -> UIElement {
         self.control
@@ -877,6 +1044,14 @@ impl TryFrom<UIElement> for RadioButtonControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for RadioButtonControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -919,6 +1094,14 @@ impl TryFrom<UIElement> for ScrollBarControl {
     }
 }
 
+impl TryFrom<&UIElement> for ScrollBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for ScrollBarControl {
     fn into(self) -> UIElement {
         self.control
@@ -955,6 +1138,14 @@ impl TryFrom<UIElement> for SemanticZoomControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for SemanticZoomControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -997,6 +1188,14 @@ impl TryFrom<UIElement> for SeparatorControl {
     }
 }
 
+impl TryFrom<&UIElement> for SeparatorControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for SeparatorControl {
     fn into(self) -> UIElement {
         self.control
@@ -1033,6 +1232,14 @@ impl TryFrom<UIElement> for SliderControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for SliderControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1075,6 +1282,14 @@ impl TryFrom<UIElement> for SpinnerControl {
     }
 }
 
+impl TryFrom<&UIElement> for SpinnerControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for SpinnerControl {
     fn into(self) -> UIElement {
         self.control
@@ -1111,6 +1326,14 @@ impl TryFrom<UIElement> for SplitButtonControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for SplitButtonControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1153,6 +1376,14 @@ impl TryFrom<UIElement> for StatusBarControl {
     }
 }
 
+impl TryFrom<&UIElement> for StatusBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for StatusBarControl {
     fn into(self) -> UIElement {
         self.control
@@ -1189,6 +1420,14 @@ impl TryFrom<UIElement> for TabControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for TabControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1231,6 +1470,14 @@ impl TryFrom<UIElement> for TabItemControl {
     }
 }
 
+impl TryFrom<&UIElement> for TabItemControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for TabItemControl {
     fn into(self) -> UIElement {
         self.control
@@ -1267,6 +1514,14 @@ impl TryFrom<UIElement> for TableControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for TableControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1309,6 +1564,14 @@ impl TryFrom<UIElement> for TextControl {
     }
 }
 
+impl TryFrom<&UIElement> for TextControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for TextControl {
     fn into(self) -> UIElement {
         self.control
@@ -1345,6 +1608,14 @@ impl TryFrom<UIElement> for ThumbControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for ThumbControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1387,6 +1658,14 @@ impl TryFrom<UIElement> for TitleBarControl {
     }
 }
 
+impl TryFrom<&UIElement> for TitleBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for TitleBarControl {
     fn into(self) -> UIElement {
         self.control
@@ -1423,6 +1702,14 @@ impl TryFrom<UIElement> for ToolBarControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for ToolBarControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1465,6 +1752,14 @@ impl TryFrom<UIElement> for ToolTipControl {
     }
 }
 
+impl TryFrom<&UIElement> for ToolTipControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
+    }
+}
+
 impl Into<UIElement> for ToolTipControl {
     fn into(self) -> UIElement {
         self.control
@@ -1501,6 +1796,14 @@ impl TryFrom<UIElement> for TreeControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for TreeControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
@@ -1587,6 +1890,14 @@ impl TryFrom<UIElement> for WindowControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for WindowControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
