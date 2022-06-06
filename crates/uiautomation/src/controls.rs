@@ -11,8 +11,8 @@ use super::errors::ERR_TYPE;
 use super::patterns::*;
 
 macro_rules! as_control {
-    ($control: ident, $type_id: ident) => {
-        if $control.get_control_type()? == $type_id {
+    ($control: ident) => {
+        if $control.get_control_type()? == Self::TYPE_ID { //$type_id {
             Ok(Self {
                 $control
             })
@@ -20,6 +20,12 @@ macro_rules! as_control {
             Err(Error::new(ERR_TYPE, "Error Control Type"))
         }
     };
+}
+
+/// `Control` is the trait for ui element.
+pub trait Control {
+    /// Defines the control type id.
+    const TYPE_ID: i32;
 }
 
 /// Wrapper a AppBar element as control. The control type of the element must be `UIA_AppBarControlTypeId`.
@@ -31,11 +37,15 @@ pub struct AppBarControl {
     control: UIElement
 }
 
+impl Control for AppBarControl {
+    const TYPE_ID: i32 = UIA_AppBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for AppBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_AppBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -66,11 +76,15 @@ pub struct ButtonControl {
     control: UIElement
 }
 
+impl Control for ButtonControl {
+    const TYPE_ID: i32 = UIA_ButtonControlTypeId;
+}
+
 impl TryFrom<UIElement> for ButtonControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ButtonControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -101,11 +115,15 @@ pub struct CalendarControl {
     control: UIElement
 }
 
+impl Control for CalendarControl {
+    const TYPE_ID: i32 = UIA_CalendarControlTypeId;
+}
+
 impl TryFrom<UIElement> for CalendarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_CalendarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -136,11 +154,15 @@ pub struct CheckBoxControl {
     control: UIElement
 }
 
+impl Control for CheckBoxControl {
+    const TYPE_ID: i32 = UIA_CheckBoxControlTypeId;
+}
+
 impl TryFrom<UIElement> for CheckBoxControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_CheckBoxControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -171,11 +193,15 @@ pub struct ComboBoxControl {
     control: UIElement
 }
 
+impl Control for ComboBoxControl {
+    const TYPE_ID: i32 = UIA_ComboBoxControlTypeId;
+}
+
 impl TryFrom<UIElement> for ComboBoxControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ComboBoxControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -206,11 +232,15 @@ pub struct DataGridControl {
     control: UIElement
 }
 
+impl Control for DataGridControl {
+    const TYPE_ID: i32 = UIA_DataGridControlTypeId;
+}
+
 impl TryFrom<UIElement> for DataGridControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_DataGridControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -241,11 +271,15 @@ pub struct DataItemControl {
     control: UIElement
 }
 
+impl Control for DataItemControl {
+    const TYPE_ID: i32 = UIA_DataItemControlTypeId;
+}
+
 impl TryFrom<UIElement> for DataItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_DataItemControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -276,11 +310,15 @@ pub struct DocumentControl {
     control: UIElement
 }
 
+impl Control for DocumentControl {
+    const TYPE_ID: i32 = UIA_DocumentControlTypeId;
+}
+
 impl TryFrom<UIElement> for DocumentControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_DocumentControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -311,11 +349,15 @@ pub struct EditControl {
     control: UIElement
 }
 
+impl Control for EditControl {
+    const TYPE_ID: i32 = UIA_EditControlTypeId;
+}
+
 impl TryFrom<UIElement> for EditControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_EditControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -346,11 +388,15 @@ pub struct GroupControl {
     control: UIElement
 }
 
+impl Control for GroupControl {
+    const TYPE_ID: i32 = UIA_GroupControlTypeId;
+}
+
 impl TryFrom<UIElement> for GroupControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_GroupControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -381,11 +427,15 @@ pub struct HeaderControl {
     control: UIElement
 }
 
+impl Control for HeaderControl {
+    const TYPE_ID: i32 = UIA_HeaderControlTypeId;
+}
+
 impl TryFrom<UIElement> for HeaderControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_HeaderControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -416,11 +466,15 @@ pub struct HeaderItemControl {
     control: UIElement
 }
 
+impl Control for HeaderItemControl {
+    const TYPE_ID: i32 = UIA_HeaderItemControlTypeId;
+}
+
 impl TryFrom<UIElement> for HeaderItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_HeaderItemControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -451,11 +505,15 @@ pub struct HyperlinkControl {
     control: UIElement
 }
 
+impl Control for HyperlinkControl {
+    const TYPE_ID: i32 = UIA_HyperlinkControlTypeId;
+}
+
 impl TryFrom<UIElement> for HyperlinkControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_HyperlinkControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -486,11 +544,15 @@ pub struct ImageControl {
     control: UIElement
 }
 
+impl Control for ImageControl {
+    const TYPE_ID: i32 = UIA_ImageControlTypeId;
+}
+
 impl TryFrom<UIElement> for ImageControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ImageControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -521,11 +583,15 @@ pub struct ListControl {
     control: UIElement
 }
 
+impl Control for ListControl {
+    const TYPE_ID: i32 = UIA_ListControlTypeId;
+}
+
 impl TryFrom<UIElement> for ListControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ListControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -556,11 +622,15 @@ pub struct ListItemControl {
     control: UIElement
 }
 
+impl Control for ListItemControl {
+    const TYPE_ID: i32 = UIA_ListItemControlTypeId;
+}
+
 impl TryFrom<UIElement> for ListItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ListItemControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -591,11 +661,15 @@ pub struct MenuControl {
     control: UIElement
 }
 
+impl Control for MenuControl {
+    const TYPE_ID: i32 = UIA_MenuControlTypeId;
+}
+
 impl TryFrom<UIElement> for MenuControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_MenuControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -626,11 +700,15 @@ pub struct MenuBarControl {
     control: UIElement
 }
 
+impl Control for MenuBarControl {
+    const TYPE_ID: i32 = UIA_MenuBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for MenuBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_MenuBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -661,11 +739,15 @@ pub struct MenuItemControl {
     control: UIElement
 }
 
+impl Control for MenuItemControl {
+    const TYPE_ID: i32 = UIA_MenuItemControlTypeId;
+}
+
 impl TryFrom<UIElement> for MenuItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_MenuItemControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -696,11 +778,15 @@ pub struct PaneControl {
     control: UIElement
 }
 
+impl Control for PaneControl {
+    const TYPE_ID: i32 = UIA_PaneControlTypeId;
+}
+
 impl TryFrom<UIElement> for PaneControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_PaneControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -731,11 +817,15 @@ pub struct ProgressBarControl {
     control: UIElement
 }
 
+impl Control for ProgressBarControl {
+    const TYPE_ID: i32 = UIA_ProgressBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for ProgressBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ProgressBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -766,11 +856,15 @@ pub struct RadioButtonControl {
     control: UIElement
 }
 
+impl Control for RadioButtonControl {
+    const TYPE_ID: i32 = UIA_RadioButtonControlTypeId;
+}
+
 impl TryFrom<UIElement> for RadioButtonControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_RadioButtonControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -801,11 +895,15 @@ pub struct ScrollBarControl {
     control: UIElement
 }
 
+impl Control for ScrollBarControl {
+    const TYPE_ID: i32 = UIA_ScrollBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for ScrollBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ScrollBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -836,11 +934,15 @@ pub struct SemanticZoomControl {
     control: UIElement
 }
 
+impl Control for SemanticZoomControl {
+    const TYPE_ID: i32 = UIA_SemanticZoomControlTypeId;
+}
+
 impl TryFrom<UIElement> for SemanticZoomControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_SemanticZoomControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -871,11 +973,15 @@ pub struct SeparatorControl {
     control: UIElement
 }
 
+impl Control for SeparatorControl {
+    const TYPE_ID: i32 = UIA_SeparatorControlTypeId;
+}
+
 impl TryFrom<UIElement> for SeparatorControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_SeparatorControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -906,11 +1012,15 @@ pub struct SliderControl {
     control: UIElement
 }
 
+impl Control for SliderControl {
+    const TYPE_ID: i32 = UIA_SliderControlTypeId;
+}
+
 impl TryFrom<UIElement> for SliderControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_SliderControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -941,11 +1051,15 @@ pub struct SpinnerControl {
     control: UIElement
 }
 
+impl Control for SpinnerControl {
+    const TYPE_ID: i32 = UIA_SpinnerControlTypeId;
+}
+
 impl TryFrom<UIElement> for SpinnerControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_SpinnerControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -976,11 +1090,15 @@ pub struct SplitButtonControl {
     control: UIElement
 }
 
+impl Control for SplitButtonControl {
+    const TYPE_ID: i32 = UIA_SplitButtonControlTypeId;
+}
+
 impl TryFrom<UIElement> for SplitButtonControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_SplitButtonControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1011,11 +1129,15 @@ pub struct StatusBarControl {
     control: UIElement
 }
 
+impl Control for StatusBarControl {
+    const TYPE_ID: i32 = UIA_StatusBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for StatusBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_StatusBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1046,11 +1168,15 @@ pub struct TabControl {
     control: UIElement
 }
 
+impl Control for TabControl {
+    const TYPE_ID: i32 = UIA_TabControlTypeId;
+}
+
 impl TryFrom<UIElement> for TabControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TabControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1081,11 +1207,15 @@ pub struct TabItemControl {
     control: UIElement
 }
 
+impl Control for TabItemControl {
+    const TYPE_ID: i32 = UIA_TabItemControlTypeId;
+}
+
 impl TryFrom<UIElement> for TabItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TabItemControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1116,11 +1246,15 @@ pub struct TableControl {
     control: UIElement
 }
 
+impl Control for TableControl {
+    const TYPE_ID: i32 = UIA_TableControlTypeId;
+}
+
 impl TryFrom<UIElement> for TableControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TableControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1151,11 +1285,15 @@ pub struct TextControl {
     control: UIElement
 }
 
+impl Control for TextControl {
+    const TYPE_ID: i32 = UIA_TextControlTypeId;
+}
+
 impl TryFrom<UIElement> for TextControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TextControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1186,11 +1324,15 @@ pub struct ThumbControl {
     control: UIElement
 }
 
+impl Control for ThumbControl {
+    const TYPE_ID: i32 = UIA_ThumbControlTypeId;
+}
+
 impl TryFrom<UIElement> for ThumbControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ThumbControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1221,11 +1363,15 @@ pub struct TitleBarControl {
     control: UIElement
 }
 
+impl Control for TitleBarControl {
+    const TYPE_ID: i32 = UIA_TitleBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for TitleBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TitleBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1256,11 +1402,15 @@ pub struct ToolBarControl {
     control: UIElement
 }
 
+impl Control for ToolBarControl {
+    const TYPE_ID: i32 = UIA_ToolBarControlTypeId;
+}
+
 impl TryFrom<UIElement> for ToolBarControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ToolBarControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1291,11 +1441,15 @@ pub struct ToolTipControl {
     control: UIElement
 }
 
+impl Control for ToolTipControl {
+    const TYPE_ID: i32 = UIA_ToolTipControlTypeId;
+}
+
 impl TryFrom<UIElement> for ToolTipControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_ToolTipControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1326,11 +1480,15 @@ pub struct TreeControl {
     control: UIElement
 }
 
+impl Control for TreeControl {
+    const TYPE_ID: i32 = UIA_TreeControlTypeId;
+}
+
 impl TryFrom<UIElement> for TreeControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TreeControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1361,11 +1519,15 @@ pub struct TreeItemControl {
     control: UIElement
 }
 
+impl Control for TreeItemControl {
+    const TYPE_ID: i32 = UIA_TreeItemControlTypeId;
+}
+
 impl TryFrom<UIElement> for TreeItemControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_TreeItemControlTypeId)
+        as_control!(control)
     }
 }
 
@@ -1396,11 +1558,15 @@ pub struct WindowControl {
     control: UIElement
 }
 
+impl Control for WindowControl {
+    const TYPE_ID: i32 = UIA_WindowControlTypeId;
+}
+
 impl TryFrom<UIElement> for WindowControl {
     type Error = Error;
 
     fn try_from(control: UIElement) -> Result<Self> {
-        as_control!(control, UIA_WindowControlTypeId)
+        as_control!(control)
     }
 }
 
