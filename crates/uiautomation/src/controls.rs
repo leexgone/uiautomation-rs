@@ -14,7 +14,19 @@ macro_rules! as_control {
     ($control: ident) => {
         if $control.get_control_type()? == Self::TYPE_ID { //$type_id {
             Ok(Self {
-                $control
+                control: $control
+            })
+        } else {
+            Err(Error::new(ERR_TYPE, "Error Control Type"))
+        }
+    };
+}
+
+macro_rules! as_control_ref {
+    ($control: ident) => {
+        if $control.get_control_type()? == Self::TYPE_ID { 
+            Ok(Self {
+                control: $control.clone()
             })
         } else {
             Err(Error::new(ERR_TYPE, "Error Control Type"))
@@ -1528,6 +1540,14 @@ impl TryFrom<UIElement> for TreeItemControl {
 
     fn try_from(control: UIElement) -> Result<Self> {
         as_control!(control)
+    }
+}
+
+impl TryFrom<&UIElement> for TreeItemControl {
+    type Error = Error;
+
+    fn try_from(control: &UIElement) -> Result<Self> {
+        as_control_ref!(control)
     }
 }
 
