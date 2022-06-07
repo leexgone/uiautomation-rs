@@ -14,6 +14,7 @@ use windows::Win32::System::Com::VARIANT_0_0_0;
 use windows::Win32::System::Ole::*;
 use windows::core::HRESULT;
 use windows::core::IUnknown;
+use windows::core::Interface;
 use windows::core::PSTR;
 
 use super::Error;
@@ -1154,8 +1155,10 @@ pub struct SafeArray {
 }
 
 impl SafeArray {
-    /// Create `SafeArray` wrapper. if the array is from a VARIANT, set `owned` as `false`.
-    fn new(array: *mut SAFEARRAY, owned: bool) -> Self {
+    /// Create `SafeArray` wrapper. 
+    /// 
+    /// if the array is from a VARIANT or owned by other object, set `owned` as `false`.
+    pub(crate) fn new(array: *mut SAFEARRAY, owned: bool) -> Self {
         Self {
             array,
             owned
@@ -1218,6 +1221,21 @@ impl SafeArray {
         Ok(value)
     }
 
+    pub fn get_interface<T: Interface>(&self, index: i32) -> Result<T> {
+        let indices: [i32; 1] = [index];
+        let mut result: Option<T> = None;
+        let v_ref: *mut Option<T> = &mut result;
+        unsafe {
+            SafeArrayGetElement(self.array, indices.as_ptr(),v_ref as _)?
+        };
+
+        if let Some(value) = result {
+            Ok(value)
+        } else {
+            Err(Error::new(ERR_NULL_PTR, "NULL Interface"))
+        }
+    }
+
     pub fn put_element<T>(&mut self, index: i32, value: T) -> Result<()> {
         let indices: [i32; 1] = [index];
         let v_ref: *const T = &value;
@@ -1252,6 +1270,28 @@ impl SafeArray {
         let bstrs: Vec<BSTR> = self.into_vector(VT_BSTR)?;
         let strings: Vec<String> = bstrs.iter().map(|s| s.to_string()).collect();
         Ok(strings)
+    }
+
+    pub fn into_interface_vector<T: Interface>(&self) -> Result<Vec<T>> {
+        let vt = self.get_var_type()?;
+        if vt != VT_UNKNOWN && vt != VT_DISPATCH {
+            return Err(Error::new(ERR_TYPE, "Err SafeArray Type"));
+        }
+
+        if self.get_dim() != 1 {
+            return Err(Error::new(ERR_TYPE, "Err SafeArray Dimension Count"));
+        };
+
+        let lower = self.get_lower_bound(1)?;
+        let upper = self.get_upper_bound(1)?;
+
+        let mut arr = Vec::with_capacity((upper - lower + 1) as _);
+        for i in lower..=upper {
+            let v: T = self.get_interface(i)?;
+            arr.push(v);
+        };
+
+        Ok(arr)
     }
 
     pub fn from_vector<T: Default>(var_type: VARENUM, src: &Vec<T>) -> Result<SafeArray> {

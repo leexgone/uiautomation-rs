@@ -13,14 +13,21 @@ use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::CoInitializeEx;
 use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
+use windows::Win32::UI::Accessibility::IUIAutomationAndCondition;
+use windows::Win32::UI::Accessibility::IUIAutomationBoolCondition;
+use windows::Win32::UI::Accessibility::IUIAutomationCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationElement3;
 use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
+use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
+use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
+use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::core::Interface;
 
 use crate::inputs::Mouse;
+use crate::variants::SafeArray;
 
 use super::conditions::AndCondition;
 use super::conditions::ClassNameCondition;
@@ -912,11 +919,301 @@ impl UIMatcher {
     }
 }
 
+/// This is the trait for conditions used in filtering when searching for elements in the UI Automation tree.
+pub trait IUICondition<T: Interface>: Sized + From<T> + Into<T> + AsRef<T> {
+}
+
+/// This is the primary interface for conditions used in filtering when searching for elements in the UI Automation tree. 
+#[derive(Debug, Clone)]
+pub struct UICondition(IUIAutomationCondition);
+
+impl UICondition {
+    pub fn is_bool_condition(&self) -> bool {
+        let bool_cond: windows::core::Result<IUIAutomationBoolCondition> = self.0.cast();
+        bool_cond.is_ok()
+    }
+
+    pub fn is_and_condition(&self) -> bool {
+        let and_cond: windows::core::Result<IUIAutomationAndCondition> = self.0.cast();
+        and_cond.is_ok()
+    }
+
+    pub fn is_not_condition(&self) -> bool {
+        let not_cond: windows::core::Result<IUIAutomationNotCondition> = self.0.cast();
+        not_cond.is_ok()
+    }
+
+    pub fn is_property_condition(&self) -> bool {
+        let prop_cond: windows::core::Result<IUIAutomationPropertyCondition> = self.0.cast();
+        prop_cond.is_ok()
+    }
+}
+
+impl IUICondition<IUIAutomationCondition> for UICondition {    
+}
+
+impl From<IUIAutomationCondition> for UICondition {
+    fn from(condition: IUIAutomationCondition) -> Self {
+        Self(condition)
+    }
+}
+
+impl Into<IUIAutomationCondition> for UICondition {
+    fn into(self) -> IUIAutomationCondition {
+        self.0
+    }
+}
+
+impl AsRef<IUIAutomationCondition> for UICondition {
+    fn as_ref(&self) -> &IUIAutomationCondition {
+        &self.0
+    }
+}
+
+/// Represents a condition that can be either TRUE (selects all elements) or FALSE (selects no elements).
+#[derive(Debug, Clone)]
+pub struct UIBoolCondition(IUIAutomationBoolCondition);
+
+impl UIBoolCondition {
+    pub fn get_bool_value(&self) -> Result<bool> {
+        let val = unsafe {
+            self.0.BooleanValue()?
+        };
+        Ok(val.as_bool())
+    }
+}
+
+impl IUICondition<IUIAutomationBoolCondition> for UIBoolCondition {
+}
+
+impl From<IUIAutomationBoolCondition> for UIBoolCondition {
+    fn from(condition: IUIAutomationBoolCondition) -> Self {
+        Self(condition)
+    }
+}
+
+impl Into<IUIAutomationBoolCondition> for UIBoolCondition {
+    fn into(self) -> IUIAutomationBoolCondition {
+        self.0
+    }
+}
+
+impl AsRef<IUIAutomationBoolCondition> for UIBoolCondition {
+    fn as_ref(&self) -> &IUIAutomationBoolCondition {
+        &self.0
+    }
+}
+
+impl TryFrom<IUIAutomationCondition> for UIBoolCondition {
+    type Error = Error;
+
+    fn try_from(condition: IUIAutomationCondition) -> Result<Self> {
+        let bool_cond: IUIAutomationBoolCondition = condition.cast()?;
+        Ok(bool_cond.into())
+    }
+}
+
+impl TryInto<IUIAutomationCondition> for UIBoolCondition {
+    type Error = Error;
+
+    fn try_into(self) -> Result<IUIAutomationCondition> {
+        let condition: IUIAutomationCondition = self.0.cast()?;
+        Ok(condition)
+    }
+}
+
+/// Represents a condition that is the negative of another condition.
+#[derive(Debug, Clone)]
+pub struct UINotCondition(IUIAutomationNotCondition);
+
+impl UINotCondition {
+    /// Retrieves the condition of which this condition is the negative.
+    pub fn get_child(&self) -> Result<UICondition> {
+        let child = unsafe {
+            self.0.GetChild()?
+        };
+        Ok(child.into())
+    }
+}
+
+impl IUICondition<IUIAutomationNotCondition> for UINotCondition {
+}
+
+impl From<IUIAutomationNotCondition> for UINotCondition {
+    fn from(condition: IUIAutomationNotCondition) -> Self {
+        Self(condition)
+    }
+}
+
+impl Into<IUIAutomationNotCondition> for UINotCondition {
+    fn into(self) -> IUIAutomationNotCondition {
+        self.0
+    }
+}
+
+impl AsRef<IUIAutomationNotCondition> for UINotCondition {
+    fn as_ref(&self) -> &IUIAutomationNotCondition {
+        &self.0
+    }
+}
+
+impl TryFrom<IUIAutomationCondition> for UINotCondition {
+    type Error = Error;
+
+    fn try_from(condition: IUIAutomationCondition) -> Result<Self> {
+        let not_cond: IUIAutomationNotCondition = condition.cast()?;
+        Ok(not_cond.into())
+    }
+}
+
+impl TryInto<IUIAutomationCondition> for UINotCondition {
+    type Error = Error;
+
+    fn try_into(self) -> Result<IUIAutomationCondition> {
+        let condition: IUIAutomationCondition = self.0.cast()?;
+        Ok(condition)
+    }
+}
+
+/// Exposes properties and methods that Microsoft UI Automation client applications can use to retrieve information about an AND-based property condition.
+#[derive(Debug, Clone)]
+pub struct UIAndCondition(IUIAutomationAndCondition);
+
+impl UIAndCondition {
+    /// Retrieves the number of conditions that make up this "and" condition.
+    pub fn get_children_count(&self) -> Result<i32> {
+        let count = unsafe {
+            self.0.ChildCount()?
+        };
+        Ok(count)
+    }
+
+    /// Retrieves the conditions that make up this "and" condition.
+    pub fn get_children(&self) -> Result<Vec<UICondition>> {
+        let arr = unsafe {
+            self.0.GetChildren()?
+        };
+        let arr = SafeArray::from(arr);
+        let children: Vec<IUIAutomationCondition> = arr.into_interface_vector()?;
+        let conditions: Vec<UICondition> = children.into_iter().map(|c| c.into()).collect();
+        Ok(conditions)
+    }
+}
+
+impl IUICondition<IUIAutomationAndCondition> for UIAndCondition {
+}
+
+impl From<IUIAutomationAndCondition> for UIAndCondition {
+    fn from(condition: IUIAutomationAndCondition) -> Self {
+        Self(condition)
+    }
+}
+
+impl Into<IUIAutomationAndCondition> for UIAndCondition {
+    fn into(self) -> IUIAutomationAndCondition {
+        self.0
+    }
+}
+
+impl AsRef<IUIAutomationAndCondition> for UIAndCondition {
+    fn as_ref(&self) -> &IUIAutomationAndCondition {
+        &self.0
+    }
+}
+
+impl TryFrom<IUIAutomationCondition> for UIAndCondition {
+    type Error = Error;
+
+    fn try_from(condition: IUIAutomationCondition) -> Result<Self> {
+        let and_cond: IUIAutomationAndCondition = condition.cast()?;
+        Ok(and_cond.into())
+    }
+}
+
+impl TryInto<IUIAutomationCondition> for UIAndCondition {
+    type Error = Error;
+
+    fn try_into(self) -> Result<IUIAutomationCondition> {
+        let condition: IUIAutomationCondition = self.0.cast()?;
+        Ok(condition)
+    }
+}
+
+/// Represents a condition based on a property value that is used to find UI Automation elements.
+#[derive(Debug, Clone)]
+pub struct UIPropertyCondition(IUIAutomationPropertyCondition);
+
+impl UIPropertyCondition {
+    /// Retrieves the identifier of the property on which this condition is based.
+    pub fn get_property_id(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.0.PropertyId()?    
+        })
+    }
+
+    /// Retrieves the property value that must be matched for the condition to be true.
+    pub fn get_property_value(&self) -> Result<Variant> {
+        let value = unsafe {
+            self.0.PropertyValue()?
+        };
+        Ok(value.into())
+    }
+
+    /// Retrieves a set of flags that specify how the condition is applied.
+    pub fn get_property_condition_flags(&self) -> Result<PropertyConditionFlags> {
+        Ok(unsafe {
+            self.0.PropertyConditionFlags()?
+        })
+    }
+}
+
+impl IUICondition<IUIAutomationPropertyCondition> for UIPropertyCondition {
+}
+
+impl From<IUIAutomationPropertyCondition> for UIPropertyCondition {
+    fn from(condition: IUIAutomationPropertyCondition) -> Self {
+        Self(condition)
+    }
+}
+
+impl Into<IUIAutomationPropertyCondition> for UIPropertyCondition {
+    fn into(self) -> IUIAutomationPropertyCondition {
+        self.0
+    }
+}
+
+impl AsRef<IUIAutomationPropertyCondition> for UIPropertyCondition {
+    fn as_ref(&self) -> &IUIAutomationPropertyCondition {
+        &self.0
+    }
+}
+
+impl TryFrom<IUIAutomationCondition> for UIPropertyCondition {
+    type Error = Error;
+
+    fn try_from(condition: IUIAutomationCondition) -> Result<Self> {
+        let prop_cond: IUIAutomationPropertyCondition = condition.cast()?;
+        Ok(prop_cond.into())
+    }
+}
+
+impl TryInto<IUIAutomationCondition> for UIPropertyCondition {
+    type Error = Error;
+
+    fn try_into(self) -> Result<IUIAutomationCondition> {
+        let condition: IUIAutomationCondition = self.0.cast()?;
+        Ok(condition)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use windows::Win32::UI::Accessibility::IUIAutomationCondition;
+    use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
 
     use crate::UIAutomation;
+    use crate::UIElement;
 
     #[test]
     fn test_zh_input() {
@@ -938,5 +1235,15 @@ mod tests {
                 menu_item.click().unwrap();
             }
         }
+    }
+
+    #[test]
+    fn test_element_find() {
+        let automation = UIAutomation::new().unwrap();
+        let root = automation.get_root_element().unwrap();
+        let condition: IUIAutomationCondition = unsafe { automation.as_ref().CreateTrueCondition().unwrap() };
+        let child = unsafe { root.as_ref().FindFirst(TreeScope_Children, condition).unwrap() };
+        let element: UIElement = child.into();
+        println!("{}", element);
     }
 }
