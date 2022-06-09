@@ -650,8 +650,16 @@ impl UIElement {
         self.try_focus();
 
         let point = self.get_click_point()?;
-        // println!("{:?}", point);
         let mouse = Mouse::default();
+        mouse.click(point)
+    }
+
+    /// Simulates mouse left click event with holdkeys on the element.
+    /// 
+    /// The holdkey is quoted by `{}`, for example: `{Ctrl}`, `{Ctrl}{Shift}`.
+    pub fn hold_click(&self, holdkeys: &str) -> Result<()> {
+        let point = self.get_click_point()?;
+        let mouse = Mouse::default().holdkeys(holdkeys);
         mouse.click(point)
     }
 
