@@ -408,7 +408,7 @@ impl Keyboard {
     /// 
     /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     /// 
-    /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
+    /// `{` `}` `(` `)` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
     pub fn send_keys(&self, keys: &str) -> Result<()> {
         let inputs = parse_input(keys)?;
         for ref input in inputs {
@@ -446,7 +446,19 @@ impl Keyboard {
 pub struct Mouse {
     interval: u64,
     move_time: u64,
-    auto_move: bool
+    auto_move: bool,
+    holdkeys: Vec<VIRTUAL_KEY>
+}
+
+impl Default for Mouse {
+    fn default() -> Self {
+        Self { 
+            interval: 100, 
+            move_time: 500,
+            auto_move: true,
+            holdkeys: Vec::new()
+        }
+    }
 }
 
 impl Mouse {
@@ -472,6 +484,26 @@ impl Mouse {
     /// Sets whether move the cursor to the click point automatically. Default is `true`.
     pub fn auto_move(mut self, auto_move: bool) -> Self {
         self.auto_move = auto_move;
+        self
+    }
+
+    /// Sets the holdkeys when mouse clicks.
+    /// 
+    /// The holdkeys is quoted by `{}`. For example: `{Shift}`, `{Ctrl}{Alt}`.
+    pub fn holdkeys(mut self, holdkeys: &str) -> Self {
+        self.holdkeys.clear();
+
+        let mut expr = holdkeys.chars();
+        while let Some((items, is_holdkey)) = next_input(&mut expr).unwrap() {
+            if is_holdkey {
+                for item in items {
+                    if let InputItem::HoldKey(key) = item {
+                        self.holdkeys.push(key);
+                    }
+                }
+            }
+        }
+            
         self
     }
 
@@ -557,9 +589,12 @@ impl Mouse {
             self.move_to(pos)?;
         }
 
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
-        self.wait();
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)
+        self.before_click()?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+        self.after_click()?;
+
+        Ok(())
     }
 
     /// Simulates a mouse double click event.
@@ -577,15 +612,17 @@ impl Mouse {
             self.move_to(pos)?;
         }
 
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
-        self.wait();
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+        self.before_click()?;
+
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
 
         sleep(Duration::from_millis(max(200, self.interval)));
 
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
-        self.wait();
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+
+        self.after_click()?;
 
         Ok(())
     }
@@ -605,18 +642,35 @@ impl Mouse {
             self.move_to(pos)?;
         }
 
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTDOWN)?;
-        self.wait();
-        Self::mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTUP)
+        self.before_click()?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTDOWN)?;
+        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTUP)?;
+        self.after_click()?;
+
+        Ok(())
     }
 
-    fn wait(&self) {
-        if self.interval > 0 {
-            sleep(Duration::from_millis(self.interval));
+    fn before_click(&self) -> Result<()> {
+        for holdkey in &self.holdkeys {
+            let key_input = [Input::create_virtual_key(*holdkey, KEYEVENTF_KEYDOWN)];
+            send_input(&key_input)?;
+            self.wait();
         }
+
+        Ok(())
     }
 
-    fn mouse_event(x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
+    fn after_click(&self) -> Result<()> {
+        for holdkey in &self.holdkeys {
+            let key_input = [Input::create_virtual_key(*holdkey, KEYEVENTF_KEYUP)];
+            send_input(&key_input)?;
+            self.wait();
+        }
+
+        Ok(())
+    }
+
+    fn mouse_event(&self, x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
         let input = [INPUT {
             r#type: INPUT_MOUSE,
             Anonymous: INPUT_0 { 
@@ -630,16 +684,15 @@ impl Mouse {
                 }
             }
         }];
-        send_input(&input)
-    }
-}
+        send_input(&input)?;
+        self.wait();
 
-impl Default for Mouse {
-    fn default() -> Self {
-        Self { 
-            interval: 100, 
-            move_time: 500,
-            auto_move: true
+        Ok(())
+    }
+
+    fn wait(&self) {
+        if self.interval > 0 {
+            sleep(Duration::from_millis(self.interval));
         }
     }
 }

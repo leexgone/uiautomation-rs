@@ -58,16 +58,6 @@ pub struct NameCondition {
     pub partial: bool
 }
 
-// impl Default for NameCondition {
-//     fn default() -> Self {
-//         Self { 
-//             value: Default::default(), 
-//             casesensitive: false, 
-//             partial: true
-//         }
-//     }
-// }
-
 impl Condition for NameCondition {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let element_name = element.get_name()?;
@@ -99,14 +89,6 @@ impl Condition for NameCondition {
 pub struct ClassNameCondition {
     pub classname: String
 }
-
-// impl Default for ClassNameCondition {
-//     fn default() -> Self {
-//         Self { 
-//             classname: Default::default() 
-//         }
-//     }
-// }
 
 impl Condition for ClassNameCondition {
     fn judge(&self, element: &UIElement) -> Result<bool> {
