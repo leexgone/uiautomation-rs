@@ -1,6 +1,7 @@
 use uiautomation::UIAutomation;
 use uiautomation::actions::Invoke;
 use uiautomation::actions::SelectionItem;
+use uiautomation::actions::Toggle;
 use uiautomation::controls::ButtonControl;
 use uiautomation::controls::ListItemControl;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
@@ -8,10 +9,16 @@ use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
-    let matcher = automation.create_matcher().match_name("开始").classname("Start");
-    let start = matcher.find_first().unwrap();
-    let button: ButtonControl = start.try_into().unwrap();
-    button.invoke().unwrap();
+
+    if let Ok(start) = automation.create_matcher().match_name("开始").classname("Start").find_first() {     // 尝试Win10
+        let button: ButtonControl = start.try_into().unwrap();
+        button.invoke().unwrap();
+    } else if let Ok(start) = automation.create_matcher().match_name("开始").classname("ToggleButton").find_first() {   // 尝试Win11
+        let button: ButtonControl = start.try_into().unwrap();
+        button.toggle().unwrap();
+    } else {
+        panic!("Cannot find start menu");
+    }
 
     let matcher = automation.create_matcher().match_name("设置").classname("GridViewItem");
     let config = matcher.find_first().unwrap();
