@@ -167,8 +167,9 @@ impl UIAutomation {
     /// 
     /// let automation = UIAutomation::new().unwrap();
     /// let matcher = automation.create_matcher().depth(3).timeout(1000).classname("Start");
-    /// let start_menu = matcher.find_first();
-    /// assert!(start_menu.is_ok())
+    /// if let Ok(start_menu) = matcher.find_first() {
+    ///     println!("Found startmenu!")
+    /// }
     /// ```
     pub fn create_matcher(&self) -> UIMatcher {
         UIMatcher::new(self.clone())
