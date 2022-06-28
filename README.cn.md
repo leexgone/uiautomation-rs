@@ -1,21 +1,21 @@
 # Rust for windows uiautomation
 
-The `uiatomation-rs` crate is a wrapper for windows uiautomation. This crate can help you make windows uiautoamtion API calls conveniently.
+`uiatomation-rs`包是一套windows自动化体系的封装包，可以辅助你快速进行Windows自动化程序的开发。
 
-## Usages
+## 使用
 
-Start by adding the following line to your Cargo.toml file:
+使用时将下面的依赖行加入到Cargo.toml文件中：
 
 ``` toml
 [dependencies]
 uiautomation = "0.1.8"
 ```
 
-Make use of any windows uiautomation calls as needed.
+你可以直接使用封装好的API进行操作。
 
-## Examples
+## 示例程序
 
-### Print All UIElements
+### 打印所有界面元素
 
 ``` rust
 use uiautomation::Result;
@@ -52,7 +52,7 @@ fn print_element(walker: &UITreeWalker, element: &UIElement, level: usize) -> Re
 }
 ```
 
-### Open Notepad and Input Text
+### 打开记事本并模拟写入文本
 
 ``` rust
 use uiautomation::core::UIAutomation;
@@ -75,7 +75,7 @@ fn main() {
 }
 ```
 
-### Get Properties As Variant
+### 支持Variant类型属性操作
 
 ``` rust
 use uiautomation::UIAutomation;
@@ -101,7 +101,7 @@ fn main() {
 }
 ```
 
-### Simulate Keyboard Input
+### 模拟键盘输入
 
 ``` rust
 use uiautomation::core::UIAutomation;
