@@ -105,6 +105,7 @@ pub struct ControlTypeCondition {
 impl Condition for ControlTypeCondition {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let ctrl_type = element.get_control_type()?;
-        Ok(self.control_type == ctrl_type)
+        let is_ctrl = element.is_control_element()?;
+        Ok(is_ctrl && self.control_type == ctrl_type)
     }
 }
