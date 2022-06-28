@@ -1478,6 +1478,7 @@ impl Into<UICondition> for UIPropertyCondition {
 mod tests {
     use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
+    use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
 
     use crate::UIAutomation;
 
@@ -1510,5 +1511,22 @@ mod tests {
         let condition = automation.create_true_condition().unwrap();
         let child = root.find_first(TreeScope_Children, &condition).unwrap();
         println!("{}", child);
+    }
+
+    #[test]
+    fn test_notepad() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher();
+        if let Ok(window) = matcher.classname("Notepad").timeout(0).find_first() {
+            println!("{}", window.get_name().unwrap());
+
+            let menubar = automation.create_matcher() //.debug(true)
+                .from(window.clone())
+                .control_type(UIA_PaneControlTypeId)
+                .timeout(0)
+                .find_first().unwrap();
+
+            println!("{}, {}", menubar.get_framework_id().unwrap(), menubar.get_classname().unwrap());
+        }
     }
 }
