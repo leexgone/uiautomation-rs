@@ -1039,6 +1039,12 @@ impl UIMatcher {
     }
 
     fn is_matched(&self, element: &UIElement) -> Result<bool> {
+        if let Some(ref root) = self.from {
+            if self.automation.compare_elements(root, element)? {
+                return Ok(false);
+            }
+        }
+
         let ret = if let Some(ref condition) = self.condition {
             condition.judge(element)?
         } else {
@@ -1479,6 +1485,7 @@ mod tests {
     use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
+    use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
 
@@ -1527,6 +1534,16 @@ mod tests {
                 .find_first().unwrap();
 
             println!("{}, {}", menubar.get_framework_id().unwrap(), menubar.get_classname().unwrap());
+        }
+    }
+
+    #[test]
+    fn test_search_from() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher();
+        if let Ok(window) = matcher.classname("Notepad").timeout(0).find_first() {
+            let nothing = automation.create_matcher().from(window.clone()).control_type(UIA_WindowControlTypeId).find_first();
+            assert!(nothing.is_err());
         }
     }
 }
