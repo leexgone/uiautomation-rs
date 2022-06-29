@@ -1887,24 +1887,4 @@ mod tests {
         assert!(vals[0]);
         assert!(!vals[1]);
     }
-
-    #[test]
-    fn test_tmp() {
-        // let arr = unsafe {
-        //     SafeArrayCreateVector(VT_I4.0 as _, 0, 3)
-        // };
-        // let vt = unsafe {
-        //     SafeArrayGetVartype(arr).unwrap()
-        // };
-        // assert_eq!(vt, VT_I4.0 as u16);
-
-        // let arr: SAFEARRAY = unsafe { *arr };
-        // let vt = unsafe {
-        //     SafeArrayGetVartype(&arr).unwrap()
-        // };
-        // assert_eq!(vt, VT_I4.0 as u16);
-        // let arr = vec![1, 2, 3, 4];
-        // let str: String = arr.iter().fold(String::new(), |s, &n| { if s.is_empty() { &n.to_string() } });
-        // println!("{}", str)
-    }
 }

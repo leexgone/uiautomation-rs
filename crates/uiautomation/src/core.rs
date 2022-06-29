@@ -32,10 +32,10 @@ use windows::core::Interface;
 use crate::inputs::Mouse;
 use crate::variants::SafeArray;
 
-use super::conditions::ClassNameCondition;
-use super::conditions::Condition;
-use super::conditions::ControlTypeCondition;
-use super::conditions::NameCondition;
+use super::filters::ClassNameFilter;
+use super::filters::MatcherFilter;
+use super::filters::ControlTypeFilter;
+use super::filters::NameFilter;
 use super::errors::ERR_NOTFOUND;
 use super::errors::ERR_TIMEOUT;
 use super::errors::Error;
@@ -871,7 +871,7 @@ pub struct UIMatcher {
     depth: u32,
     from: Option<UIElement>,
     // condition: Option<Box<dyn Condition>>,
-    conditions: Vec<Box<dyn Condition>>,
+    conditions: Vec<Box<dyn MatcherFilter>>,
     timeout: u64,
     interval: u64,
     debug: bool
@@ -927,7 +927,7 @@ impl UIMatcher {
     }
 
     /// Appends a filter condition which is used as `and` logic.
-    pub fn filter(mut self, condition: Box<dyn Condition>) -> Self {
+    pub fn filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
         // let filter = if let Some(raw) = self.condition {
         //     Box::new(AndCondition::new(raw, condition))
         // } else {
@@ -940,7 +940,7 @@ impl UIMatcher {
 
     /// Append a filter whitch match specific casesensitive name.
     pub fn name<S: Into<String>>(self, name: S) -> Self {
-        let condition = NameCondition {
+        let condition = NameFilter {
             value: name.into(),
             casesensitive: true,
             partial: false
@@ -951,7 +951,7 @@ impl UIMatcher {
 
     /// Append a filter whitch name contains specific text (ignore casesensitive).
     pub fn contains_name<S: Into<String>>(self, name: S) -> Self {
-        let condition = NameCondition {
+        let condition = NameFilter {
             value: name.into(),
             casesensitive: false,
             partial: true
@@ -961,7 +961,7 @@ impl UIMatcher {
 
     /// Append a filter whitch matches specific name (ignore casesensitive).
     pub fn match_name<S: Into<String>>(self, name: S) -> Self {
-        let condition = NameCondition {
+        let condition = NameFilter {
             value: name.into(),
             casesensitive: false,
             partial: false
@@ -971,7 +971,7 @@ impl UIMatcher {
 
     /// Filters by classname.
     pub fn classname<S: Into<String>>(self, classname: S) -> Self {
-        let condition = ClassNameCondition {
+        let condition = ClassNameFilter {
             classname: classname.into()
         };
         self.filter(Box::new(condition))        
@@ -979,7 +979,7 @@ impl UIMatcher {
 
     /// Filters by control type.
     pub fn control_type(self, control_type: i32) -> Self {
-        let condition = ControlTypeCondition {
+        let condition = ControlTypeFilter {
             control_type
         };
         self.filter(Box::new(condition))
@@ -1553,11 +1553,14 @@ impl Into<UICondition> for UIPropertyCondition {
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::TreeScope_Children;
+    use windows::Win32::UI::Accessibility::UIA_AutomationIdPropertyId;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
+    use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
+    use crate::filters::MatcherFilter;
 
     #[test]
     fn test_zh_input() {
@@ -1610,10 +1613,32 @@ mod tests {
     #[test]
     fn test_search_from() {
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher();
-        if let Ok(window) = matcher.classname("Notepad").timeout(0).find_first() {
+        if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
             let nothing = automation.create_matcher().from(window.clone()).control_type(UIA_WindowControlTypeId).find_first();
             assert!(nothing.is_err());
+        }
+    }
+
+    struct AutomationIdFilter (String);
+
+    impl MatcherFilter for AutomationIdFilter {
+        fn judge(&self, element: &crate::UIElement) -> crate::Result<bool> {
+            let id = element.get_automation_id()?;
+            println!("-> {} @ id = {}", element, id);
+            Ok(id == self.0)
+        }
+    }
+
+    #[test]
+    fn test_custom_match() {
+        let automation = UIAutomation::new().unwrap();
+        if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
+            let title_bar = automation.create_matcher().from(window.clone()).control_type(UIA_TitleBarControlTypeId).find_first().unwrap();
+            println!("{} = {}", title_bar, title_bar.get_framework_id().unwrap());
+
+            let matcher = automation.create_matcher().from(window).timeout(0).filter(Box::new(AutomationIdFilter("TitleBar".into()))).debug(true).depth(2);
+            let element = matcher.find_first();
+            assert!(element.is_ok());
         }
     }
 }

@@ -3,18 +3,18 @@ use std::fmt::Debug;
 use super::core::UIElement;
 use super::errors::Result;
 
-/// `Condition` is a element filter that can be used in `UIMatcher`.
-pub trait Condition {
+/// `MatcherFilter` is an element filter that can be used in `UIMatcher`.
+pub trait MatcherFilter {
     fn judge(&self, element: &UIElement) -> Result<bool>;
 }
 
-pub struct AndCondition {
-    pub left: Box<dyn Condition>,
-    pub right: Box<dyn Condition>
+pub struct AndFilter {
+    pub left: Box<dyn MatcherFilter>,
+    pub right: Box<dyn MatcherFilter>
 }
 
-impl AndCondition {
-    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
+impl AndFilter {
+    pub fn new(left: Box<dyn MatcherFilter>, right: Box<dyn MatcherFilter>) -> Self {
         Self {
             left,
             right
@@ -22,7 +22,7 @@ impl AndCondition {
     }
 }
 
-impl Condition for AndCondition {
+impl MatcherFilter for AndFilter {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let ret = self.left.judge(element)? && self.right.judge(element)?;
 
@@ -30,13 +30,13 @@ impl Condition for AndCondition {
     }
 }
 
-pub struct OrCondition {
-    pub left: Box<dyn Condition>,
-    pub right: Box<dyn Condition>
+pub struct OrFilter {
+    pub left: Box<dyn MatcherFilter>,
+    pub right: Box<dyn MatcherFilter>
 }
 
-impl OrCondition {
-    pub fn new(left: Box<dyn Condition>, right: Box<dyn Condition>) -> Self {
+impl OrFilter {
+    pub fn new(left: Box<dyn MatcherFilter>, right: Box<dyn MatcherFilter>) -> Self {
         Self {
             left,
             right
@@ -44,7 +44,7 @@ impl OrCondition {
     }
 }
 
-impl Condition for OrCondition {
+impl MatcherFilter for OrFilter {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let ret = self.left.judge(element)? || self.right.judge(element)?;
         Ok(ret)
@@ -52,13 +52,13 @@ impl Condition for OrCondition {
 }
 
 #[derive(Debug, Default)]
-pub struct NameCondition {
+pub struct NameFilter {
     pub value: String,
     pub casesensitive: bool,
     pub partial: bool
 }
 
-impl Condition for NameCondition {
+impl MatcherFilter for NameFilter {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let element_name = element.get_name()?;
         let element_name = element_name.as_str();
@@ -86,11 +86,11 @@ impl Condition for NameCondition {
 }
 
 #[derive(Debug, Default)]
-pub struct ClassNameCondition {
+pub struct ClassNameFilter {
     pub classname: String
 }
 
-impl Condition for ClassNameCondition {
+impl MatcherFilter for ClassNameFilter {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let cur_classname = element.get_classname()?;
         Ok(self.classname == cur_classname)
@@ -98,11 +98,11 @@ impl Condition for ClassNameCondition {
 }
 
 #[derive(Debug, Default)]
-pub struct ControlTypeCondition {
+pub struct ControlTypeFilter {
     pub control_type: i32
 }
 
-impl Condition for ControlTypeCondition {
+impl MatcherFilter for ControlTypeFilter {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let ctrl_type = element.get_control_type()?;
         let is_ctrl = element.is_control_element()?;
