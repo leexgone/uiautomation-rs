@@ -8,7 +8,7 @@ Start by adding the following line to your Cargo.toml file:
 
 ``` toml
 [dependencies]
-uiautomation = "0.1.8"
+uiautomation = "0.1.9"
 ```
 
 Make use of any windows uiautomation calls as needed.
