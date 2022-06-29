@@ -852,6 +852,7 @@ impl AsRef<IUIAutomationTreeWalker> for UITreeWalker {
 }
 
 /// Defines the uielement mode when matcher is searching for.
+#[derive(Debug)]
 pub enum UIMatcherMode {
     /// Searches all element.
     Raw,
@@ -1110,6 +1111,21 @@ impl UIMatcher {
         }
 
         Ok(ret)
+    }
+}
+
+impl Debug for UIMatcher {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("UIMatcher")
+            .field("automation", &self.automation)
+            .field("mode", &self.mode)
+            .field("depth", &self.depth)
+            .field("from", &self.from)
+            .field("conditions", &format!("({} filers)", self.conditions.len()))
+            .field("timeout", &self.timeout)
+            .field("interval", &self.interval)
+            .field("debug", &self.debug)
+        .finish()
     }
 }
 
