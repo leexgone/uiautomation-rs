@@ -32,7 +32,6 @@ use windows::core::Interface;
 use crate::inputs::Mouse;
 use crate::variants::SafeArray;
 
-use super::conditions::AndCondition;
 use super::conditions::ClassNameCondition;
 use super::conditions::Condition;
 use super::conditions::ControlTypeCondition;
@@ -142,12 +141,28 @@ impl UIAutomation {
         Ok(walker.into())
     }
 
+    /// Retrieves a predefined UICondition that selects control elements.
+    pub fn get_control_view_condition(&self) -> Result<UICondition> {
+        let condition = unsafe {
+            self.automation.ControlViewCondition()?
+        };
+        Ok(condition.into())
+    }
+
     /// Retrieves a predefined UITreeWalker interface that selects control elements.
     pub fn get_control_view_walker(&self) -> Result<UITreeWalker> {
         let walker = unsafe {
             self.automation.ControlViewWalker()?
         };
         Ok(walker.into())
+    }
+
+    /// Retrieves a predefined UICondition that selects content elements.
+    pub fn get_content_view_condition(&self) -> Result<UICondition> {
+        let condition = unsafe {
+            self.automation.ContentViewCondition()?
+        };
+        Ok(condition.into())
     }
 
     /// Retrieves a UITreeWalker interface used to discover content elements.
@@ -836,14 +851,27 @@ impl AsRef<IUIAutomationTreeWalker> for UITreeWalker {
     }
 }
 
+/// Defines the uielement mode when matcher is searching for.
+#[derive(Debug)]
+pub enum UIMatcherMode {
+    /// Searches all element.
+    Raw,
+    /// Searches control element only.
+    Control,
+    /// Searches content element only.
+    Content
+}
+
 /// Defines filter conditions to match specific UI Element.
 /// 
 /// `UIMatcher` can find first element or find all elements.
 pub struct UIMatcher {
     automation: UIAutomation,
+    mode: UIMatcherMode,
     depth: u32,
     from: Option<UIElement>,
-    condition: Option<Box<dyn Condition>>,
+    // condition: Option<Box<dyn Condition>>,
+    conditions: Vec<Box<dyn Condition>>,
     timeout: u64,
     interval: u64,
     debug: bool
@@ -854,13 +882,20 @@ impl UIMatcher {
     pub fn new(automation: UIAutomation) -> Self {
         UIMatcher {
             automation,
+            mode: UIMatcherMode::Control,
             depth: 7,
             from: None,
-            condition: None,
+            conditions: Vec::new(),
             timeout: 3000,
             interval: 100,
             debug: false
         }
+    }
+
+    /// Sets the searching mode. `UIMatcherMode::Control` is default mode.
+    pub fn mode(mut self, search_mode: UIMatcherMode) -> Self {
+        self.mode = search_mode;
+        self
     }
 
     /// Sets the root element of the UIAutomation tree whitch should be searched from.
@@ -893,12 +928,13 @@ impl UIMatcher {
 
     /// Appends a filter condition which is used as `and` logic.
     pub fn filter(mut self, condition: Box<dyn Condition>) -> Self {
-        let filter = if let Some(raw) = self.condition {
-            Box::new(AndCondition::new(raw, condition))
-        } else {
-            condition
-        };
-        self.condition = Some(filter);
+        // let filter = if let Some(raw) = self.condition {
+        //     Box::new(AndCondition::new(raw, condition))
+        // } else {
+        //     condition
+        // };
+        // self.condition = Some(filter);
+        self.conditions.push(condition);
         self
     }
 
@@ -947,6 +983,13 @@ impl UIMatcher {
             control_type
         };
         self.filter(Box::new(condition))
+    }
+
+    /// Clears all filters.
+    pub fn reset(mut self) -> Self {
+        // self.condition = None;
+        self.conditions.clear();
+        self
     }
 
     /// Set `debug` as `true` to enable debug mode. The debug mode is `false` by default.
@@ -1009,7 +1052,11 @@ impl UIMatcher {
         } else {
             self.automation.get_root_element()?
         };
-        let walker = self.automation.create_tree_walker()?;
+        let walker = match self.mode {
+            UIMatcherMode::Raw => self.automation.create_tree_walker()?,
+            UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,
+            UIMatcherMode::Content => self.automation.filter_tree_walker(self.automation.get_content_view_condition()?)?,
+        };
         
         Ok((root, walker))
     }
@@ -1039,17 +1086,46 @@ impl UIMatcher {
     }
 
     fn is_matched(&self, element: &UIElement) -> Result<bool> {
-        let ret = if let Some(ref condition) = self.condition {
-            condition.judge(element)?
-        } else {
-            true
-        };
+        if let Some(ref root) = self.from {
+            if self.automation.compare_elements(root, element)? {
+                return Ok(false);
+            }
+        }
+
+        // let ret = if let Some(ref condition) = self.condition {
+        //     condition.judge(element)?
+        // } else {
+        //     true
+        // };
+
+        let mut ret = true;
+        for condition in &self.conditions {
+            ret = condition.judge(element)?;
+            if !ret {
+                break;
+            }
+        }
 
         if self.debug {
             println!("{:?} -> {}", element, ret);
         }
 
         Ok(ret)
+    }
+}
+
+impl Debug for UIMatcher {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("UIMatcher")
+            .field("automation", &self.automation)
+            .field("mode", &self.mode)
+            .field("depth", &self.depth)
+            .field("from", &self.from)
+            .field("conditions", &format!("({} filers)", self.conditions.len()))
+            .field("timeout", &self.timeout)
+            .field("interval", &self.interval)
+            .field("debug", &self.debug)
+        .finish()
     }
 }
 
@@ -1479,6 +1555,7 @@ mod tests {
     use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
+    use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
 
@@ -1527,6 +1604,16 @@ mod tests {
                 .find_first().unwrap();
 
             println!("{}, {}", menubar.get_framework_id().unwrap(), menubar.get_classname().unwrap());
+        }
+    }
+
+    #[test]
+    fn test_search_from() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher();
+        if let Ok(window) = matcher.classname("Notepad").timeout(0).find_first() {
+            let nothing = automation.create_matcher().from(window.clone()).control_type(UIA_WindowControlTypeId).find_first();
+            assert!(nothing.is_err());
         }
     }
 }

@@ -5,7 +5,7 @@ use uiautomation::UITreeWalker;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
-    let walker = automation.create_tree_walker().unwrap();
+    let walker = automation.get_control_view_walker().unwrap(); 
     let root = automation.get_root_element().unwrap();
 
     print_element(&walker, &root, 0).unwrap();
