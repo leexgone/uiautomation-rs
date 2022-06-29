@@ -32,7 +32,6 @@ use windows::core::Interface;
 use crate::inputs::Mouse;
 use crate::variants::SafeArray;
 
-use super::conditions::AndCondition;
 use super::conditions::ClassNameCondition;
 use super::conditions::Condition;
 use super::conditions::ControlTypeCondition;
@@ -843,7 +842,8 @@ pub struct UIMatcher {
     automation: UIAutomation,
     depth: u32,
     from: Option<UIElement>,
-    condition: Option<Box<dyn Condition>>,
+    // condition: Option<Box<dyn Condition>>,
+    conditions: Vec<Box<dyn Condition>>,
     timeout: u64,
     interval: u64,
     debug: bool
@@ -856,7 +856,7 @@ impl UIMatcher {
             automation,
             depth: 7,
             from: None,
-            condition: None,
+            conditions: Vec::new(),
             timeout: 3000,
             interval: 100,
             debug: false
@@ -893,12 +893,13 @@ impl UIMatcher {
 
     /// Appends a filter condition which is used as `and` logic.
     pub fn filter(mut self, condition: Box<dyn Condition>) -> Self {
-        let filter = if let Some(raw) = self.condition {
-            Box::new(AndCondition::new(raw, condition))
-        } else {
-            condition
-        };
-        self.condition = Some(filter);
+        // let filter = if let Some(raw) = self.condition {
+        //     Box::new(AndCondition::new(raw, condition))
+        // } else {
+        //     condition
+        // };
+        // self.condition = Some(filter);
+        self.conditions.push(condition);
         self
     }
 
@@ -951,7 +952,8 @@ impl UIMatcher {
 
     /// Clears all filters.
     pub fn reset(mut self) -> Self {
-        self.condition = None;
+        // self.condition = None;
+        self.conditions.clear();
         self
     }
 
@@ -1051,11 +1053,19 @@ impl UIMatcher {
             }
         }
 
-        let ret = if let Some(ref condition) = self.condition {
-            condition.judge(element)?
-        } else {
-            true
-        };
+        // let ret = if let Some(ref condition) = self.condition {
+        //     condition.judge(element)?
+        // } else {
+        //     true
+        // };
+
+        let mut ret = true;
+        for condition in &self.conditions {
+            ret = condition.judge(element)?;
+            if !ret {
+                break;
+            }
+        }
 
         if self.debug {
             println!("{:?} -> {}", element, ret);
