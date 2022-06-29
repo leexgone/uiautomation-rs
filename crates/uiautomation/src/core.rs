@@ -141,12 +141,28 @@ impl UIAutomation {
         Ok(walker.into())
     }
 
+    /// Retrieves a predefined UICondition that selects control elements.
+    pub fn get_control_view_condition(&self) -> Result<UICondition> {
+        let condition = unsafe {
+            self.automation.ControlViewCondition()?
+        };
+        Ok(condition.into())
+    }
+
     /// Retrieves a predefined UITreeWalker interface that selects control elements.
     pub fn get_control_view_walker(&self) -> Result<UITreeWalker> {
         let walker = unsafe {
             self.automation.ControlViewWalker()?
         };
         Ok(walker.into())
+    }
+
+    /// Retrieves a predefined UICondition that selects content elements.
+    pub fn get_content_view_condition(&self) -> Result<UICondition> {
+        let condition = unsafe {
+            self.automation.ContentViewCondition()?
+        };
+        Ok(condition.into())
     }
 
     /// Retrieves a UITreeWalker interface used to discover content elements.
@@ -835,11 +851,22 @@ impl AsRef<IUIAutomationTreeWalker> for UITreeWalker {
     }
 }
 
+/// Defines the uielement mode when matcher is searching for.
+pub enum UIMatcherMode {
+    /// Searches all element.
+    Raw,
+    /// Searches control element only.
+    Control,
+    /// Searches content element only.
+    Content
+}
+
 /// Defines filter conditions to match specific UI Element.
 /// 
 /// `UIMatcher` can find first element or find all elements.
 pub struct UIMatcher {
     automation: UIAutomation,
+    mode: UIMatcherMode,
     depth: u32,
     from: Option<UIElement>,
     // condition: Option<Box<dyn Condition>>,
@@ -854,6 +881,7 @@ impl UIMatcher {
     pub fn new(automation: UIAutomation) -> Self {
         UIMatcher {
             automation,
+            mode: UIMatcherMode::Control,
             depth: 7,
             from: None,
             conditions: Vec::new(),
@@ -861,6 +889,12 @@ impl UIMatcher {
             interval: 100,
             debug: false
         }
+    }
+
+    /// Sets the searching mode. `UIMatcherMode::Control` is default mode.
+    pub fn mode(mut self, search_mode: UIMatcherMode) -> Self {
+        self.mode = search_mode;
+        self
     }
 
     /// Sets the root element of the UIAutomation tree whitch should be searched from.
@@ -1017,7 +1051,11 @@ impl UIMatcher {
         } else {
             self.automation.get_root_element()?
         };
-        let walker = self.automation.create_tree_walker()?;
+        let walker = match self.mode {
+            UIMatcherMode::Raw => self.automation.create_tree_walker()?,
+            UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,
+            UIMatcherMode::Content => self.automation.filter_tree_walker(self.automation.get_content_view_condition()?)?,
+        };
         
         Ok((root, walker))
     }
