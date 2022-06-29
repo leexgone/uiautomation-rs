@@ -949,6 +949,12 @@ impl UIMatcher {
         self.filter(Box::new(condition))
     }
 
+    /// Clears all filters.
+    pub fn reset(mut self) -> Self {
+        self.condition = None;
+        self
+    }
+
     /// Set `debug` as `true` to enable debug mode. The debug mode is `false` by default.
     pub fn debug(mut self, debug: bool) -> Self {
         self.debug = debug;
