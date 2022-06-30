@@ -109,3 +109,14 @@ impl MatcherFilter for ControlTypeFilter {
         Ok(is_ctrl && self.control_type == ctrl_type)
     }
 }
+
+// pub struct CustomFilter<F> where F: Fn(&UIElement) -> Result<bool> {
+//     pub filter: F
+// }
+
+// impl<F> MatcherFilter for CustomFilter<F> 
+//         where F: Fn(&UIElement) -> Result<bool> {
+//     fn judge(&self, element: &UIElement) -> Result<bool> {
+//         (self.filter)(element)
+//     }
+// }

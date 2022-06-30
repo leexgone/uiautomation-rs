@@ -937,7 +937,7 @@ impl UIMatcher {
     }
 
     /// Appends a filter condition which is used as `and` logic.
-    pub fn push_filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
+    pub fn filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
         // let filter = if let Some(raw) = self.condition {
         //     Box::new(AndCondition::new(raw, condition))
         // } else {
@@ -956,7 +956,7 @@ impl UIMatcher {
             partial: false
         };
 
-        self.push_filter(Box::new(condition))
+        self.filter(Box::new(condition))
     }
 
     /// Append a filter whitch name contains specific text (ignore casesensitive).
@@ -966,7 +966,7 @@ impl UIMatcher {
             casesensitive: false,
             partial: true
         };
-        self.push_filter(Box::new(condition))
+        self.filter(Box::new(condition))
     }
 
     /// Append a filter whitch matches specific name (ignore casesensitive).
@@ -976,7 +976,7 @@ impl UIMatcher {
             casesensitive: false,
             partial: false
         };
-        self.push_filter(Box::new(condition))
+        self.filter(Box::new(condition))
     }
 
     /// Filters by classname.
@@ -984,7 +984,7 @@ impl UIMatcher {
         let condition = ClassNameFilter {
             classname: classname.into()
         };
-        self.push_filter(Box::new(condition))        
+        self.filter(Box::new(condition))        
     }
 
     /// Filters by control type.
@@ -992,7 +992,7 @@ impl UIMatcher {
         let condition = ControlTypeFilter {
             control_type
         };
-        self.push_filter(Box::new(condition))
+        self.filter(Box::new(condition))
     }
 
     /// Clears all filters.
@@ -1657,12 +1657,11 @@ mod tests {
         }
     }
 
-    struct FrameworkIdFilter (String);
+    struct FrameworkIdFilter(String);
 
     impl MatcherFilter for FrameworkIdFilter {
         fn judge(&self, element: &crate::UIElement) -> crate::Result<bool> {
             let id = element.get_framework_id()?;
-            println!("-> {} @ id = {}", element, id);
             Ok(id == self.0)
         }
     }
@@ -1670,7 +1669,7 @@ mod tests {
     #[test]
     fn test_custom_match() {
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().timeout(0).push_filter(Box::new(FrameworkIdFilter("Win32".into()))).debug(true).depth(2);
+        let matcher = automation.create_matcher().timeout(0).filter(Box::new(FrameworkIdFilter("Win32".into()))).depth(2);
         let element = matcher.find_first();
         assert!(element.is_ok());
         println!("{}", element.unwrap());
