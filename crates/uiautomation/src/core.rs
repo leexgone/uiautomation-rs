@@ -294,6 +294,16 @@ impl UIElement {
         Self::to_elements(elements)
     }
 
+    /// Receives the runtime ID as a vec of integers.
+    pub fn get_runtime_id(&self) -> Result<Vec<i32>> {
+        let id = unsafe {
+            self.element.GetRuntimeId()?
+        };
+
+        let arr = SafeArray::new(id, false);
+        arr.try_into()
+    }
+
     /// Retrieves the name of the element.
     pub fn get_name(&self) -> Result<String> {
         let name: BSTR;
@@ -459,7 +469,7 @@ impl UIElement {
     }
 
     /// Indicates whether the element is off-screen.
-    pub fn is_off_screen(&self) -> Result<bool> {
+    pub fn is_offscreen(&self) -> Result<bool> {
         let off_screen = unsafe {
             self.element.CurrentIsOffscreen()?
         };
@@ -871,7 +881,7 @@ pub struct UIMatcher {
     depth: u32,
     from: Option<UIElement>,
     // condition: Option<Box<dyn Condition>>,
-    conditions: Vec<Box<dyn MatcherFilter>>,
+    filters: Vec<Box<dyn MatcherFilter>>,
     timeout: u64,
     interval: u64,
     debug: bool
@@ -885,7 +895,7 @@ impl UIMatcher {
             mode: UIMatcherMode::Control,
             depth: 7,
             from: None,
-            conditions: Vec::new(),
+            filters: Vec::new(),
             timeout: 3000,
             interval: 100,
             debug: false
@@ -927,14 +937,14 @@ impl UIMatcher {
     }
 
     /// Appends a filter condition which is used as `and` logic.
-    pub fn filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
+    pub fn push_filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
         // let filter = if let Some(raw) = self.condition {
         //     Box::new(AndCondition::new(raw, condition))
         // } else {
         //     condition
         // };
         // self.condition = Some(filter);
-        self.conditions.push(condition);
+        self.filters.push(condition);
         self
     }
 
@@ -946,7 +956,7 @@ impl UIMatcher {
             partial: false
         };
 
-        self.filter(Box::new(condition))
+        self.push_filter(Box::new(condition))
     }
 
     /// Append a filter whitch name contains specific text (ignore casesensitive).
@@ -956,7 +966,7 @@ impl UIMatcher {
             casesensitive: false,
             partial: true
         };
-        self.filter(Box::new(condition))
+        self.push_filter(Box::new(condition))
     }
 
     /// Append a filter whitch matches specific name (ignore casesensitive).
@@ -966,7 +976,7 @@ impl UIMatcher {
             casesensitive: false,
             partial: false
         };
-        self.filter(Box::new(condition))
+        self.push_filter(Box::new(condition))
     }
 
     /// Filters by classname.
@@ -974,7 +984,7 @@ impl UIMatcher {
         let condition = ClassNameFilter {
             classname: classname.into()
         };
-        self.filter(Box::new(condition))        
+        self.push_filter(Box::new(condition))        
     }
 
     /// Filters by control type.
@@ -982,13 +992,13 @@ impl UIMatcher {
         let condition = ControlTypeFilter {
             control_type
         };
-        self.filter(Box::new(condition))
+        self.push_filter(Box::new(condition))
     }
 
     /// Clears all filters.
     pub fn reset(mut self) -> Self {
         // self.condition = None;
-        self.conditions.clear();
+        self.filters.clear();
         self
     }
 
@@ -1099,7 +1109,7 @@ impl UIMatcher {
         // };
 
         let mut ret = true;
-        for condition in &self.conditions {
+        for condition in &self.filters {
             ret = condition.judge(element)?;
             if !ret {
                 break;
@@ -1121,7 +1131,7 @@ impl Debug for UIMatcher {
             .field("mode", &self.mode)
             .field("depth", &self.depth)
             .field("from", &self.from)
-            .field("conditions", &format!("({} filers)", self.conditions.len()))
+            .field("filters", &format!("({} filers)", self.filters.len()))
             .field("timeout", &self.timeout)
             .field("interval", &self.interval)
             .field("debug", &self.debug)
@@ -1553,14 +1563,42 @@ impl Into<UICondition> for UIPropertyCondition {
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::TreeScope_Children;
-    use windows::Win32::UI::Accessibility::UIA_AutomationIdPropertyId;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
+    use crate::UIElement;
     use crate::filters::MatcherFilter;
+
+    fn print_element(element: &UIElement) {
+        println!("Name: {}", element.get_name().unwrap());
+        println!("ControlType: {}", element.get_control_type().unwrap());
+        println!("LocalizedControlType: {}", element.get_localized_control_type().unwrap());
+        println!("BoundingRectangle: {}", element.get_bounding_rectangle().unwrap());
+        println!("IsEnabled: {}", element.is_enabled().unwrap());
+        println!("IsOffscreen: {}", element.is_offscreen().unwrap());
+        println!("IsKeyboardFocusable: {}", element.is_keyboard_focusable().unwrap());
+        println!("HasKeyboardFocus: {}", element.has_keyboard_focus().unwrap());
+        println!("ProcessId: {}", element.get_process_id().unwrap());
+        println!("RuntimeId: {:?}", element.get_runtime_id().unwrap());
+        println!("FrameworkId: {}", element.get_framework_id().unwrap());
+        println!("ClassName: {}", element.get_classname().unwrap());
+        println!("NativeWindowHandle: {}", element.get_native_window_handle().unwrap());
+        println!("ProviderDescription: {}", element.get_provider_description().unwrap());
+        println!("IsPassword: {}", element.is_password().unwrap());
+        println!("AutomationId: {}", element.get_automation_id().unwrap());
+    }
+
+    #[test]
+    fn test_element_properties() {
+        let automation = UIAutomation::new().unwrap();
+        let root = automation.get_root_element().unwrap();
+
+        println!("---------------------");
+        print_element(&root);
+        println!("---------------------");
+    }
 
     #[test]
     fn test_zh_input() {
@@ -1619,11 +1657,11 @@ mod tests {
         }
     }
 
-    struct AutomationIdFilter (String);
+    struct FrameworkIdFilter (String);
 
-    impl MatcherFilter for AutomationIdFilter {
+    impl MatcherFilter for FrameworkIdFilter {
         fn judge(&self, element: &crate::UIElement) -> crate::Result<bool> {
-            let id = element.get_automation_id()?;
+            let id = element.get_framework_id()?;
             println!("-> {} @ id = {}", element, id);
             Ok(id == self.0)
         }
@@ -1632,13 +1670,9 @@ mod tests {
     #[test]
     fn test_custom_match() {
         let automation = UIAutomation::new().unwrap();
-        if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
-            let title_bar = automation.create_matcher().from(window.clone()).control_type(UIA_TitleBarControlTypeId).find_first().unwrap();
-            println!("{} = {}", title_bar, title_bar.get_framework_id().unwrap());
-
-            let matcher = automation.create_matcher().from(window).timeout(0).filter(Box::new(AutomationIdFilter("TitleBar".into()))).debug(true).depth(2);
-            let element = matcher.find_first();
-            assert!(element.is_ok());
-        }
+        let matcher = automation.create_matcher().timeout(0).push_filter(Box::new(FrameworkIdFilter("Win32".into()))).debug(true).depth(2);
+        let element = matcher.find_first();
+        assert!(element.is_ok());
+        println!("{}", element.unwrap());
     }
 }
