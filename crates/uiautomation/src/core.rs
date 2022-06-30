@@ -1562,9 +1562,11 @@ impl Into<UICondition> for UIPropertyCondition {
 
 #[cfg(test)]
 mod tests {
+    use windows::Win32::UI::Accessibility::IUIAutomationElement;
     use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
+    use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
@@ -1667,11 +1669,24 @@ mod tests {
     }
 
     #[test]
-    fn test_custom_match() {
+    fn test_custom_search() {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().timeout(0).filter(Box::new(FrameworkIdFilter("Win32".into()))).depth(2);
         let element = matcher.find_first();
         assert!(element.is_ok());
         println!("{}", element.unwrap());
+    }
+
+    #[test]
+    fn test_automation_id() {
+        let automation = UIAutomation::new().unwrap();
+        if let Ok(notepad) = automation.create_matcher().timeout(0).classname("Notepad").find_first() {
+            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(UIA_TitleBarControlTypeId).find_first().unwrap();
+            let element: &IUIAutomationElement = title_bar.as_ref();
+            let automation_id = unsafe {
+                element.CurrentAutomationId().unwrap()
+            };
+            println!("{} -> {}", title_bar, automation_id);
+        }
     }
 }
