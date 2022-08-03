@@ -52,8 +52,6 @@ fn main() {
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(UIA_ButtonControlTypeId);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click().unwrap();
-            // let settings_button: ButtonControl = settings_button.try_into().unwrap();
-            // settings_button.invoke().unwrap();
         }
     }
 }
