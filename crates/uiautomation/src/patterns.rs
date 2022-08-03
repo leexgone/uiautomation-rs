@@ -3,6 +3,7 @@ use windows::Win32::Foundation::BSTR;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::UI::Accessibility::*;
 use windows::core::IUnknown;
+use windows::core::InParam;
 use windows::core::Interface;
 
 use crate::types::Point;
@@ -652,7 +653,7 @@ impl UIItemContainerPattern {
     pub fn find_item_by_property(&self, start_after: UIElement, property_id: i32, value: Variant) -> Result<UIElement> {
         let val: VARIANT = value.into();
         let element = unsafe {
-            self.pattern.FindItemByProperty(start_after.as_ref(), property_id, val)?
+            self.pattern.FindItemByProperty(start_after.as_ref(), property_id, InParam::owned(val))?
         };
 
         Ok(element.into())
@@ -1203,7 +1204,7 @@ impl UISpreadsheetPattern {
     pub fn get_item_by_name(&self, name: &str) -> Result<UIElement> {
         let name = BSTR::from(name);
         let item = unsafe {
-            self.pattern.GetItemByName(name)?
+            self.pattern.GetItemByName(InParam::owned(name))?
         };
         Ok(item.into())
     }
@@ -1683,7 +1684,7 @@ pub struct UITextPattern {
 impl UITextPattern {
     pub fn get_ragne_from_point(&self, pt: Point) -> Result<UITextRange> {
         let range = unsafe {
-            self.pattern.RangeFromPoint(pt)?
+            self.pattern.RangeFromPoint(pt.into())?
         };
 
         Ok(range.into())
@@ -1691,7 +1692,7 @@ impl UITextPattern {
 
     pub fn get_range_from_child(&self, child: &UIElement) -> Result<UITextRange> {
         let range = unsafe {
-            self.pattern.RangeFromChild(child.as_ref().clone())?
+            self.pattern.RangeFromChild(child.clone())?
         };
 
         Ok(range.into())
@@ -1903,8 +1904,9 @@ impl UITextRange {
     }
 
     pub fn find_text(&self, text: &str, backward: bool, ignorecase: bool) -> Result<UITextRange> {
+        let text: BSTR = text.into();
         let range = unsafe {
-            self.range.FindText(BSTR::from(text), backward, ignorecase)?
+            self.range.FindText(InParam::owned(text), backward, ignorecase)?
         };
         Ok(range.into())
     }
@@ -2223,7 +2225,7 @@ pub struct UIValuePattern {
 impl UIValuePattern {
     pub fn set_value(&self, value: &str) -> Result<()> {
         Ok(unsafe {
-            self.pattern.SetValue(BSTR::from(value))?
+            self.pattern.SetValue(InParam::owned(BSTR::from(value)))?
         })
     }
 

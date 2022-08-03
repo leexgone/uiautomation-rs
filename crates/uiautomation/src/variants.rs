@@ -13,6 +13,7 @@ use windows::Win32::System::Com::VARIANT_0_0;
 use windows::Win32::System::Com::VARIANT_0_0_0;
 use windows::Win32::System::Ole::*;
 use windows::core::HRESULT;
+use windows::core::HSTRING;
 use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::PSTR;
@@ -540,7 +541,8 @@ impl TryInto<bool> for &Variant {
                 VT_R8 => VarBoolFromR8(self.get_data().dblVal)?,
                 VT_BSTR | VT_LPWSTR | VT_LPSTR => {
                     let str = self.get_string()?;
-                    VarBoolFromStr(str, 0, 0)?
+                    let str: HSTRING = str.into();
+                    VarBoolFromStr(&str, 0, 0)?
                 }, 
                 VT_UI1 => VarBoolFromUI1(self.get_data().bVal)?,
                 VT_UI2 => VarBoolFromUI2(self.get_data().uiVal)?,
@@ -638,9 +640,19 @@ impl From<i8> for Variant {
 macro_rules! variant_as_i1 {
     ($func:ident, $value:expr) => {
         {
-            let pc = PSTR::default();
+            let pc = PSTR::null();
             $func($value, pc)?;
             (*pc.0) as i8
+        }
+    };
+}
+
+macro_rules! variant_atoi {
+    ($func:ident, $value:expr) => {
+        {
+            let str = $value;
+            let str: HSTRING = str.into();
+            $func(&str, 0, 0)?
         }
     };
 }
@@ -683,7 +695,7 @@ impl TryInto<i8> for &Variant {
                 VT_DATE     => variant_as_i1!(VarI1FromDate, self.get_data().date),
                 VT_DECIMAL  => variant_as_i1!(VarI1FromDec, self.get_data().pdecVal),
                 VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
-                    let pc = PSTR::default();
+                    let pc = PSTR::null();
                     VarI1FromDisp(disp, 0, pc)?;
                     *pc.0 as i8
                 } else {
@@ -697,8 +709,9 @@ impl TryInto<i8> for &Variant {
                 VT_R8   => variant_as_i1!(VarI1FromR8, self.get_data().dblVal),
                 VT_BSTR | VT_LPWSTR | VT_LPSTR => {
                     let str = self.get_string()?;
-                    let pc = PSTR::default();
-                    VarI1FromStr(str, 0, 0, pc)?;
+                    let str: HSTRING = str.into();
+                    let pc = PSTR::null();
+                    VarI1FromStr(&str, 0, 0, pc)?;
                     (*pc.0) as i8
                 },
                 VT_UI1  => variant_as_i1!(VarI1FromUI1, self.get_data().bVal),
@@ -754,7 +767,7 @@ impl TryInto<i16> for &Variant {
                 VT_I8       => VarI2FromI8(self.get_data().llVal)?,
                 VT_R4       => VarI2FromR4(self.get_data().fltVal)?,
                 VT_R8       => VarI2FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarI2FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarI2FromStr, self.get_string()?), //VarI2FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarI2FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarI2FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarI2FromUI4(self.get_data().ulVal)?,
@@ -803,7 +816,7 @@ impl TryInto<i32> for &Variant {
                 VT_I8       => VarI4FromI8(self.get_data().llVal)?,
                 VT_R4       => VarI4FromR4(self.get_data().fltVal)?,
                 VT_R8       => VarI4FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarI4FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarI4FromStr, self.get_string()?), //VarI4FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarI4FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarI4FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarI4FromUI4(self.get_data().ulVal)?,
@@ -852,7 +865,7 @@ impl TryInto<i64> for &Variant {
                 VT_I8       => self.get_data().llVal,
                 VT_R4       => VarI8FromR4(self.get_data().fltVal)?,
                 VT_R8       => VarI8FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarI8FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarI8FromStr, self.get_string()?), //VarI8FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarI8FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarI8FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarI8FromUI4(self.get_data().ulVal)?,
@@ -906,7 +919,7 @@ impl TryInto<f32> for &Variant {
                 VT_I8       => VarR4FromI8(self.get_data().llVal)?,
                 VT_R4       => self.get_data().fltVal,
                 VT_R8       => VarR4FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarR4FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarR4FromStr, self.get_string()?), //VarR4FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarR4FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarR4FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarR4FromUI4(self.get_data().ulVal)?,
@@ -950,7 +963,7 @@ impl TryInto<f64> for &Variant {
                 VT_I8       => VarR8FromI8(self.get_data().llVal)?,
                 VT_R4       => VarR8FromR4(self.get_data().fltVal)?,
                 VT_R8       => self.get_data().dblVal,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarR8FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarR8FromStr, self.get_string()?), //VarR8FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarR8FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarR8FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarR8FromUI4(self.get_data().ulVal)?,
@@ -994,7 +1007,7 @@ impl TryInto<u8> for &Variant {
                 VT_I8       => VarUI1FromI8(self.get_data().llVal)?,
                 VT_R4       => VarUI1FromR4(self.get_data().fltVal)?,
                 VT_R8       => VarUI1FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI1FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarUI1FromStr, self.get_string()?), //VarUI1FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => self.get_data().bVal,
                 VT_UI2      => VarUI1FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarUI1FromUI4(self.get_data().ulVal)?,
@@ -1038,7 +1051,7 @@ impl TryInto<u16> for &Variant {
                 VT_I8       => VarUI2FromI8(self.get_data().llVal)?,
                 VT_R4       => VarUI2FromR4(self.get_data().fltVal)?,
                 VT_R8       => variant_as_type!(VarUI2FromR8, u16, self.get_data().dblVal), // VarUI2FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI2FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarUI2FromStr, self.get_string()?), //VarUI2FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarUI2FromUI1(self.get_data().bVal)?,
                 VT_UI2      => self.get_data().uiVal,
                 VT_UI4 | VT_UINT    => VarUI2FromUI4(self.get_data().ulVal)?,
@@ -1082,7 +1095,7 @@ impl TryInto<u32> for &Variant {
                 VT_I8       => VarUI4FromI8(self.get_data().llVal)?,
                 VT_R4       => VarUI4FromR4(self.get_data().fltVal)?,
                 VT_R8       => VarUI4FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI4FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarUI4FromStr, self.get_string()?), //VarUI4FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarUI4FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarUI4FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => self.get_data().ulVal,
@@ -1126,7 +1139,7 @@ impl TryInto<u64> for &Variant {
                 VT_I8       => VarUI8FromI8(self.get_data().llVal)?,
                 VT_R4       => VarUI8FromR4(self.get_data().fltVal)?,
                 VT_R8       => VarUI8FromR8(self.get_data().dblVal)?,
-                VT_BSTR | VT_LPWSTR | VT_LPSTR  => VarUI8FromStr(self.get_string()?, 0, 0)?,
+                VT_BSTR | VT_LPWSTR | VT_LPSTR  => variant_atoi!(VarUI8FromStr, self.get_string()?), //VarUI8FromStr(self.get_string()?, 0, 0)?,
                 VT_UI1      => VarUI8FromUI1(self.get_data().bVal)?,
                 VT_UI2      => VarUI8FromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT    => VarUI8FromUI4(self.get_data().ulVal)?,

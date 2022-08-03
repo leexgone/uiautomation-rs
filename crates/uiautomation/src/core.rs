@@ -27,6 +27,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
+use windows::core::InParam;
 use windows::core::Interface;
 
 use crate::inputs::Mouse;
@@ -89,7 +90,7 @@ impl UIAutomation {
     /// Retrieves the UI Automation element at the specified point on the desktop.
     pub fn element_from_point(&self, point: Point) -> Result<UIElement> {
         let element = unsafe {
-            self.automation.ElementFromPoint(point)?
+            self.automation.ElementFromPoint(point.into())?
         };
 
         Ok(UIElement::from(element))
@@ -118,7 +119,7 @@ impl UIAutomation {
     pub fn create_tree_walker(&self) -> Result<UITreeWalker> {
         let tree_walker = unsafe {
             let condition = self.automation.CreateTrueCondition()?;
-            self.automation.CreateTreeWalker(condition)?
+            self.automation.CreateTreeWalker(InParam::owned(condition))?
         };
 
         Ok(UITreeWalker::from(tree_walker))
@@ -128,7 +129,7 @@ impl UIAutomation {
     pub fn filter_tree_walker(&self, condition: UICondition) -> Result<UITreeWalker> {
         let condition: IUIAutomationCondition = condition.into();
         let tree_walker = unsafe {
-            self.automation.CreateTreeWalker(condition)?
+            self.automation.CreateTreeWalker(InParam::owned(condition))?
         };
         Ok(tree_walker.into())
     }
@@ -210,7 +211,7 @@ impl UIAutomation {
     pub fn create_not_condition(&self, condition: UICondition) -> Result<UICondition> {
         let condition: IUIAutomationCondition = condition.into();
         let result = unsafe {
-            self.automation.CreateNotCondition(condition)?
+            self.automation.CreateNotCondition(InParam::owned(condition))?
         };
         Ok(result.into())
     }
@@ -220,7 +221,7 @@ impl UIAutomation {
         let c1: IUIAutomationCondition = condition1.into();
         let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateAndCondition(c1, c2)?
+            self.automation.CreateAndCondition(InParam::owned(c1), InParam::owned(c2))?
         };
         Ok(result.into())
     }
@@ -230,7 +231,7 @@ impl UIAutomation {
         let c1: IUIAutomationCondition = condition1.into();
         let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateOrCondition(c1, c2)?
+            self.automation.CreateOrCondition(InParam::owned(c1), InParam::owned(c2))?
         };
         Ok(result.into())
     }
@@ -240,9 +241,9 @@ impl UIAutomation {
         let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property_id, val, flags)?
+                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags)?
             } else {
-                self.automation.CreatePropertyCondition(property_id, val)?
+                self.automation.CreatePropertyCondition(property_id, InParam::owned(val))?
             }
         };
         Ok(condition.into())
@@ -729,6 +730,12 @@ impl From<IUIAutomationElement> for UIElement {
 impl Into<IUIAutomationElement> for UIElement {
     fn into(self) -> IUIAutomationElement {
         self.element
+    }
+}
+
+impl<'a> Into<InParam<'a, IUIAutomationElement>> for UIElement {
+    fn into(self) -> InParam<'a, IUIAutomationElement> {
+        InParam::owned(self.element)
     }
 }
 

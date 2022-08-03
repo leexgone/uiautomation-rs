@@ -4,8 +4,6 @@ use std::fmt::Display;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
-use windows::core::IntoParam;
-use windows::core::Param;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -77,11 +75,11 @@ impl AsMut<POINT> for Point {
     }
 }
 
-impl<'a> IntoParam<'a, POINT> for Point {
-    fn into_param(self) -> windows::core::Param<'a, POINT> {
-        Param::Owned(self.0)
-    }
-}
+// impl<'a> IntoParam<'a, POINT> for Point {
+//     fn into_param(self) -> windows::core::Param<'a, POINT> {
+//         Param::Owned(self.0)
+//     }
+// }
 
 /// A Rect type stores the position and size of a rectangle.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -185,11 +183,11 @@ impl AsMut<RECT> for Rect {
     }
 }
 
-impl<'a> IntoParam<'a, RECT> for Rect {
-    fn into_param(self) -> Param<'a, RECT> {
-        Param::Owned(self.0)
-    }
-}
+// impl<'a> IntoParam<'a, RECT> for Rect {
+//     fn into_param(self) -> Param<'a, RECT> {
+//         Param::Owned(self.0)
+//     }
+// }
 
 /// A Wrapper for windows `HWND`.
 #[derive(Default, Clone, Copy)]
@@ -225,8 +223,8 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-impl<'a> IntoParam<'a, HWND> for Handle {
-    fn into_param(self) -> Param<'a, HWND> {
-        Param::Owned(self.0)
-    }
-}
+// impl<'a> IntoParam<'a, HWND> for Handle {
+//     fn into_param(self) -> Param<'a, HWND> {
+//         Param::Owned(self.0)
+//     }
+// }

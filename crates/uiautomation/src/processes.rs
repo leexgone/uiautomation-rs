@@ -2,6 +2,7 @@ use std::mem;
 
 use windows::Win32::Foundation::CloseHandle;
 use windows::Win32::Foundation::WAIT_FAILED;
+use windows::Win32::Foundation::WAIT_OBJECT_0;
 use windows::Win32::Foundation::WAIT_TIMEOUT;
 use windows::Win32::System::Threading::CreateProcessW;
 use windows::Win32::System::Threading::GetExitCodeProcess;
@@ -9,7 +10,6 @@ use windows::Win32::System::Threading::PROCESS_CREATION_FLAGS;
 use windows::Win32::System::Threading::PROCESS_INFORMATION;
 use windows::Win32::System::Threading::STARTUPINFOW;
 use windows::Win32::System::Threading::TerminateProcess;
-use windows::Win32::System::Threading::WAIT_OBJECT_0;
 use windows::Win32::System::Threading::WaitForSingleObject;
 use windows::core::PCWSTR;
 use windows::core::PWSTR;
@@ -40,14 +40,14 @@ impl Process {
         let mut buffer = command.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
         let si = Process::startupinfo();
         let ret = unsafe {
-            CreateProcessW(PCWSTR::default(), 
+            CreateProcessW(PCWSTR::null(), 
                 PWSTR(buffer.as_mut_ptr()), 
                 std::ptr::null(), 
                 std::ptr::null(), 
                 false, 
                 PROCESS_CREATION_FLAGS::default(), 
                 std::ptr::null(),
-                PCWSTR::default(),
+                PCWSTR::null(),
                 &si,
                 &mut information)
         };
@@ -89,7 +89,7 @@ impl Process {
             WaitForSingleObject(self.information.hProcess, timeout)
         };
 
-        if ret == WAIT_OBJECT_0 {
+        if ret == WAIT_OBJECT_0.0 {
             Ok(())
         } else if ret == WAIT_FAILED.0 {
             Err(Error::last_os_error())
