@@ -3,7 +3,7 @@ pub mod types;
 pub mod variants;
 pub mod core;
 pub mod patterns;
-pub mod conditions;
+pub mod filters;
 pub mod controls;
 pub mod actions;
 pub mod inputs;

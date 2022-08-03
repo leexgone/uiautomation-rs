@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use uiautomation_derive::*;
 use windows::Win32::UI::Accessibility::*;
+use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
 
 use super::actions::*;
 use super::Error;
@@ -1879,6 +1880,17 @@ impl Display for TreeItemControl {
 #[derive(Debug, Transform, Window, Dock)]
 pub struct WindowControl {
     control: UIElement
+}
+
+impl WindowControl {
+    /// Brings the thread that created the specified window into the foreground and activates the window. 
+    pub fn set_foregrand(&self) -> Result<bool> {
+        let hwnd = self.control.get_native_window_handle()?;
+        let ret = unsafe {
+            SetForegroundWindow(hwnd)
+        };
+        Ok(ret.as_bool())
+    }
 }
 
 impl Control for WindowControl {

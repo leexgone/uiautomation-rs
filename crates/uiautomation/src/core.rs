@@ -27,15 +27,16 @@ use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
+use windows::core::InParam;
 use windows::core::Interface;
 
 use crate::inputs::Mouse;
 use crate::variants::SafeArray;
 
-use super::conditions::ClassNameCondition;
-use super::conditions::Condition;
-use super::conditions::ControlTypeCondition;
-use super::conditions::NameCondition;
+use super::filters::ClassNameFilter;
+use super::filters::MatcherFilter;
+use super::filters::ControlTypeFilter;
+use super::filters::NameFilter;
 use super::errors::ERR_NOTFOUND;
 use super::errors::ERR_TIMEOUT;
 use super::errors::Error;
@@ -89,7 +90,7 @@ impl UIAutomation {
     /// Retrieves the UI Automation element at the specified point on the desktop.
     pub fn element_from_point(&self, point: Point) -> Result<UIElement> {
         let element = unsafe {
-            self.automation.ElementFromPoint(point)?
+            self.automation.ElementFromPoint(point.into())?
         };
 
         Ok(UIElement::from(element))
@@ -118,7 +119,7 @@ impl UIAutomation {
     pub fn create_tree_walker(&self) -> Result<UITreeWalker> {
         let tree_walker = unsafe {
             let condition = self.automation.CreateTrueCondition()?;
-            self.automation.CreateTreeWalker(condition)?
+            self.automation.CreateTreeWalker(InParam::owned(condition))?
         };
 
         Ok(UITreeWalker::from(tree_walker))
@@ -128,7 +129,7 @@ impl UIAutomation {
     pub fn filter_tree_walker(&self, condition: UICondition) -> Result<UITreeWalker> {
         let condition: IUIAutomationCondition = condition.into();
         let tree_walker = unsafe {
-            self.automation.CreateTreeWalker(condition)?
+            self.automation.CreateTreeWalker(InParam::owned(condition))?
         };
         Ok(tree_walker.into())
     }
@@ -210,7 +211,7 @@ impl UIAutomation {
     pub fn create_not_condition(&self, condition: UICondition) -> Result<UICondition> {
         let condition: IUIAutomationCondition = condition.into();
         let result = unsafe {
-            self.automation.CreateNotCondition(condition)?
+            self.automation.CreateNotCondition(InParam::owned(condition))?
         };
         Ok(result.into())
     }
@@ -220,7 +221,7 @@ impl UIAutomation {
         let c1: IUIAutomationCondition = condition1.into();
         let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateAndCondition(c1, c2)?
+            self.automation.CreateAndCondition(InParam::owned(c1), InParam::owned(c2))?
         };
         Ok(result.into())
     }
@@ -230,7 +231,7 @@ impl UIAutomation {
         let c1: IUIAutomationCondition = condition1.into();
         let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateOrCondition(c1, c2)?
+            self.automation.CreateOrCondition(InParam::owned(c1), InParam::owned(c2))?
         };
         Ok(result.into())
     }
@@ -240,9 +241,9 @@ impl UIAutomation {
         let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property_id, val, flags)?
+                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags)?
             } else {
-                self.automation.CreatePropertyCondition(property_id, val)?
+                self.automation.CreatePropertyCondition(property_id, InParam::owned(val))?
             }
         };
         Ok(condition.into())
@@ -292,6 +293,16 @@ impl UIElement {
             self.element.FindAll(scope, condition.as_ref())?
         };
         Self::to_elements(elements)
+    }
+
+    /// Receives the runtime ID as a vec of integers.
+    pub fn get_runtime_id(&self) -> Result<Vec<i32>> {
+        let id = unsafe {
+            self.element.GetRuntimeId()?
+        };
+
+        let arr = SafeArray::new(id, false);
+        arr.try_into()
     }
 
     /// Retrieves the name of the element.
@@ -459,7 +470,7 @@ impl UIElement {
     }
 
     /// Indicates whether the element is off-screen.
-    pub fn is_off_screen(&self) -> Result<bool> {
+    pub fn is_offscreen(&self) -> Result<bool> {
         let off_screen = unsafe {
             self.element.CurrentIsOffscreen()?
         };
@@ -722,6 +733,12 @@ impl Into<IUIAutomationElement> for UIElement {
     }
 }
 
+impl<'a> Into<InParam<'a, IUIAutomationElement>> for UIElement {
+    fn into(self) -> InParam<'a, IUIAutomationElement> {
+        InParam::owned(self.element)
+    }
+}
+
 impl AsRef<IUIAutomationElement> for UIElement {
     fn as_ref(&self) -> &IUIAutomationElement {
         &self.element
@@ -871,7 +888,7 @@ pub struct UIMatcher {
     depth: u32,
     from: Option<UIElement>,
     // condition: Option<Box<dyn Condition>>,
-    conditions: Vec<Box<dyn Condition>>,
+    filters: Vec<Box<dyn MatcherFilter>>,
     timeout: u64,
     interval: u64,
     debug: bool
@@ -885,7 +902,7 @@ impl UIMatcher {
             mode: UIMatcherMode::Control,
             depth: 7,
             from: None,
-            conditions: Vec::new(),
+            filters: Vec::new(),
             timeout: 3000,
             interval: 100,
             debug: false
@@ -927,20 +944,20 @@ impl UIMatcher {
     }
 
     /// Appends a filter condition which is used as `and` logic.
-    pub fn filter(mut self, condition: Box<dyn Condition>) -> Self {
+    pub fn filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
         // let filter = if let Some(raw) = self.condition {
         //     Box::new(AndCondition::new(raw, condition))
         // } else {
         //     condition
         // };
         // self.condition = Some(filter);
-        self.conditions.push(condition);
+        self.filters.push(condition);
         self
     }
 
     /// Append a filter whitch match specific casesensitive name.
     pub fn name<S: Into<String>>(self, name: S) -> Self {
-        let condition = NameCondition {
+        let condition = NameFilter {
             value: name.into(),
             casesensitive: true,
             partial: false
@@ -951,7 +968,7 @@ impl UIMatcher {
 
     /// Append a filter whitch name contains specific text (ignore casesensitive).
     pub fn contains_name<S: Into<String>>(self, name: S) -> Self {
-        let condition = NameCondition {
+        let condition = NameFilter {
             value: name.into(),
             casesensitive: false,
             partial: true
@@ -961,7 +978,7 @@ impl UIMatcher {
 
     /// Append a filter whitch matches specific name (ignore casesensitive).
     pub fn match_name<S: Into<String>>(self, name: S) -> Self {
-        let condition = NameCondition {
+        let condition = NameFilter {
             value: name.into(),
             casesensitive: false,
             partial: false
@@ -971,7 +988,7 @@ impl UIMatcher {
 
     /// Filters by classname.
     pub fn classname<S: Into<String>>(self, classname: S) -> Self {
-        let condition = ClassNameCondition {
+        let condition = ClassNameFilter {
             classname: classname.into()
         };
         self.filter(Box::new(condition))        
@@ -979,7 +996,7 @@ impl UIMatcher {
 
     /// Filters by control type.
     pub fn control_type(self, control_type: i32) -> Self {
-        let condition = ControlTypeCondition {
+        let condition = ControlTypeFilter {
             control_type
         };
         self.filter(Box::new(condition))
@@ -988,7 +1005,7 @@ impl UIMatcher {
     /// Clears all filters.
     pub fn reset(mut self) -> Self {
         // self.condition = None;
-        self.conditions.clear();
+        self.filters.clear();
         self
     }
 
@@ -1099,7 +1116,7 @@ impl UIMatcher {
         // };
 
         let mut ret = true;
-        for condition in &self.conditions {
+        for condition in &self.filters {
             ret = condition.judge(element)?;
             if !ret {
                 break;
@@ -1121,7 +1138,7 @@ impl Debug for UIMatcher {
             .field("mode", &self.mode)
             .field("depth", &self.depth)
             .field("from", &self.from)
-            .field("conditions", &format!("({} filers)", self.conditions.len()))
+            .field("filters", &format!("({} filers)", self.filters.len()))
             .field("timeout", &self.timeout)
             .field("interval", &self.interval)
             .field("debug", &self.debug)
@@ -1552,12 +1569,45 @@ impl Into<UICondition> for UIPropertyCondition {
 
 #[cfg(test)]
 mod tests {
+    use windows::Win32::UI::Accessibility::IUIAutomationElement;
     use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
+    use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
+    use crate::UIElement;
+    use crate::filters::MatcherFilter;
+
+    fn print_element(element: &UIElement) {
+        println!("Name: {}", element.get_name().unwrap());
+        println!("ControlType: {}", element.get_control_type().unwrap());
+        println!("LocalizedControlType: {}", element.get_localized_control_type().unwrap());
+        println!("BoundingRectangle: {}", element.get_bounding_rectangle().unwrap());
+        println!("IsEnabled: {}", element.is_enabled().unwrap());
+        println!("IsOffscreen: {}", element.is_offscreen().unwrap());
+        println!("IsKeyboardFocusable: {}", element.is_keyboard_focusable().unwrap());
+        println!("HasKeyboardFocus: {}", element.has_keyboard_focus().unwrap());
+        println!("ProcessId: {}", element.get_process_id().unwrap());
+        println!("RuntimeId: {:?}", element.get_runtime_id().unwrap());
+        println!("FrameworkId: {}", element.get_framework_id().unwrap());
+        println!("ClassName: {}", element.get_classname().unwrap());
+        println!("NativeWindowHandle: {}", element.get_native_window_handle().unwrap());
+        println!("ProviderDescription: {}", element.get_provider_description().unwrap());
+        println!("IsPassword: {}", element.is_password().unwrap());
+        println!("AutomationId: {}", element.get_automation_id().unwrap());
+    }
+
+    #[test]
+    fn test_element_properties() {
+        let automation = UIAutomation::new().unwrap();
+        let root = automation.get_root_element().unwrap();
+
+        println!("---------------------");
+        print_element(&root);
+        println!("---------------------");
+    }
 
     #[test]
     fn test_zh_input() {
@@ -1610,10 +1660,40 @@ mod tests {
     #[test]
     fn test_search_from() {
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher();
-        if let Ok(window) = matcher.classname("Notepad").timeout(0).find_first() {
+        if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
             let nothing = automation.create_matcher().from(window.clone()).control_type(UIA_WindowControlTypeId).find_first();
             assert!(nothing.is_err());
+        }
+    }
+
+    struct FrameworkIdFilter(String);
+
+    impl MatcherFilter for FrameworkIdFilter {
+        fn judge(&self, element: &crate::UIElement) -> crate::Result<bool> {
+            let id = element.get_framework_id()?;
+            Ok(id == self.0)
+        }
+    }
+
+    #[test]
+    fn test_custom_search() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().timeout(0).filter(Box::new(FrameworkIdFilter("Win32".into()))).depth(2);
+        let element = matcher.find_first();
+        assert!(element.is_ok());
+        println!("{}", element.unwrap());
+    }
+
+    #[test]
+    fn test_automation_id() {
+        let automation = UIAutomation::new().unwrap();
+        if let Ok(notepad) = automation.create_matcher().timeout(0).classname("Notepad").find_first() {
+            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(UIA_TitleBarControlTypeId).find_first().unwrap();
+            let element: &IUIAutomationElement = title_bar.as_ref();
+            let automation_id = unsafe {
+                element.CurrentAutomationId().unwrap()
+            };
+            println!("{} -> {}", title_bar, automation_id);
         }
     }
 }
