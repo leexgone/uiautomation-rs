@@ -30,6 +30,7 @@ use windows::Win32::UI::Accessibility::TreeScope;
 use windows::core::InParam;
 use windows::core::Interface;
 
+use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::variants::SafeArray;
 
@@ -944,14 +945,34 @@ impl UIMatcher {
     }
 
     /// Appends a filter condition which is used as `and` logic.
-    pub fn filter(mut self, condition: Box<dyn MatcherFilter>) -> Self {
-        // let filter = if let Some(raw) = self.condition {
-        //     Box::new(AndCondition::new(raw, condition))
-        // } else {
-        //     condition
-        // };
-        // self.condition = Some(filter);
-        self.filters.push(condition);
+     pub fn filter(mut self, filter: Box<dyn MatcherFilter>) -> Self {
+        self.filters.push(filter);
+        self
+    }
+
+    /// Appends a filter function which is used as `and` logic.
+    /// 
+    /// # Examples:
+    /// 
+    /// ```
+    /// use uiautomation::core::UIAutomation;
+    /// use uiautomation::core::UIElement;
+    /// 
+    /// let automation = UIAutomation::new().unwrap();
+    /// let matcher = automation.create_matcher().filter_fn(Box::new(|e: &UIElement| {
+    ///     let framework_id = e.get_framework_id()?;
+    ///     let class_name = e.get_classname()?;
+    ///     
+    ///     Ok("Win32" == framework_id && class_name.starts_with("Shell"))
+    /// })).timeout(0);
+    /// let element = matcher.find_first();
+    /// assert!(element.is_ok());
+    /// ```
+    pub fn filter_fn<F>(mut self, f: Box<F>) -> Self where F: Fn(&UIElement) -> Result<bool> + 'static {
+        let filter = FnFilter {
+            filter: f
+        };
+        self.filters.push(Box::new(filter));
         self
     }
 
@@ -1683,6 +1704,20 @@ mod tests {
         assert!(element.is_ok());
         println!("{}", element.unwrap());
     }
+
+    // #[test]
+    // fn test_function_search() {
+    //     let automation = UIAutomation::new().unwrap();
+    //     let matcher = automation.create_matcher().filter_fn(Box::new(|e: &UIElement| {
+    //         let framework_id = e.get_framework_id()?;
+    //         let class_name = e.get_classname()?;
+            
+    //         Ok("Win32" == framework_id && class_name.starts_with("Shell"))
+    //     })).timeout(0);
+    //     let element = matcher.find_first();
+    //     assert!(element.is_ok());
+    //     print!("{}", element.unwrap());
+    // }
 
     #[test]
     fn test_automation_id() {

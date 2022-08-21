@@ -110,13 +110,12 @@ impl MatcherFilter for ControlTypeFilter {
     }
 }
 
-// pub struct CustomFilter<F> where F: Fn(&UIElement) -> Result<bool> {
-//     pub filter: F
-// }
+pub struct FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
+    pub filter: Box<F>
+}
 
-// impl<F> MatcherFilter for CustomFilter<F> 
-//         where F: Fn(&UIElement) -> Result<bool> {
-//     fn judge(&self, element: &UIElement) -> Result<bool> {
-//         (self.filter)(element)
-//     }
-// }
+impl<F> MatcherFilter for FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        (self.filter)(element)
+    }
+}
