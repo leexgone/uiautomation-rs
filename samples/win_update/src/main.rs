@@ -7,6 +7,7 @@ use uiautomation::controls::ListItemControl;
 use uiautomation::controls::WindowControl;
 use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
+use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
 use windows::Win32::UI::Accessibility::UIA_ToolBarControlTypeId;
 
 fn main() {
@@ -47,8 +48,12 @@ fn main() {
         button.invoke().unwrap();
     }
 
-    let matcher = automation.create_matcher().name("运行中的应用程序").control_type(UIA_ToolBarControlTypeId);
-    if let Ok(taskbar) = matcher.find_first() {
+    if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(UIA_ToolBarControlTypeId).find_first() { // Win10
+        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(UIA_ButtonControlTypeId);
+        if let Ok(settings_button) = matcher.find_first() {
+            settings_button.click().unwrap();
+        }
+    } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(UIA_PaneControlTypeId).find_first() {       // Win11
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(UIA_ButtonControlTypeId);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click().unwrap();
