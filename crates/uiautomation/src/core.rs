@@ -117,6 +117,18 @@ impl UIAutomation {
     }
 
     /// Retrieves a tree walker object that can be used to traverse the Microsoft UI Automation tree.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use uiautomation::UIAutomation;
+    /// 
+    /// let automation = UIAutomation::new().unwrap();
+    /// let root = automation.get_root_element().unwrap();
+    /// let walker = automation.create_tree_walker().unwrap();
+    /// let child = walker.get_first_child(&root);
+    /// assert!(child.is_ok());
+    /// ```
     pub fn create_tree_walker(&self) -> Result<UITreeWalker> {
         let tree_walker = unsafe {
             let condition = self.automation.CreateTrueCondition()?;
@@ -1628,6 +1640,15 @@ mod tests {
         println!("---------------------");
         print_element(&root);
         println!("---------------------");
+    }
+
+    #[test]
+    fn test_tree_walker() {
+        let automation = UIAutomation::new().unwrap();
+        let root = automation.get_root_element().unwrap();
+        let walker = automation.create_tree_walker().unwrap();
+        let child = walker.get_first_child(&root);
+        assert!(child.is_ok());
     }
 
     #[test]
