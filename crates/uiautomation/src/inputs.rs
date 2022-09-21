@@ -383,14 +383,16 @@ fn read_group_items(expr: &mut Chars<'_>) -> Result<Vec<InputItem>> {
 /// Simulate typing keys on keyboard.
 #[derive(Debug, Default)]
 pub struct Keyboard {
-    interval: u64
+    interval: u64,
+    holdkeys: Vec<VIRTUAL_KEY>
 }
 
 impl Keyboard {
     /// Create a keyboard to simulate typing keys.
     pub fn new() -> Self {
         Self {
-            interval: 0
+            interval: 0,
+            holdkeys: Vec::new()
         }
     }
 
