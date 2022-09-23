@@ -17,6 +17,8 @@ pub const ERR_TYPE: i32 = 4;
 pub const ERR_NULL_PTR:  i32 = 5;
 /// Error format.
 pub const ERR_FORMAT: i32 = 6;
+/// Error invalid object.
+pub const ERR_INVALID_OBJECT: i32 = 7;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
