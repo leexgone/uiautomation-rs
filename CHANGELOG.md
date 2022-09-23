@@ -9,4 +9,6 @@
 
 + add `UIMatcher.filter_fn()`
 
-## v0.2.0
+## v0.1.12
+
++ add `UIElement.hold_send_keys()` to support holding and send keys.
