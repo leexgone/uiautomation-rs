@@ -420,6 +420,51 @@ impl Keyboard {
         Ok(())
     }
 
+    /// Simulates starting to hold `keys` on keyboard. Only holdkeys are allowed.
+    /// 
+    /// The `keys` will be released when `end_hold_keys()` is invoked.
+    pub fn begin_hold_keys(&mut self, keys: &str) -> Result<()> {
+        let mut holdkeys: Vec<VIRTUAL_KEY> = Vec::new();
+
+        let inputs = parse_input(keys)?;
+        for input in inputs {
+            if input.has_items() {
+                return Err(Error::new(ERR_FORMAT, "Error holdkeys"));
+            }
+
+            holdkeys.extend(input.holdkeys);
+        }
+
+        if holdkeys.is_empty() {
+            return Err(Error::new(ERR_FORMAT, "Error holdkeys"));
+        }
+
+        let mut holdkey_inputs: Vec<INPUT> = Vec::new();
+        for holdkey in &holdkeys {
+            holdkey_inputs.push(Input::create_virtual_key(*holdkey, KEYEVENTF_KEYDOWN));
+        }
+        send_input(&holdkey_inputs.as_slice())?;
+
+        self.holdkeys.extend(holdkeys);
+
+        Ok(())
+    }
+    
+    /// Stop holding keys on keyboard. 
+    pub fn end_hold_keys(&mut self) -> Result<()> {
+        if self.holdkeys.is_empty() {
+            Ok(())
+        } else {
+            let mut holdkey_inputs = Vec::new();
+            for holdkey in self.holdkeys.iter().rev() {
+                holdkey_inputs.push(Input::create_virtual_key(*holdkey, KEYEVENTF_KEYUP));
+            }
+            self.holdkeys.clear();
+
+            send_input(&holdkey_inputs.as_slice())
+        }
+    }
+
     fn send_keyboard(&self, input: &Input) -> Result<()> {
         let input_keys = input.create_inputs()?;
         if self.interval == 0 {
@@ -439,6 +484,21 @@ impl Keyboard {
     fn wait(&self) {
         if self.interval > 0 {
             sleep(Duration::from_millis(self.interval));
+        }
+    }
+}
+
+impl Drop for Keyboard {
+    fn drop(&mut self) {
+        if !self.holdkeys.is_empty() {
+            let mut holdkey_inputs: Vec<INPUT> = Vec::new();
+            for holdkey in self.holdkeys.iter().rev() {
+                holdkey_inputs.push(Input::create_virtual_key(*holdkey, KEYEVENTF_KEYUP));
+            }
+
+            if send_input(&holdkey_inputs.as_slice()).is_ok() {
+                self.holdkeys.clear();
+            }
         }
     }
 }

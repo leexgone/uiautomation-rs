@@ -659,7 +659,7 @@ impl UIElement {
         Ok(arr)
     }
 
-    /// Simulate typing `keys` on keyboard.
+    /// Simulates typing `keys` on keyboard.
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
     /// 
@@ -683,6 +683,29 @@ impl UIElement {
         
         let kb = Keyboard::new();
         kb.interval(interval).send_keys(keys)
+    }
+
+    /// Simulates holding `holdkeys` on keyboard, then sending `keys`.
+    /// 
+    /// The key format is the same with `send_keys()`.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use uiautomation::core::UIAutomation;
+    /// 
+    /// let automation = UIAutomation::new().unwrap();
+    /// let root = automation.get_root_element().unwrap();
+    /// root.hold_send_keys("{Win}", "P", 0).unwrap();
+    /// ```
+    pub fn hold_send_keys(&self, holdkeys: &str, keys: &str, interval: u64) -> Result<()> {
+        self.set_focus()?;
+
+        let mut kb = Keyboard::new().interval(interval);
+
+        kb.begin_hold_keys(holdkeys)?;
+        kb.send_keys(keys)?;
+        kb.end_hold_keys()
     }
 
     /// Simulates mouse left click event on the element.
