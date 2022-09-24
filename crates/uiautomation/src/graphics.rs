@@ -1,5 +1,7 @@
 use std::convert::TryFrom;
 
+use windows::Win32::Graphics::Gdi::CreateCompatibleDC;
+use windows::Win32::Graphics::Gdi::CreatedHDC;
 use windows::Win32::Graphics::Gdi::DeleteDC;
 use windows::Win32::Graphics::Gdi::GetDC;
 use windows::Win32::Graphics::Gdi::HDC;
@@ -20,14 +22,14 @@ pub struct Canvas{
 impl TryFrom<Handle> for Canvas {
     type Error = Error;
 
-    fn try_from(handle: Handle) -> Result<Self> {
+    fn try_from(wnd_handle: Handle) -> Result<Self> {
         let hdc = unsafe {
-            GetDC(handle)    
+            GetDC(wnd_handle)    
         };
 
         if hdc.is_invalid() {
             Ok(Canvas {
-                window: Some(handle),
+                window: Some(wnd_handle),
                 hdc: hdc
             })
         } else {
@@ -37,19 +39,25 @@ impl TryFrom<Handle> for Canvas {
 }
 
 impl Canvas {
+    // pub fn create() -> Result<Canvas> {
+    //     CreateCompatibleDC(hdc)
+    // }
+
     pub fn is_valid(&self) -> bool {
         self.hdc.is_invalid()
     }
 }
 
-// impl Drop for Canvas {
-//     fn drop(&mut self) {
-//         if self.is_valid() {
-//             match self.window {
-//                 Some(hwnd) => unsafe { ReleaseDC(hwnd, self.hdc); },
-//                 None => unsafe { DeleteDC(self.hdc); }
-//             }
-            
-//         }
-//     }
-// }
+impl Drop for Canvas {
+    fn drop(&mut self) {
+        if self.is_valid() {
+            match self.window {
+                Some(hwnd) => unsafe { ReleaseDC(hwnd, self.hdc); },
+                None => {
+                    let hdc = CreatedHDC(self.hdc.0);
+                    unsafe { DeleteDC(hdc) }; 
+                }
+            }
+        }
+    }
+}
