@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation_derive"
-version = "0.0.8"
+version = "0.0.9"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -18,5 +18,5 @@ default-target = "x86_64-pc-windows-msvc"
 targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
 [dependencies]
-syn = "1.0.99"
+syn = "1.0.100"
 quote = "1.0.21"
