@@ -27,6 +27,7 @@ use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
 use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
 use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
+use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
@@ -603,12 +604,13 @@ impl UIElement {
     }
 
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
-    pub fn get_pattern<T: UIPattern>(&self) -> Result<T> {
+    pub fn get_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
-            self.element.GetCurrentPattern(T::pattern_id().0 as _)?
+            self.element.GetCurrentPattern(T::PATTERN_ID.0 as _)?
         };
 
-        T::new(pattern)
+        // T::new(pattern)
+        T::try_from(pattern)
     }
 
     /// Retrieves a point on the element that can be clicked.

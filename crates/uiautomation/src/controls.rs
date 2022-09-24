@@ -35,7 +35,7 @@ macro_rules! as_control_ref {
     };
 }
 
-/// `Control` is the trait for ui element.
+/// `Control` is the trait for ui element control.
 pub trait Control {
     /// Defines the control type id.
     const TYPE_ID: UIA_CONTROLTYPE_ID;
