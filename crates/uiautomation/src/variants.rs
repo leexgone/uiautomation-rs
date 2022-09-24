@@ -2,16 +2,10 @@ use std::fmt::Display;
 use std::mem::ManuallyDrop;
 use std::ptr::null_mut;
 
-use windows::Win32::Foundation::BSTR;
 use windows::Win32::Foundation::DECIMAL;
-use windows::Win32::System::Com::CY;
-use windows::Win32::System::Com::IDispatch;
-use windows::Win32::System::Com::SAFEARRAY;
-use windows::Win32::System::Com::VARIANT;
-use windows::Win32::System::Com::VARIANT_0;
-use windows::Win32::System::Com::VARIANT_0_0;
-use windows::Win32::System::Com::VARIANT_0_0_0;
+use windows::Win32::System::Com::*;
 use windows::Win32::System::Ole::*;
+use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
 use windows::core::IUnknown;
@@ -102,7 +96,7 @@ impl Variant {
     /// Create a null variant.
     fn new_null(vt: VARENUM) -> Variant {
         let mut val = VARIANT_0_0::default();
-        val.vt = vt.0 as u16;
+        val.vt = vt; // vt.0 as u16;
 
         let variant = VARIANT {
             Anonymous: VARIANT_0 {
@@ -118,7 +112,7 @@ impl Variant {
         let variant = VARIANT {
             Anonymous: VARIANT_0 {
                 Anonymous: ManuallyDrop::new(VARIANT_0_0 {
-                    vt: vt.0 as u16,
+                    vt: vt, //vt.0 as u16,
                     wReserved1: 0,
                     wReserved2: 0,
                     wReserved3: 0,
@@ -130,16 +124,17 @@ impl Variant {
         variant.into()
     }
 
-    /// Retrieve the variant type as `i32`.
-    fn vt(&self) -> i32 {
+    /// Retrieve the variant type.
+    fn vt(&self) -> VARENUM {
         unsafe {
-            self.value.Anonymous.Anonymous.vt as i32
+            self.value.Anonymous.Anonymous.vt //as i32
         }
     }
 
     /// Retrieve the variant type as `VARENUM`.
     pub fn get_type(&self) -> VARENUM {
-        VARENUM(self.vt())
+        // VARENUM(self.vt())
+        self.vt()
     }
 
     /// Retrieve the data of the variant.
@@ -157,7 +152,7 @@ impl Variant {
     /// Return `true` when vt is `VT_EMPTY`, `VT_NULL` or `VT_VOID`.
     pub fn is_null(&self) -> bool {
         let vt = self.vt();
-        vt == VT_EMPTY.0 || vt == VT_NULL.0 || vt == VT_VOID.0
+        vt == VT_EMPTY || vt == VT_NULL || vt == VT_VOID
     }
 
     /// Check whether the variant is string.
@@ -165,7 +160,7 @@ impl Variant {
     /// Return `true` when vt is `VT_BSTR`, `VT_LPWSTR` or `VT_LPSTR`.
     pub fn is_string(&self) -> bool {
         let vt = self.vt();
-        vt == VT_BSTR.0 || vt == VT_LPWSTR.0 || vt == VT_LPSTR.0
+        vt == VT_BSTR || vt == VT_LPWSTR || vt == VT_LPSTR
     }
 
     /// Try to get string value.
@@ -184,7 +179,7 @@ impl Variant {
     /// Return `true` when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
     pub fn is_array(&self) -> bool {
         let vt = self.vt();
-        vt == VT_SAFEARRAY.0 || vt == VT_ARRAY.0
+        vt == VT_SAFEARRAY || vt == VT_ARRAY
     }
 
     /// Try to get array value.
@@ -358,88 +353,88 @@ impl TryInto<Value> for &Variant {
     fn try_into(self) -> Result<Value> {
         let vt = self.vt();
 
-        if vt == VT_EMPTY.0 {
+        if vt == VT_EMPTY {
             Ok(Value::EMPTY)
-        } else if vt == VT_NULL.0 {
+        } else if vt == VT_NULL {
             Ok(Value::NULL)
-        } else if vt == VT_VOID.0 {
+        } else if vt == VT_VOID {
             Ok(Value::VOID)
-        } else if vt == VT_I1.0 {
+        } else if vt == VT_I1 {
             let val = unsafe {
                 self.get_data().bVal as i8
             }; 
             Ok(Value::I1(val))
-        } else if vt == VT_I2.0 {
+        } else if vt == VT_I2 {
             let val = unsafe {
                 self.get_data().iVal
             };
             Ok(Value::I2(val))
-        } else if vt == VT_I4.0 {
+        } else if vt == VT_I4 {
             let val = unsafe {
                 self.get_data().lVal
             };
             Ok(Value::I4(val))
-        } else if vt == VT_I8.0 {
+        } else if vt == VT_I8 {
             let val = unsafe {
                 self.get_data().llVal
             };
             Ok(Value::I8(val))
-        } else if vt == VT_INT.0 {
+        } else if vt == VT_INT {
             let val = unsafe {
                 self.get_data().lVal
             };
             Ok(Value::INT(val))
-        } else if vt == VT_UI1.0 {
+        } else if vt == VT_UI1 {
             let val = unsafe {
                 self.get_data().bVal
             };
             Ok(Value::UI1(val))
-        } else if vt == VT_UI2.0 {
+        } else if vt == VT_UI2 {
             let val = unsafe {
                 self.get_data().uiVal
             };
             Ok(Value::UI2(val))
-        } else if vt == VT_UI4.0 {
+        } else if vt == VT_UI4 {
             let val = unsafe {
                 self.get_data().ulVal
             };
             Ok(Value::UI4(val))
-        } else if vt == VT_UI8.0 {
+        } else if vt == VT_UI8 {
             let val = unsafe {
                 self.get_data().ullVal
             };
             Ok(Value::UI8(val))
-        } else if vt == VT_UINT.0 {
+        } else if vt == VT_UINT {
             let val = unsafe {
                 self.get_data().uintVal
             };
             Ok(Value::UINT(val))
-        } else if vt == VT_R4.0 {
+        } else if vt == VT_R4 {
             let val = unsafe {
                 self.get_data().fltVal
             };
             Ok(Value::R4(val))
-        } else if vt == VT_R8.0 {
+        } else if vt == VT_R8 {
             let val = unsafe {
                 self.get_data().dblVal
             };
             Ok(Value::R8(val))
-        } else if vt == VT_CY.0 {
+        } else if vt == VT_CY {
             let val = unsafe {
                 self.get_data().cyVal.int64
             };
             Ok(Value::CURRENCY(val))
-        } else if vt == VT_DATE.0 {
+        } else if vt == VT_DATE {
             let val = unsafe {
                 self.get_data().date
             };
             Ok(Value::DATE(val))
-        } else if vt == VT_BSTR.0 || vt == VT_LPSTR.0 {
+        } else if vt == VT_BSTR || vt == VT_LPSTR {
             let val = unsafe {
                 self.get_data().bstrVal.to_string()
             };
             Ok(Value::STRING(val))
-        } else if vt == VT_LPSTR.0 {
+        } else if vt == VT_LPSTR {
             let val = unsafe {
                 if self.get_data().pcVal.is_null() {
                     String::from("")
@@ -454,7 +449,7 @@ impl TryInto<Value> for &Variant {
             };
 
             Ok(Value::STRING(val))
-        } else if vt == VT_DISPATCH.0 {
+        } else if vt == VT_DISPATCH {
             let val = unsafe {
                 if let Some(ref disp) = *self.get_data().ppdispVal {
                     Value::DISPATCH(disp.clone())
@@ -463,7 +458,7 @@ impl TryInto<Value> for &Variant {
                 }
             };
             Ok(val)
-        } else if vt == VT_UNKNOWN.0 {
+        } else if vt == VT_UNKNOWN {
             let val = unsafe {
                 if let Some(ref unkown) = *self.get_data().ppunkVal {
                     Value::UNKNOWN(unkown.clone())
@@ -472,32 +467,32 @@ impl TryInto<Value> for &Variant {
                 }
             };
             Ok(val)
-        } else if vt == VT_ERROR.0 {
+        } else if vt == VT_ERROR {
             let val = unsafe {
                 self.get_data().intVal
             };
             Ok(Value::HRESULT(HRESULT(val)))
-        } else if vt == VT_HRESULT.0 {
+        } else if vt == VT_HRESULT {
             let val = unsafe {
                 self.get_data().intVal
             };
             Ok(Value::HRESULT(HRESULT(val)))
-        } else if vt == VT_BOOL.0 {
+        } else if vt == VT_BOOL {
             let val = unsafe {
                 self.get_data().__OBSOLETE__VARIANT_BOOL != 0
             };
             Ok(Value::BOOL(val))
-        } else if vt == VT_VARIANT.0 {
+        } else if vt == VT_VARIANT {
             let val = unsafe {
                 (*self.get_data().pvarVal).clone()
             };
             Ok(Value::VARIANT(val.into()))
-        } else if vt == VT_DECIMAL.0 {
+        } else if vt == VT_DECIMAL {
             let val = unsafe {
                 (*self.get_data().pdecVal).clone()
             };
             Ok(Value::DECIMAL(val))
-        } else if vt == VT_SAFEARRAY.0 || vt == VT_ARRAY.0 {
+        } else if vt == VT_SAFEARRAY || vt == VT_ARRAY {
             let arr = unsafe {
                 self.get_data().parray.clone()
             };
@@ -1181,7 +1176,7 @@ impl SafeArray {
     /// Create a vector array.
     pub fn new_vector(var_type: VARENUM, len: u32) -> Result<Self> {
         unsafe {
-            let array = SafeArrayCreateVector(var_type.0 as _, 0, len);
+            let array = SafeArrayCreateVector(var_type, 0, len);
             if array.is_null() {
                 Err(Error::new(ERR_NULL_PTR, "Create SafeArray Failed"))
             } else {
@@ -1203,7 +1198,7 @@ impl SafeArray {
             SafeArrayGetVartype(self.array)?
         };
 
-        Ok(VARENUM(vt as _))     
+        Ok(vt)     
     }
 
     pub fn get_dim(&self) -> u32 {
@@ -1836,7 +1831,7 @@ impl TryInto<Vec<bool>> for SafeArray {
 
 #[cfg(test)]
 mod tests {
-    use windows::Win32::System::Ole::VT_BOOL;
+    use windows::Win32::System::Com::VT_BOOL;
 
     use crate::variants::SafeArray;
     use crate::variants::Value;

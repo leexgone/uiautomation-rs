@@ -41,12 +41,12 @@ impl Process {
         let si = Process::startupinfo();
         let ret = unsafe {
             CreateProcessW(PCWSTR::null(), 
-                PWSTR(buffer.as_mut_ptr()), 
-                std::ptr::null(), 
-                std::ptr::null(), 
+                PWSTR::from_raw(buffer.as_mut_ptr()), 
+                None, 
+                None, 
                 false, 
                 PROCESS_CREATION_FLAGS::default(), 
-                std::ptr::null(),
+                None,
                 PCWSTR::null(),
                 &si,
                 &mut information)
@@ -89,11 +89,11 @@ impl Process {
             WaitForSingleObject(self.information.hProcess, timeout)
         };
 
-        if ret == WAIT_OBJECT_0.0 {
+        if ret == WAIT_OBJECT_0 {
             Ok(())
-        } else if ret == WAIT_FAILED.0 {
+        } else if ret == WAIT_FAILED {
             Err(Error::last_os_error())
-        } else if ret == WAIT_TIMEOUT.0 {
+        } else if ret == WAIT_TIMEOUT {
             Err(Error::new(ERR_TIMEOUT, "Wait Timeout"))
         } else {
             Err(Error::new(ERR_NONE, "Wait Failed"))

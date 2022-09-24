@@ -35,10 +35,10 @@ macro_rules! as_control_ref {
     };
 }
 
-/// `Control` is the trait for ui element.
+/// `Control` is the trait for ui element control.
 pub trait Control {
     /// Defines the control type id.
-    const TYPE_ID: i32;
+    const TYPE_ID: UIA_CONTROLTYPE_ID;
 }
 
 /// Wrapper a AppBar element as control. The control type of the element must be `UIA_AppBarControlTypeId`.
@@ -51,7 +51,7 @@ pub struct AppBarControl {
 }
 
 impl Control for AppBarControl {
-    const TYPE_ID: i32 = UIA_AppBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_AppBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for AppBarControl {
@@ -98,7 +98,7 @@ pub struct ButtonControl {
 }
 
 impl Control for ButtonControl {
-    const TYPE_ID: i32 = UIA_ButtonControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ButtonControlTypeId;
 }
 
 impl TryFrom<UIElement> for ButtonControl {
@@ -145,7 +145,7 @@ pub struct CalendarControl {
 }
 
 impl Control for CalendarControl {
-    const TYPE_ID: i32 = UIA_CalendarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_CalendarControlTypeId;
 }
 
 impl TryFrom<UIElement> for CalendarControl {
@@ -191,7 +191,7 @@ pub struct CheckBoxControl {
 }
 
 impl Control for CheckBoxControl {
-    const TYPE_ID: i32 = UIA_CheckBoxControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_CheckBoxControlTypeId;
 }
 
 impl TryFrom<UIElement> for CheckBoxControl {
@@ -238,7 +238,7 @@ pub struct ComboBoxControl {
 }
 
 impl Control for ComboBoxControl {
-    const TYPE_ID: i32 = UIA_ComboBoxControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ComboBoxControlTypeId;
 }
 
 impl TryFrom<UIElement> for ComboBoxControl {
@@ -285,7 +285,7 @@ pub struct DataGridControl {
 }
 
 impl Control for DataGridControl {
-    const TYPE_ID: i32 = UIA_DataGridControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_DataGridControlTypeId;
 }
 
 impl TryFrom<UIElement> for DataGridControl {
@@ -332,7 +332,7 @@ pub struct DataItemControl {
 }
 
 impl Control for DataItemControl {
-    const TYPE_ID: i32 = UIA_DataItemControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_DataItemControlTypeId;
 }
 
 impl TryFrom<UIElement> for DataItemControl {
@@ -379,7 +379,7 @@ pub struct DocumentControl {
 }
 
 impl Control for DocumentControl {
-    const TYPE_ID: i32 = UIA_DocumentControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_DocumentControlTypeId;
 }
 
 impl TryFrom<UIElement> for DocumentControl {
@@ -426,7 +426,7 @@ pub struct EditControl {
 }
 
 impl Control for EditControl {
-    const TYPE_ID: i32 = UIA_EditControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_EditControlTypeId;
 }
 
 impl TryFrom<UIElement> for EditControl {
@@ -473,7 +473,7 @@ pub struct GroupControl {
 }
 
 impl Control for GroupControl {
-    const TYPE_ID: i32 = UIA_GroupControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_GroupControlTypeId;
 }
 
 impl TryFrom<UIElement> for GroupControl {
@@ -520,7 +520,7 @@ pub struct HeaderControl {
 }
 
 impl Control for HeaderControl {
-    const TYPE_ID: i32 = UIA_HeaderControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_HeaderControlTypeId;
 }
 
 impl TryFrom<UIElement> for HeaderControl {
@@ -567,7 +567,7 @@ pub struct HeaderItemControl {
 }
 
 impl Control for HeaderItemControl {
-    const TYPE_ID: i32 = UIA_HeaderItemControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_HeaderItemControlTypeId;
 }
 
 impl TryFrom<UIElement> for HeaderItemControl {
@@ -614,7 +614,7 @@ pub struct HyperlinkControl {
 }
 
 impl Control for HyperlinkControl {
-    const TYPE_ID: i32 = UIA_HyperlinkControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_HyperlinkControlTypeId;
 }
 
 impl TryFrom<UIElement> for HyperlinkControl {
@@ -661,7 +661,7 @@ pub struct ImageControl {
 }
 
 impl Control for ImageControl {
-    const TYPE_ID: i32 = UIA_ImageControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ImageControlTypeId;
 }
 
 impl TryFrom<UIElement> for ImageControl {
@@ -708,7 +708,7 @@ pub struct ListControl {
 }
 
 impl Control for ListControl {
-    const TYPE_ID: i32 = UIA_ListControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ListControlTypeId;
 }
 
 impl TryFrom<UIElement> for ListControl {
@@ -755,7 +755,7 @@ pub struct ListItemControl {
 }
 
 impl Control for ListItemControl {
-    const TYPE_ID: i32 = UIA_ListItemControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ListItemControlTypeId;
 }
 
 impl TryFrom<UIElement> for ListItemControl {
@@ -802,7 +802,7 @@ pub struct MenuControl {
 }
 
 impl Control for MenuControl {
-    const TYPE_ID: i32 = UIA_MenuControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_MenuControlTypeId;
 }
 
 impl TryFrom<UIElement> for MenuControl {
@@ -849,7 +849,7 @@ pub struct MenuBarControl {
 }
 
 impl Control for MenuBarControl {
-    const TYPE_ID: i32 = UIA_MenuBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_MenuBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for MenuBarControl {
@@ -896,7 +896,7 @@ pub struct MenuItemControl {
 }
 
 impl Control for MenuItemControl {
-    const TYPE_ID: i32 = UIA_MenuItemControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_MenuItemControlTypeId;
 }
 
 impl TryFrom<UIElement> for MenuItemControl {
@@ -943,7 +943,7 @@ pub struct PaneControl {
 }
 
 impl Control for PaneControl {
-    const TYPE_ID: i32 = UIA_PaneControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_PaneControlTypeId;
 }
 
 impl TryFrom<UIElement> for PaneControl {
@@ -990,7 +990,7 @@ pub struct ProgressBarControl {
 }
 
 impl Control for ProgressBarControl {
-    const TYPE_ID: i32 = UIA_ProgressBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ProgressBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for ProgressBarControl {
@@ -1037,7 +1037,7 @@ pub struct RadioButtonControl {
 }
 
 impl Control for RadioButtonControl {
-    const TYPE_ID: i32 = UIA_RadioButtonControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_RadioButtonControlTypeId;
 }
 
 impl TryFrom<UIElement> for RadioButtonControl {
@@ -1084,7 +1084,7 @@ pub struct ScrollBarControl {
 }
 
 impl Control for ScrollBarControl {
-    const TYPE_ID: i32 = UIA_ScrollBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ScrollBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for ScrollBarControl {
@@ -1131,7 +1131,7 @@ pub struct SemanticZoomControl {
 }
 
 impl Control for SemanticZoomControl {
-    const TYPE_ID: i32 = UIA_SemanticZoomControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_SemanticZoomControlTypeId;
 }
 
 impl TryFrom<UIElement> for SemanticZoomControl {
@@ -1178,7 +1178,7 @@ pub struct SeparatorControl {
 }
 
 impl Control for SeparatorControl {
-    const TYPE_ID: i32 = UIA_SeparatorControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_SeparatorControlTypeId;
 }
 
 impl TryFrom<UIElement> for SeparatorControl {
@@ -1225,7 +1225,7 @@ pub struct SliderControl {
 }
 
 impl Control for SliderControl {
-    const TYPE_ID: i32 = UIA_SliderControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_SliderControlTypeId;
 }
 
 impl TryFrom<UIElement> for SliderControl {
@@ -1272,7 +1272,7 @@ pub struct SpinnerControl {
 }
 
 impl Control for SpinnerControl {
-    const TYPE_ID: i32 = UIA_SpinnerControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_SpinnerControlTypeId;
 }
 
 impl TryFrom<UIElement> for SpinnerControl {
@@ -1319,7 +1319,7 @@ pub struct SplitButtonControl {
 }
 
 impl Control for SplitButtonControl {
-    const TYPE_ID: i32 = UIA_SplitButtonControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_SplitButtonControlTypeId;
 }
 
 impl TryFrom<UIElement> for SplitButtonControl {
@@ -1366,7 +1366,7 @@ pub struct StatusBarControl {
 }
 
 impl Control for StatusBarControl {
-    const TYPE_ID: i32 = UIA_StatusBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_StatusBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for StatusBarControl {
@@ -1413,7 +1413,7 @@ pub struct TabControl {
 }
 
 impl Control for TabControl {
-    const TYPE_ID: i32 = UIA_TabControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TabControlTypeId;
 }
 
 impl TryFrom<UIElement> for TabControl {
@@ -1460,7 +1460,7 @@ pub struct TabItemControl {
 }
 
 impl Control for TabItemControl {
-    const TYPE_ID: i32 = UIA_TabItemControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TabItemControlTypeId;
 }
 
 impl TryFrom<UIElement> for TabItemControl {
@@ -1507,7 +1507,7 @@ pub struct TableControl {
 }
 
 impl Control for TableControl {
-    const TYPE_ID: i32 = UIA_TableControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TableControlTypeId;
 }
 
 impl TryFrom<UIElement> for TableControl {
@@ -1554,7 +1554,7 @@ pub struct TextControl {
 }
 
 impl Control for TextControl {
-    const TYPE_ID: i32 = UIA_TextControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TextControlTypeId;
 }
 
 impl TryFrom<UIElement> for TextControl {
@@ -1601,7 +1601,7 @@ pub struct ThumbControl {
 }
 
 impl Control for ThumbControl {
-    const TYPE_ID: i32 = UIA_ThumbControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ThumbControlTypeId;
 }
 
 impl TryFrom<UIElement> for ThumbControl {
@@ -1648,7 +1648,7 @@ pub struct TitleBarControl {
 }
 
 impl Control for TitleBarControl {
-    const TYPE_ID: i32 = UIA_TitleBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TitleBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for TitleBarControl {
@@ -1695,7 +1695,7 @@ pub struct ToolBarControl {
 }
 
 impl Control for ToolBarControl {
-    const TYPE_ID: i32 = UIA_ToolBarControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ToolBarControlTypeId;
 }
 
 impl TryFrom<UIElement> for ToolBarControl {
@@ -1742,7 +1742,7 @@ pub struct ToolTipControl {
 }
 
 impl Control for ToolTipControl {
-    const TYPE_ID: i32 = UIA_ToolTipControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_ToolTipControlTypeId;
 }
 
 impl TryFrom<UIElement> for ToolTipControl {
@@ -1789,7 +1789,7 @@ pub struct TreeControl {
 }
 
 impl Control for TreeControl {
-    const TYPE_ID: i32 = UIA_TreeControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TreeControlTypeId;
 }
 
 impl TryFrom<UIElement> for TreeControl {
@@ -1836,7 +1836,7 @@ pub struct TreeItemControl {
 }
 
 impl Control for TreeItemControl {
-    const TYPE_ID: i32 = UIA_TreeItemControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_TreeItemControlTypeId;
 }
 
 impl TryFrom<UIElement> for TreeItemControl {
@@ -1894,7 +1894,7 @@ impl WindowControl {
 }
 
 impl Control for WindowControl {
-    const TYPE_ID: i32 = UIA_WindowControlTypeId;
+    const TYPE_ID: UIA_CONTROLTYPE_ID = UIA_WindowControlTypeId;
 }
 
 impl TryFrom<UIElement> for WindowControl {
