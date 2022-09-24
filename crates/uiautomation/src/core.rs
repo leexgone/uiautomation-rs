@@ -1,12 +1,10 @@
 use std::fmt::Debug;
 use std::fmt::Display;
-use std::ptr::null_mut;
 use std::thread::sleep;
 use std::time::Duration;
 
 use chrono::Local;
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::Foundation::BSTR;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -27,6 +25,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::Win32::UI::Accessibility::OrientationType;
 use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
+use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
+use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 use windows::core::InParam;
 use windows::core::Interface;
 
@@ -61,7 +61,7 @@ impl UIAutomation {
     /// Creates a uiautomation client instance. 
     pub fn new() -> Result<UIAutomation> {
         let automation: IUIAutomation = unsafe {
-            CoInitializeEx(null_mut(), COINIT_MULTITHREADED)?;
+            CoInitializeEx(None, COINIT_MULTITHREADED)?;
             CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?
         };
 
@@ -320,10 +320,9 @@ impl UIElement {
 
     /// Retrieves the name of the element.
     pub fn get_name(&self) -> Result<String> {
-        let name: BSTR;
-        unsafe {
-            name = self.element.CurrentName()?;
-        }
+        let name = unsafe {
+            self.element.CurrentName()?
+        };
 
         Ok(name.to_string())
     }
@@ -348,21 +347,20 @@ impl UIElement {
 
     /// Retrieves the class name of the element.
    pub fn get_classname(&self) -> Result<String> {
-        let classname: BSTR;
-        unsafe {
-            classname = self.element.CurrentClassName()?;
-        }
+        let classname = unsafe {
+            self.element.CurrentClassName()?
+        };
 
         Ok(classname.to_string())
     }
 
     /// Retrieves the control type of the element.
-    pub fn get_control_type(&self) -> Result<i32> {
+    pub fn get_control_type(&self) -> Result<UIA_CONTROLTYPE_ID> {
         let control_type = unsafe {
             self.element.CurrentControlType()?
         };
         
-        Ok(control_type)
+        Ok(UIA_CONTROLTYPE_ID(control_type as u32))
     }
 
     /// Retrieves a localized description of the control type of the element.
@@ -607,7 +605,7 @@ impl UIElement {
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     pub fn get_pattern<T: UIPattern>(&self) -> Result<T> {
         let pattern = unsafe {
-            self.element.GetCurrentPattern(T::pattern_id())?
+            self.element.GetCurrentPattern(T::pattern_id().0 as _)?
         };
 
         T::new(pattern)
@@ -629,9 +627,9 @@ impl UIElement {
     }
 
     /// Retrieves the current value of a property for this UI Automation element.
-    pub fn get_property_value(&self, property_id: i32) -> Result<Variant> {
+    pub fn get_property_value(&self, property_id: UIA_PROPERTY_ID) -> Result<Variant> {
         let value = unsafe {
-            self.element.GetCurrentPropertyValue(property_id)?
+            self.element.GetCurrentPropertyValue(property_id.0 as _)?
         };
 
         Ok(value.into())
@@ -1051,7 +1049,7 @@ impl UIMatcher {
     }
 
     /// Filters by control type.
-    pub fn control_type(self, control_type: i32) -> Self {
+    pub fn control_type(self, control_type: UIA_CONTROLTYPE_ID) -> Self {
         let condition = ControlTypeFilter {
             control_type
         };
@@ -1638,7 +1636,7 @@ mod tests {
 
     fn print_element(element: &UIElement) {
         println!("Name: {}", element.get_name().unwrap());
-        println!("ControlType: {}", element.get_control_type().unwrap());
+        println!("ControlType: {:?}", element.get_control_type().unwrap());
         println!("LocalizedControlType: {}", element.get_localized_control_type().unwrap());
         println!("BoundingRectangle: {}", element.get_bounding_rectangle().unwrap());
         println!("IsEnabled: {}", element.is_enabled().unwrap());

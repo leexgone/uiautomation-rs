@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
+
 use super::core::UIElement;
 use super::errors::Result;
 
@@ -99,7 +101,7 @@ impl MatcherFilter for ClassNameFilter {
 
 #[derive(Debug, Default)]
 pub struct ControlTypeFilter {
-    pub control_type: i32
+    pub control_type: UIA_CONTROLTYPE_ID
 }
 
 impl MatcherFilter for ControlTypeFilter {

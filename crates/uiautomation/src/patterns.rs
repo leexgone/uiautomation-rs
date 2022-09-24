@@ -1,7 +1,7 @@
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::Foundation::BSTR;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::UI::Accessibility::*;
+use windows::core::BSTR;
 use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
@@ -16,7 +16,7 @@ use super::variants::SafeArray;
 use super::variants::Variant;
 
 pub trait UIPattern : Sized {
-    fn pattern_id() -> i32;
+    fn pattern_id() -> UIA_PATTERN_ID;
     fn new(pattern: IUnknown) -> Result<Self>;
 }
 
@@ -35,7 +35,7 @@ impl UIInvokePattern {
 }
 
 impl UIPattern for UIInvokePattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_InvokePatternId
     }
 
@@ -118,7 +118,7 @@ impl UIAnnotationPattern {
 }
 
 impl UIPattern for UIAnnotationPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_AnnotationPatternId
     }
 
@@ -173,7 +173,7 @@ impl UICustomNavigationPattern {
 }
 
 impl UIPattern for UICustomNavigationPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_CustomNavigationPatternId
     }
 
@@ -235,7 +235,7 @@ impl UIDockPattern {
 }
 
 impl UIPattern for UIDockPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_DockPatternId
     }
 
@@ -327,7 +327,7 @@ impl UIDragPattern {
 }
 
 impl UIPattern for UIDragPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_DragPatternId
     }
 
@@ -391,7 +391,7 @@ impl UIDropTargetPattern {
 }
 
 impl UIPattern for UIDropTargetPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_DropTargetPatternId
     }
 
@@ -457,7 +457,7 @@ impl UIExpandCollapsePattern {
 }
 
 impl UIPattern for UIExpandCollapsePattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_ExpandCollapsePatternId
     }
 
@@ -524,7 +524,7 @@ impl UIGridPattern {
 }
 
 impl UIPattern for UIGridPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_GridPatternId
     }
 
@@ -603,7 +603,7 @@ impl UIGridItemPattern {
 }
 
 impl UIPattern for UIGridItemPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_GridItemPatternId
     }
 
@@ -661,7 +661,7 @@ impl UIItemContainerPattern {
 }
 
 impl UIPattern for UIItemContainerPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_ItemContainerPatternId
     }
 
@@ -737,7 +737,7 @@ impl UIMultipleViewPattern {
 }
 
 impl UIPattern for UIMultipleViewPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_MultipleViewPatternId
     }
 
@@ -828,7 +828,7 @@ impl UIRangeValuePattern {
 }
 
 impl UIPattern for UIRangeValuePattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_RangeValuePatternId
     }
 
@@ -926,7 +926,7 @@ impl UIScrollPattern {
 }
 
 impl UIPattern for UIScrollPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_ScrollPatternId
     }
 
@@ -980,7 +980,7 @@ impl UIScrollItemPattern {
 }
 
 impl UIPattern for UIScrollItemPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_ScrollItemPatternId
     }
 
@@ -1075,7 +1075,7 @@ impl UISelectionPattern {
 }
 
 impl UIPattern for UISelectionPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_SelectionPatternId
     }
 
@@ -1155,7 +1155,7 @@ impl UISelectionItemPattern {
 }
 
 impl UIPattern for UISelectionItemPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_SelectionItemPatternId
     }
 
@@ -1204,14 +1204,14 @@ impl UISpreadsheetPattern {
     pub fn get_item_by_name(&self, name: &str) -> Result<UIElement> {
         let name = BSTR::from(name);
         let item = unsafe {
-            self.pattern.GetItemByName(InParam::owned(name))?
+            self.pattern.GetItemByName(&name)?
         };
         Ok(item.into())
     }
 }
 
 impl UIPattern for UISpreadsheetPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_SpreadsheetPatternId
     }
 
@@ -1283,7 +1283,7 @@ impl UISpreadsheetItemPattern {
 }
 
 impl UIPattern for UISpreadsheetItemPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_SpreadsheetItemPatternId
     }
 
@@ -1377,7 +1377,7 @@ impl UIStylesPattern {
 }
 
 impl UIPattern for UIStylesPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_StylesPatternId
     }
 
@@ -1437,7 +1437,7 @@ impl UISynchronizedInputPattern {
 }
 
 impl UIPattern for UISynchronizedInputPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_SynchronizedInputPatternId
     }
 
@@ -1507,7 +1507,7 @@ impl UITablePattern {
 }
 
 impl UIPattern for UITablePattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TablePatternId
     }
 
@@ -1571,7 +1571,7 @@ impl UITableItemPattern {
 }
 
 impl UIPattern for UITableItemPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TableItemPatternId
     }
 
@@ -1635,7 +1635,7 @@ impl UITextChildPattern {
 }
 
 impl UIPattern for UITextChildPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TextChildPatternId
     }
 
@@ -1754,7 +1754,7 @@ impl UITextPattern {
 }
 
 impl UIPattern for UITextPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TextPatternId
     }
 
@@ -1821,7 +1821,7 @@ impl UITextEditPattern {
 }
 
 impl UIPattern for UITextEditPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TextEditPatternId
     }
 
@@ -1906,7 +1906,7 @@ impl UITextRange {
     pub fn find_text(&self, text: &str, backward: bool, ignorecase: bool) -> Result<UITextRange> {
         let text: BSTR = text.into();
         let range = unsafe {
-            self.range.FindText(InParam::owned(text), backward, ignorecase)?
+            self.range.FindText(&text, backward, ignorecase)?
         };
         Ok(range.into())
     }
@@ -2045,7 +2045,7 @@ impl UITogglePattern {
 }
 
 impl UIPattern for UITogglePattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TogglePatternId
     }
 
@@ -2176,7 +2176,7 @@ impl UITransformPattern {
 }
 
 impl UIPattern for UITransformPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_TransformPatternId
     }
 
@@ -2224,8 +2224,9 @@ pub struct UIValuePattern {
 
 impl UIValuePattern {
     pub fn set_value(&self, value: &str) -> Result<()> {
+        let value = BSTR::from(value);
         Ok(unsafe {
-            self.pattern.SetValue(InParam::owned(BSTR::from(value)))?
+            self.pattern.SetValue(&value)?
         })
     }
 
@@ -2245,7 +2246,7 @@ impl UIValuePattern {
 }
 
 impl UIPattern for UIValuePattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_ValuePatternId
     }
 
@@ -2300,7 +2301,7 @@ impl UIVirtualizedItemPattern {
 }
 
 impl UIPattern for UIVirtualizedItemPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_VirtualizedItemPatternId
     }
 
@@ -2408,7 +2409,7 @@ impl UIWindowPattern {
 }
 
 impl UIPattern for UIWindowPattern {
-    fn pattern_id() -> i32 {
+    fn pattern_id() -> UIA_PATTERN_ID {
         UIA_WindowPatternId
     }
 

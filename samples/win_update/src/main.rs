@@ -3,12 +3,11 @@ use uiautomation::actions::Invoke;
 use uiautomation::actions::SelectionItem;
 use uiautomation::actions::Toggle;
 use uiautomation::controls::ButtonControl;
+use uiautomation::controls::Control;
 use uiautomation::controls::ListItemControl;
+use uiautomation::controls::PaneControl;
+use uiautomation::controls::ToolBarControl;
 use uiautomation::controls::WindowControl;
-use windows::Win32::UI::Accessibility::UIA_ButtonControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_ListItemControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
-use windows::Win32::UI::Accessibility::UIA_ToolBarControlTypeId;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
@@ -35,26 +34,26 @@ fn main() {
     window.set_foregrand().unwrap();
     settings.set_focus().unwrap();
 
-    let matcher = automation.create_matcher().from(settings.clone()).match_name("Windows 更新").control_type(UIA_ListItemControlTypeId);
+    let matcher = automation.create_matcher().from(settings.clone()).match_name("Windows 更新").control_type(ListItemControl::TYPE_ID);
     let update = matcher.find_first().unwrap();
     // println!("{}", update.get_control_type().unwrap());
     let update_item: ListItemControl = update.try_into().unwrap();
     update_item.select().unwrap();
 
-    let matcher = automation.create_matcher().from(settings.clone()).match_name("检查更新").control_type(UIA_ButtonControlTypeId);
+    let matcher = automation.create_matcher().from(settings.clone()).match_name("检查更新").control_type(ButtonControl::TYPE_ID);
     let update = matcher.find_first().unwrap();
     if update.is_enabled().unwrap() {
         let button: ButtonControl = update.try_into().unwrap();
         button.invoke().unwrap();
     }
 
-    if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(UIA_ToolBarControlTypeId).find_first() { // Win10
-        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(UIA_ButtonControlTypeId);
+    if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE_ID).find_first() { // Win10
+        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE_ID);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click().unwrap();
         }
-    } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(UIA_PaneControlTypeId).find_first() {       // Win11
-        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(UIA_ButtonControlTypeId);
+    } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(PaneControl::TYPE_ID).find_first() {       // Win11
+        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE_ID);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click().unwrap();
         }
