@@ -36,7 +36,7 @@ impl TryFrom<Handle> for Canvas {
         if !hdc.is_invalid() {
             Ok(Canvas {
                 origin: HDCOrigin::GotFrom(wnd_handle),
-                hdc: hdc
+                hdc
             })
         } else {
             Err(Error::new(ERR_INVALID_OBJECT, "Invalid dc object"))
