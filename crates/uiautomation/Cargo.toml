@@ -23,7 +23,7 @@ uiautomation_derive = { version = "0.0.9", path = "../uiautomation_derive" }
 # uiautomation_derive = "0.0.5"
 
 [dependencies.windows]
-version = "0.41.0"
+version = "0.42.0"
 features = [
     # "alloc",
     "Win32_Foundation",
