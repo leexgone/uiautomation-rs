@@ -146,3 +146,8 @@ impl Drop for Canvas {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+}
