@@ -17,3 +17,7 @@
 
 + update to `windows-rs v0.41.0`
 + refator `UIPattern` trait
+
+## v0.2.1
+
++ update to `windows-rs v0.43.0`
