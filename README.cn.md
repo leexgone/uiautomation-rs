@@ -8,7 +8,7 @@
 
 ``` toml
 [dependencies]
-uiautomation = "0.2.0"
+uiautomation = "0.2.1"
 ```
 
 你可以直接使用封装好的API进行操作。
