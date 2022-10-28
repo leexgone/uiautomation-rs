@@ -4,8 +4,10 @@ use windows::Win32::Graphics::Gdi::BitBlt;
 use windows::Win32::Graphics::Gdi::CreateCompatibleDC;
 use windows::Win32::Graphics::Gdi::CreatedHDC;
 use windows::Win32::Graphics::Gdi::DeleteDC;
+use windows::Win32::Graphics::Gdi::DeleteObject;
 use windows::Win32::Graphics::Gdi::GetDC;
 use windows::Win32::Graphics::Gdi::GetStretchBltMode;
+use windows::Win32::Graphics::Gdi::HBITMAP;
 use windows::Win32::Graphics::Gdi::HDC;
 use windows::Win32::Graphics::Gdi::ROP_CODE;
 use windows::Win32::Graphics::Gdi::ReleaseDC;
@@ -147,7 +149,28 @@ impl Drop for Canvas {
     }
 }
 
+pub struct Bitmap {
+    bitmap: HBITMAP
+}
+
+impl Drop for Bitmap {
+    fn drop(&mut self) {
+        unsafe {
+            DeleteObject(self.bitmap);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::types::Handle;
 
+    use super::Canvas;
+
+    #[test]
+    fn snap_screen() {
+        let screen_canvas = Canvas::try_from(Handle::default()).unwrap();
+        let mem_canvas = screen_canvas.create_compatible_canvas().unwrap();
+
+    }
 }
