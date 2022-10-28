@@ -145,6 +145,16 @@ impl Rect {
     pub fn get_right_bottom(&self) -> Point {
         Point::new(self.get_right(), self.get_bottom())
     }
+
+    /// Retrieves the width of the rect.
+    pub fn get_width(&self) -> i32 {
+        self.0.right - self.0.left + 1
+    }
+
+    /// Retrieves the height of the rect.
+    pub fn get_height(&self) -> i32 {
+        self.0.bottom - self.0.top + 1
+    }
 }
 
 impl Debug for Rect {
