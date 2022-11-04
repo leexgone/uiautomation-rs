@@ -21,3 +21,7 @@
 ## v0.2.1
 
 + update to `windows-rs v0.43.0`
+
+## v0.3.0
+
++ redefine some automation types
