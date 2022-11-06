@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 
+use uiautomation_derive::EnumConvert;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
-use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -235,8 +235,8 @@ impl AsRef<HWND> for Handle {
 }
 
 /// Defines enum for `UIA_PROPERTY_ID`
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
 pub enum UIProperty {
     RuntimeId = 30000u32,
     BoundingRectangle = 30001u32,
@@ -415,8 +415,43 @@ pub enum UIProperty {
     IsDialog = 30174u32,
 }
 
-// impl From<UIA_PROPERTY_ID> for UIProperty {
-//     fn from(prop_id: UIA_PROPERTY_ID) -> Self {
-//         prop_id.0 as _
-//     }
-// }
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum WindowInteractionState {
+    Running = 0i32, 
+    Closing = 1i32,
+    ReadyForUserInteraction = 2i32,
+    BlockedByModalWindow = 3i32,
+    NotResponding = 4i32
+}
+
+impl From<windows::Win32::UI::Accessibility::WindowInteractionState> for WindowInteractionState {
+    fn from(state: windows::Win32::UI::Accessibility::WindowInteractionState) -> Self {
+        state.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::WindowInteractionState> for WindowInteractionState {
+    fn into(self) -> windows::Win32::UI::Accessibility::WindowInteractionState {
+        windows::Win32::UI::Accessibility::WindowInteractionState(self as i32)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use windows::Win32::UI::Accessibility;
+
+    use super::WindowInteractionState;
+
+    #[test]
+    fn test_window_interaction_state() {
+        assert_eq!(Ok(WindowInteractionState::Running), WindowInteractionState::try_from(0));
+        assert_eq!(Ok(WindowInteractionState::NotResponding), WindowInteractionState::try_from(4));
+        assert!(WindowInteractionState::try_from(100).is_err());
+        
+        assert_eq!(1i32, WindowInteractionState::Closing as i32);
+
+        assert_eq!(Accessibility::WindowInteractionState_ReadyForUserInteraction, WindowInteractionState::ReadyForUserInteraction.into());
+        assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.into());
+    }
+}

@@ -284,7 +284,7 @@ pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.get_state()
             }
         }
-            };
+    };
     gen.into()
 }
 

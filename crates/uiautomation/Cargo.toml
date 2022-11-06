@@ -19,7 +19,8 @@ targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows
 
 chrono = "0.4.22"
 phf = { version = "0.11.1", features = ["macros"] }
-uiautomation_derive = { version = "0.0.9", path = "../uiautomation_derive" }
+# enum-repr = "0.2.6"
+uiautomation_derive = { version = "0.1.0", path = "../uiautomation_derive" }
 # uiautomation_derive = "0.0.5"
 
 [dependencies.windows]
