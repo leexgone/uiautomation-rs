@@ -1,7 +1,15 @@
-use windows::Win32::UI::Accessibility::*;
+use windows::Win32::UI::Accessibility::DockPosition;
+use windows::Win32::UI::Accessibility::ExpandCollapseState;
+use windows::Win32::UI::Accessibility::NavigateDirection;
+use windows::Win32::UI::Accessibility::RowOrColumnMajor;
+use windows::Win32::UI::Accessibility::ScrollAmount;
+use windows::Win32::UI::Accessibility::SupportedTextSelection;
+use windows::Win32::UI::Accessibility::ToggleState;
+use windows::Win32::UI::Accessibility::ZoomUnit;
 
 use crate::patterns::UITextRange;
 use crate::types::Point;
+use crate::types::WindowInteractionState;
 
 use super::Result;
 use super::UIElement;

@@ -576,10 +576,15 @@ pub enum UIProperty {
     Rotation = 30166u32,
     /// Identifies the Size property, which specifies the width and height of the automation element.
     Size = 30167u32,
+    /// Identifies whether the Selection2 control pattern is available.
     IsSelectionPattern2Available = 30168u32,
+    /// Identifies the FirstSelectedItem property of the Selection2 control pattern.
     Selection2FirstSelectedItem = 30169u32,
+    /// Identifies the LastSelectedItem property of the Selection2 control pattern.
     Selection2LastSelectedItem = 30170u32,
+    /// Identifies the CurrentSelectedItem property of the Selection2 control pattern.
     Selection2CurrentSelectedItem = 30171u32,
+    /// Identifies the ItemCount property of the Selection2 control pattern.
     Selection2ItemCount = 30172u32,
     /// Identifies the HeadingLevel property, which indicates the heading level of a UI Automation element.
     HeadingLevel = 30173u32,

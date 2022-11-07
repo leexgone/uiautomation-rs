@@ -13,7 +13,7 @@ use super::patterns::*;
 
 macro_rules! as_control {
     ($control: ident) => {
-        if $control.get_control_type()? == Self::TYPE_ID { //$type_id {
+        if $control.get_control_type()? == Self::TYPE_ID { 
             Ok(Self {
                 control: $control
             })

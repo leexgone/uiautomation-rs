@@ -165,7 +165,7 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.is_topmost()
             }
         
-            fn get_window_interaction_state(&self) -> Result<windows::Win32::UI::Accessibility::WindowInteractionState> {
+            fn get_window_interaction_state(&self) -> Result<crate::types::WindowInteractionState> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
                 pattern.get_window_interaction_state()
             }

@@ -7,6 +7,7 @@ use windows::core::InParam;
 use windows::core::Interface;
 
 use crate::types::Point;
+use crate::types::WindowInteractionState;
 
 use super::core::UIElement;
 use super::errors::ERR_NOTFOUND;
@@ -2435,9 +2436,11 @@ impl UIWindowPattern {
     }
 
     pub fn get_window_interaction_state(&self) -> Result<WindowInteractionState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentWindowInteractionState()?
-        })
+        };
+
+        Ok(state.into())
     }
 }
 

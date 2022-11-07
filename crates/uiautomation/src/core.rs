@@ -26,13 +26,13 @@ use windows::Win32::UI::Accessibility::OrientationType;
 use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
 use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
-use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
+use crate::types::UIProperty;
 use crate::variants::SafeArray;
 
 use super::filters::ClassNameFilter;
@@ -629,9 +629,9 @@ impl UIElement {
     }
 
     /// Retrieves the current value of a property for this UI Automation element.
-    pub fn get_property_value(&self, property_id: UIA_PROPERTY_ID) -> Result<Variant> {
+    pub fn get_property_value(&self, property: UIProperty) -> Result<Variant> {
         let value = unsafe {
-            self.element.GetCurrentPropertyValue(property_id.0 as _)?
+            self.element.GetCurrentPropertyValue(property as _)?
         };
 
         Ok(value.into())
