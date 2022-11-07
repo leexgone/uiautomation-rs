@@ -724,6 +724,32 @@ impl Into<windows::Win32::UI::Accessibility::NavigateDirection> for NavigateDire
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::RowOrColumnMajor`.
+/// 
+/// Contains values that specify whether data in a table should be read primarily by row or by column.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum RowOrColumnMajor {
+    /// Data in the table should be read row by row.
+    RowMajor = 0i32,
+    /// Data in the table should be read column by column.
+    ColumnMajor = 1i32,
+    /// The best way to present the data is indeterminate.
+    Indeterminate = 2i32
+}
+
+impl From<windows::Win32::UI::Accessibility::RowOrColumnMajor> for RowOrColumnMajor {
+    fn from(value: windows::Win32::UI::Accessibility::RowOrColumnMajor) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::RowOrColumnMajor> for RowOrColumnMajor {
+    fn into(self) -> windows::Win32::UI::Accessibility::RowOrColumnMajor {
+        windows::Win32::UI::Accessibility::RowOrColumnMajor(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

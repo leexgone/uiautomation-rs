@@ -343,7 +343,7 @@ pub(crate) fn impl_table(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.get_column_headers()
             }
         
-            fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
+            fn get_row_or_column_major(&self) -> Result<super::types::RowOrColumnMajor> {
                 let pattern: UITablePattern = self.as_ref().get_pattern()?;
                 pattern.get_row_or_column_major()
             }

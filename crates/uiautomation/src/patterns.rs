@@ -36,7 +36,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
-use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
@@ -85,6 +84,7 @@ use crate::types::DockPosition;
 use crate::types::ExpandCollapseState;
 use crate::types::NavigateDirection;
 use crate::types::Point;
+use crate::types::RowOrColumnMajor;
 use crate::types::WindowInteractionState;
 
 use super::core::UIElement;
@@ -1461,9 +1461,10 @@ impl UITablePattern {
     }
 
     pub fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
-        Ok(unsafe {
+        let major = unsafe {
             self.pattern.CurrentRowOrColumnMajor()?
-        })
+        };
+        Ok(major.into())
     }
 }
 
