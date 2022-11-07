@@ -36,7 +36,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
-use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
 use windows::Win32::UI::Accessibility::TextUnit;
@@ -85,6 +84,7 @@ use crate::types::NavigateDirection;
 use crate::types::Point;
 use crate::types::RowOrColumnMajor;
 use crate::types::ScrollAmount;
+use crate::types::SupportedTextSelection;
 use crate::types::WindowInteractionState;
 
 use super::core::UIElement;
@@ -1667,9 +1667,10 @@ impl UITextPattern {
     }
 
     pub fn get_supported_text_selection(&self) -> Result<SupportedTextSelection> {
-        Ok(unsafe {
+        let selection = unsafe {
             self.pattern.SupportedTextSelection()?
-        })
+        };
+        Ok(selection.into())
     }
 
     pub fn get_range_from_annotation(&self, annotation: &UIElement) -> Result<UITextRange> {

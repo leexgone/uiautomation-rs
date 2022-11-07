@@ -782,6 +782,32 @@ impl Into<windows::Win32::UI::Accessibility::ScrollAmount> for ScrollAmount {
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::SupportedTextSelection`.
+/// 
+/// Contains values that specify the supported text selection attribute.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum SupportedTextSelection {
+    /// Does not support text selections.
+    None = 0i32,
+    /// Supports a single, continuous text selection.
+    Single = 1i32,
+    /// Supports multiple, disjoint text selections.
+    Multiple = 2i32,
+}
+
+impl From<windows::Win32::UI::Accessibility::SupportedTextSelection> for SupportedTextSelection {
+    fn from(value: windows::Win32::UI::Accessibility::SupportedTextSelection) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::SupportedTextSelection> for SupportedTextSelection {
+    fn into(self) -> windows::Win32::UI::Accessibility::SupportedTextSelection {
+        windows::Win32::UI::Accessibility::SupportedTextSelection(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

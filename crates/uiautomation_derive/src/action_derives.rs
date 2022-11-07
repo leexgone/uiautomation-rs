@@ -536,7 +536,7 @@ pub(crate) fn impl_text(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.get_document_range()
             }
         
-            fn get_supported_text_selection(&self) -> Result<SupportedTextSelection> {
+            fn get_supported_text_selection(&self) -> Result<super::types::SupportedTextSelection> {
                 let pattern: UITextPattern = self.as_ref().get_pattern()?;
                 pattern.get_supported_text_selection()
             }
