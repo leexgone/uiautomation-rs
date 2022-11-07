@@ -694,6 +694,36 @@ impl Into<windows::Win32::UI::Accessibility::ExpandCollapseState> for ExpandColl
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::NavigateDirection`.
+/// 
+/// Contains values used to specify the direction of navigation within the Microsoft UI Automation tree.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum NavigateDirection {
+    /// The navigation direction is to the parent.
+    Parent = 0i32,
+    /// The navigation direction is to the next sibling.
+    NextSibling = 1i32,
+    /// The navigation direction is to the previous sibling.
+    PreviousSibling = 2i32,
+    /// The navigation direction is to the first child.
+    FirstChild = 3i32,
+    /// The navigation direction is to the last child.
+    LastChild = 4i32
+}
+
+impl From<windows::Win32::UI::Accessibility::NavigateDirection> for NavigateDirection {
+    fn from(value: windows::Win32::UI::Accessibility::NavigateDirection) -> Self {
+        value.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::NavigateDirection> for NavigateDirection {
+    fn into(self) -> windows::Win32::UI::Accessibility::NavigateDirection {
+        windows::Win32::UI::Accessibility::NavigateDirection(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

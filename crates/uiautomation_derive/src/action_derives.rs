@@ -447,7 +447,7 @@ pub(crate) fn impl_custom_navigation(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl CustomNavigation for #name {
-            fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
+            fn navigate(&self, direction: super::types::NavigateDirection) -> Result<UIElement> {
                 let pattern: UICustomNavigationPattern = self.as_ref().get_pattern()?;
                 pattern.navigate(direction)
             }

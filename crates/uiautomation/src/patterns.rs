@@ -36,7 +36,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
-use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::SupportedTextSelection;
@@ -84,6 +83,7 @@ use windows::core::Interface;
 
 use crate::types::DockPosition;
 use crate::types::ExpandCollapseState;
+use crate::types::NavigateDirection;
 use crate::types::Point;
 use crate::types::WindowInteractionState;
 
@@ -234,7 +234,7 @@ pub struct UICustomNavigationPattern {
 impl UICustomNavigationPattern {
     pub fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
         let element = unsafe {
-            self.pattern.Navigate(direction)?
+            self.pattern.Navigate(direction.into())?
         };
         Ok(element.into())
     }

@@ -1,4 +1,3 @@
-use windows::Win32::UI::Accessibility::NavigateDirection;
 use windows::Win32::UI::Accessibility::RowOrColumnMajor;
 use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::SupportedTextSelection;
@@ -10,6 +9,7 @@ use crate::UIElement;
 use crate::patterns::UITextRange;
 use crate::types::DockPosition;
 use crate::types::ExpandCollapseState;
+use crate::types::NavigateDirection;
 use crate::types::Point;
 use crate::types::WindowInteractionState;
 use crate::variants::Variant;
