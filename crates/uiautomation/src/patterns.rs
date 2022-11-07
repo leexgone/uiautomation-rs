@@ -39,7 +39,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
 use windows::Win32::UI::Accessibility::TextUnit;
-use windows::Win32::UI::Accessibility::ToggleState;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -85,6 +84,7 @@ use crate::types::Point;
 use crate::types::RowOrColumnMajor;
 use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
+use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
 
 use super::core::UIElement;
@@ -1965,9 +1965,10 @@ pub struct UITogglePattern {
 
 impl UITogglePattern {
     pub fn get_toggle_state(&self) -> Result<ToggleState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentToggleState()?
-        })
+        };
+        Ok(state.into())
     }
 
     pub fn toggle(&self) -> Result<()> {

@@ -292,7 +292,7 @@ pub(crate) fn impl_toggle(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Toggle for #name {
-            fn get_toggle_state(&self) -> Result<ToggleState> {
+            fn get_toggle_state(&self) -> Result<super::types::ToggleState> {
                 let pattern: UITogglePattern = self.as_ref().get_pattern()?;
                 pattern.get_toggle_state()
             }

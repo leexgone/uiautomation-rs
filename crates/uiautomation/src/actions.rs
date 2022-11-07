@@ -1,4 +1,3 @@
-use windows::Win32::UI::Accessibility::ToggleState;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 
 use crate::Result;
@@ -11,6 +10,7 @@ use crate::types::Point;
 use crate::types::RowOrColumnMajor;
 use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
+use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
 use crate::variants::Variant;
 
