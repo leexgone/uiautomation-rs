@@ -115,14 +115,6 @@ impl UIInvokePattern {
 }
 
 impl UIPattern for UIInvokePattern {
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_InvokePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIInvokePattern::try_from(pattern)
-    // }
-
     const PATTERN_ID: UIA_PATTERN_ID = UIA_InvokePatternId;
 }
 
@@ -201,13 +193,6 @@ impl UIAnnotationPattern {
 
 impl UIPattern for UIAnnotationPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_AnnotationPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_AnnotationPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIAnnotationPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIAnnotationPattern {
@@ -257,14 +242,6 @@ impl UICustomNavigationPattern {
 
 impl UIPattern for UICustomNavigationPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_CustomNavigationPatternId;
-    
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_CustomNavigationPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UICustomNavigationPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UICustomNavigationPattern {
@@ -321,14 +298,6 @@ impl UIDockPattern {
 
 impl UIPattern for UIDockPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_DockPatternId;
-
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_DockPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIDockPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIDockPattern {
@@ -415,13 +384,6 @@ impl UIDragPattern {
 
 impl UIPattern for UIDragPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_DragPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_DragPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIDragPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIDragPattern {
@@ -480,13 +442,6 @@ impl UIDropTargetPattern {
 
 impl UIPattern for UIDropTargetPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_DropTargetPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_DropTargetPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIDropTargetPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIDropTargetPattern {
@@ -548,13 +503,6 @@ impl UIExpandCollapsePattern {
 
 impl UIPattern for UIExpandCollapsePattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_ExpandCollapsePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ExpandCollapsePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIExpandCollapsePattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIExpandCollapsePattern {
@@ -616,13 +564,6 @@ impl UIGridPattern {
 
 impl UIPattern for UIGridPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_GridPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_GridPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIGridPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIGridPattern {
@@ -696,13 +637,6 @@ impl UIGridItemPattern {
 
 impl UIPattern for UIGridItemPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_GridItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_GridItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIGridItemPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIGridItemPattern {
@@ -755,13 +689,6 @@ impl UIItemContainerPattern {
 
 impl UIPattern for UIItemContainerPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_ItemContainerPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ItemContainerPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIItemContainerPattern {
@@ -832,13 +759,6 @@ impl UIMultipleViewPattern {
 
 impl UIPattern for UIMultipleViewPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_MultipleViewPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_MultipleViewPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIMultipleViewPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIMultipleViewPattern {
@@ -924,13 +844,6 @@ impl UIRangeValuePattern {
 
 impl UIPattern for UIRangeValuePattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_RangeValuePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_RangeValuePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIRangeValuePattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIRangeValuePattern {
@@ -1023,13 +936,6 @@ impl UIScrollPattern {
 
 impl UIPattern for UIScrollPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_ScrollPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ScrollPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIScrollPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIScrollPattern {
@@ -1078,13 +984,6 @@ impl UIScrollItemPattern {
 
 impl UIPattern for UIScrollItemPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_ScrollItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ScrollItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIScrollItemPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIScrollItemPattern {
@@ -1174,13 +1073,6 @@ impl UISelectionPattern {
 
 impl UIPattern for UISelectionPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_SelectionPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SelectionPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UISelectionPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UISelectionPattern {
@@ -1255,13 +1147,6 @@ impl UISelectionItemPattern {
 
 impl UIPattern for UISelectionItemPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_SelectionItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SelectionItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UISelectionItemPattern::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UISelectionItemPattern {
@@ -1312,13 +1197,6 @@ impl UISpreadsheetPattern {
 
 impl UIPattern for UISpreadsheetPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_SpreadsheetPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SpreadsheetPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UISpreadsheetPattern {
@@ -1385,13 +1263,6 @@ impl UISpreadsheetItemPattern {
 
 impl UIPattern for UISpreadsheetItemPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_SpreadsheetItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SpreadsheetItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UISpreadsheetItemPattern {
@@ -1480,13 +1351,6 @@ impl UIStylesPattern {
 
 impl UIPattern for UIStylesPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_StylesPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_StylesPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIStylesPattern {
@@ -1541,13 +1405,6 @@ impl UISynchronizedInputPattern {
 
 impl UIPattern for UISynchronizedInputPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_SynchronizedInputPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SynchronizedInputPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UISynchronizedInputPattern {
@@ -1612,13 +1469,6 @@ impl UITablePattern {
 
 impl UIPattern for UITablePattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TablePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TablePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITablePattern {
@@ -1677,13 +1527,6 @@ impl UITableItemPattern {
 
 impl UIPattern for UITableItemPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TableItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TableItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITableItemPattern {
@@ -1742,13 +1585,6 @@ impl UITextChildPattern {
 
 impl UIPattern for UITextChildPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TextChildPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TextChildPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITextChildPattern {
@@ -1862,13 +1698,6 @@ impl UITextPattern {
 
 impl UIPattern for UITextPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TextPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TextPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITextPattern {
@@ -1930,13 +1759,6 @@ impl UITextEditPattern {
 
 impl UIPattern for UITextEditPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TextEditPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TextEditPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITextEditPattern {
@@ -2155,13 +1977,6 @@ impl UITogglePattern {
 
 impl UIPattern for UITogglePattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TogglePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TogglePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITogglePattern {
@@ -2287,13 +2102,6 @@ impl UITransformPattern {
 
 impl UIPattern for UITransformPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_TransformPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TransformPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UITransformPattern {
@@ -2358,13 +2166,6 @@ impl UIValuePattern {
 
 impl UIPattern for UIValuePattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_ValuePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ValuePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIValuePattern {
@@ -2414,13 +2215,6 @@ impl UIVirtualizedItemPattern {
 
 impl UIPattern for UIVirtualizedItemPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_VirtualizedItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_VirtualizedItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIVirtualizedItemPattern {
@@ -2525,13 +2319,6 @@ impl UIWindowPattern {
 
 impl UIPattern for UIWindowPattern {
     const PATTERN_ID: UIA_PATTERN_ID = UIA_WindowPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_WindowPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
 }
 
 impl TryFrom<IUnknown> for UIWindowPattern {
