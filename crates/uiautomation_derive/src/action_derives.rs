@@ -356,7 +356,7 @@ pub(crate) fn impl_scroll(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Scroll for #name {
-            fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
+            fn scroll(&self, horizontal_amount: super::types::ScrollAmount, vertical_amount: super::types::ScrollAmount) -> Result<()> {
                 let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
                 pattern.scroll(horizontal_amount, vertical_amount)
             }

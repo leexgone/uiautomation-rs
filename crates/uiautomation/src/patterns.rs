@@ -36,7 +36,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
 use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
-use windows::Win32::UI::Accessibility::ScrollAmount;
 use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
@@ -85,6 +84,7 @@ use crate::types::ExpandCollapseState;
 use crate::types::NavigateDirection;
 use crate::types::Point;
 use crate::types::RowOrColumnMajor;
+use crate::types::ScrollAmount;
 use crate::types::WindowInteractionState;
 
 use super::core::UIElement;
@@ -885,7 +885,7 @@ pub struct UIScrollPattern {
 impl UIScrollPattern {
     pub fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
         Ok(unsafe {
-            self.pattern.Scroll(horizontal_amount, vertical_amount)?
+            self.pattern.Scroll(horizontal_amount.into(), vertical_amount.into())?
         })
     }
 

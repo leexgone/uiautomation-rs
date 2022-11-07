@@ -750,6 +750,38 @@ impl Into<windows::Win32::UI::Accessibility::RowOrColumnMajor> for RowOrColumnMa
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::ScrollAmount`.
+/// 
+/// Contains values that specify the direction and distance to scroll.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum ScrollAmount {
+    /// Scrolling is done in large decrements, equivalent to pressing the PAGE UP key or clicking on a blank part of a scroll bar. 
+    /// If one page up is not a relevant amount for the control and no scroll bar exists, the value represents an amount equal to the current visible window.
+    LargeDecrement = 0i32,
+    /// Scrolling is done in small decrements, equivalent to pressing an arrow key or clicking the arrow button on a scroll bar.
+    SmallDecrement = 1i32,
+    /// No scrolling is done.
+    NoAmount = 2i32,
+    /// Scrolling is done in large increments, equivalent to pressing the PAGE DOWN or PAGE UP key or clicking on a blank part of a scroll bar.
+    /// If one page is not a relevant amount for the control and no scroll bar exists, the value represents an amount equal to the current visible window.
+    LargeIncrement = 3i32,
+    /// Scrolling is done in small increments, equivalent to pressing an arrow key or clicking the arrow button on a scroll bar.
+    SmallIncrement = 4i32
+}
+
+impl From<windows::Win32::UI::Accessibility::ScrollAmount> for ScrollAmount {
+    fn from(value: windows::Win32::UI::Accessibility::ScrollAmount) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::ScrollAmount> for ScrollAmount {
+    fn into(self) -> windows::Win32::UI::Accessibility::ScrollAmount {
+        windows::Win32::UI::Accessibility::ScrollAmount(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;
