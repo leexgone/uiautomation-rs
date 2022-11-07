@@ -840,6 +840,36 @@ impl Into<windows::Win32::UI::Accessibility::ToggleState> for ToggleState {
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::ZoomUnit`.
+/// 
+/// Contains possible values for the IUIAutomationTransformPattern2::ZoomByUnit method, which zooms the viewport of a control by the specified unit.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum ZoomUnit {
+    /// No increase or decrease in zoom.
+    NoAmount = 0i32,
+    /// Decrease zoom by a large decrement.
+    LargeDecrement = 1i32,
+    /// Decrease zoom by a small decrement.
+    SmallDecrement = 2i32,
+    /// Increase zoom by a large increment.
+    LargeIncrement = 3i32,
+    /// Increase zoom by a small increment.
+    SmallIncrement = 4i32,
+}
+
+impl From<windows::Win32::UI::Accessibility::ZoomUnit> for ZoomUnit {
+    fn from(value: windows::Win32::UI::Accessibility::ZoomUnit) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::ZoomUnit> for ZoomUnit {
+    fn into(self) -> windows::Win32::UI::Accessibility::ZoomUnit {
+        windows::Win32::UI::Accessibility::ZoomUnit(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

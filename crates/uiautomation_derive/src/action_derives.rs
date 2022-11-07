@@ -233,7 +233,7 @@ pub(crate) fn impl_transform(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.zoom(zoom_value)
             }
         
-            fn zoom_by_unit(&self, zoom_unit: windows::Win32::UI::Accessibility::ZoomUnit) -> Result<()> {
+            fn zoom_by_unit(&self, zoom_unit: super::types::ZoomUnit) -> Result<()> {
                 let pattern: UITransformPattern = self.as_ref().get_pattern()?;
                 pattern.zoom_by_unit(zoom_unit)
             }

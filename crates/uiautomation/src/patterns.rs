@@ -71,7 +71,6 @@ use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
 use windows::Win32::UI::Accessibility::UIA_VirtualizedItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_WindowPatternId;
 use windows::Win32::UI::Accessibility::WindowVisualState;
-use windows::Win32::UI::Accessibility::ZoomUnit;
 use windows::core::BSTR;
 use windows::core::IUnknown;
 use windows::core::InParam;
@@ -86,6 +85,7 @@ use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
 use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
+use crate::types::ZoomUnit;
 
 use super::core::UIElement;
 use super::errors::ERR_NOTFOUND;
@@ -2098,7 +2098,7 @@ impl UITransformPattern {
     pub fn zoom_by_unit(&self, zoom_unit: ZoomUnit) -> Result<()> {
         let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
         Ok(unsafe {
-            pattern2.ZoomByUnit(zoom_unit)?
+            pattern2.ZoomByUnit(zoom_unit.into())?
         })
     }
 }

@@ -1,5 +1,3 @@
-use windows::Win32::UI::Accessibility::ZoomUnit;
-
 use crate::Result;
 use crate::UIElement;
 use crate::patterns::UITextRange;
@@ -12,6 +10,7 @@ use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
 use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
+use crate::types::ZoomUnit;
 use crate::variants::Variant;
 
 /// Define a Invoke action for uielement.
