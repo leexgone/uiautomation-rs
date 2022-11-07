@@ -634,6 +634,8 @@ impl Into<windows::Win32::UI::Accessibility::WindowInteractionState> for WindowI
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::DockPosition`.
+/// 
 /// Contains values that specify the dock position of an object, represented by a DockPattern, within a docking container.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -661,6 +663,34 @@ impl From<windows::Win32::UI::Accessibility::DockPosition> for DockPosition {
 impl Into<windows::Win32::UI::Accessibility::DockPosition> for DockPosition {
     fn into(self) -> windows::Win32::UI::Accessibility::DockPosition {
         windows::Win32::UI::Accessibility::DockPosition(self as _)
+    }
+}
+
+/// Defines enum for `windows::Win32::UI::Accessibility::ExpandCollapseState`.
+/// 
+/// Contains values that specify the ExpandCollapseState automation property value of a UI Automation element.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum ExpandCollapseState {
+    /// No child nodes, controls, or content of the UI Automation element are displayed.
+    Collapsed = 0i32,
+    /// All child nodes, controls, and content of the UI Automation element are displayed.
+    Expanded = 1i32,
+    /// Some, but not all, child nodes, controls, or content of the UI Automation element are displayed.
+    PartiallyExpanded = 2i32,
+    /// The UI Automation element has no child nodes, controls, or content to display.
+    LeafNode = 3i32
+}
+
+impl From<windows::Win32::UI::Accessibility::ExpandCollapseState> for ExpandCollapseState {
+    fn from(value: windows::Win32::UI::Accessibility::ExpandCollapseState) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::ExpandCollapseState> for ExpandCollapseState {
+    fn into(self) -> windows::Win32::UI::Accessibility::ExpandCollapseState {
+        windows::Win32::UI::Accessibility::ExpandCollapseState(self as _)
     }
 }
 

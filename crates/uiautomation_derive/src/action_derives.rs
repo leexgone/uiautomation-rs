@@ -279,7 +279,7 @@ pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.collapse()
             }
         
-            fn get_state(&self) -> Result<ExpandCollapseState> {
+            fn get_state(&self) -> Result<super::types::ExpandCollapseState> {
                 let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
                 pattern.get_state()
             }
