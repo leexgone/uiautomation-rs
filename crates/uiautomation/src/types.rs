@@ -634,6 +634,36 @@ impl Into<windows::Win32::UI::Accessibility::WindowInteractionState> for WindowI
     }
 }
 
+/// Contains values that specify the dock position of an object, represented by a DockPattern, within a docking container.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum DockPosition {
+    /// Indicates that the UI Automation element is docked along the top edge of the docking container.
+    Top = 0i32,
+    /// Indicates that the UI Automation element is docked along the left edge of the docking container.
+    Left = 1i32,
+    /// Indicates that the UI Automation element is docked along the bottom edge of the docking container.
+    Bottom = 2i32,
+    /// Indicates that the UI Automation element is docked along the right edge of the docking container.
+    Right = 3i32,
+    /// Indicates that the UI Automation element is docked along all edges of the docking container and fills all available space within the container.
+    Fill = 4i32,
+    /// Indicates that the UI Automation element is not docked to any edge of the docking container.
+    None = 5i32,
+}
+
+impl From<windows::Win32::UI::Accessibility::DockPosition> for DockPosition {
+    fn from(value: windows::Win32::UI::Accessibility::DockPosition) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::DockPosition> for DockPosition {
+    fn into(self) -> windows::Win32::UI::Accessibility::DockPosition {
+        windows::Win32::UI::Accessibility::DockPosition(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

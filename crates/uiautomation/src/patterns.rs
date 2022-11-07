@@ -6,6 +6,7 @@ use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
+use crate::types::DockPosition;
 use crate::types::Point;
 use crate::types::WindowInteractionState;
 
@@ -230,12 +231,12 @@ impl UIDockPattern {
         let pos = unsafe {
             self.pattern.CurrentDockPosition()?
         };
-        Ok(pos)
+        Ok(pos.into())
     }
 
     pub fn set_dock_position(&self, position: DockPosition) -> Result<()> {
         unsafe {
-            self.pattern.SetDockPosition(position)?
+            self.pattern.SetDockPosition(position.into())?
         };
         Ok(())
     }

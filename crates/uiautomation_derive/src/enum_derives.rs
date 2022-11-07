@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::Ident;
 use proc_macro2::TokenTree;
+use quote::format_ident;
 use quote::quote;
 use syn::Expr;
 use syn::ItemEnum;
@@ -11,20 +12,22 @@ const REPR_TYPES: &[&'static str] = &["u8", "u16", "u32", "u64", "usize", "i8", 
 pub(crate) fn impl_enum_convert(enum_item: &ItemEnum) -> TokenStream {
     let enum_name = &enum_item.ident;
     let enum_type = get_repr_type(enum_item).expect(&format!("#[EnumConvert] support #[repr({})] only", REPR_TYPES.join(" | ")));
-    let (var_names, var_exprs) = get_variants(enum_item);
-    
+    let (enum_names, var_exprs) = get_variants(enum_item);
+
+    let enum_name_upper = enum_name.to_string().to_uppercase();
+    let var_names: Vec<Ident> = enum_names.iter().map(|n| {
+        format_ident!("_{}_{}_", enum_name_upper, n.to_string().to_uppercase())
+    }).collect();
+
     let gen = quote! {
         impl TryFrom<#enum_type> for #enum_name {
             type Error = crate::errors::Error;
         
             fn try_from(value: #enum_type) -> Result<Self, Self::Error> {
+                #( const #var_names: #enum_type = #var_exprs; )*
+
                 match value {
-                    // 0i32 => Ok(WindowInteractionState::Running),
-                    // 1i32 => Ok(WindowInteractionState::Closing),
-                    // 2i32 => Ok(WindowInteractionState::ReadyForUserInteraction),
-                    // 3i32 => Ok(WindowInteractionState::BlockedByModalWindow),
-                    // 4i32 => Ok(WindowInteractionState::NotResponding),
-                    #( #var_exprs => Ok(Self::#var_names), )*
+                    #( #var_names => Ok(Self::#enum_names), )*
                     _ => Err(crate::errors::Error::new(crate::errors::ERR_NOTFOUND, "Unsupported value"))
                 }
             }

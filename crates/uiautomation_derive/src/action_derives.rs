@@ -165,7 +165,7 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.is_topmost()
             }
         
-            fn get_window_interaction_state(&self) -> Result<crate::types::WindowInteractionState> {
+            fn get_window_interaction_state(&self) -> Result<super::types::WindowInteractionState> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
                 pattern.get_window_interaction_state()
             }
@@ -602,12 +602,12 @@ pub(crate) fn impl_dock(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Dock for #name {
-            fn get_dock_position(&self) -> Result<DockPosition> {
+            fn get_dock_position(&self) -> Result<super::types::DockPosition> {
                 let pattern: UIDockPattern = self.as_ref().get_pattern()?;
                 pattern.get_dock_position()
             }
         
-            fn set_dock_position(&self, position: DockPosition) -> Result<()> {
+            fn set_dock_position(&self, position: super::types::DockPosition) -> Result<()> {
                 let pattern: UIDockPattern = self.as_ref().get_pattern()?;
                 pattern.set_dock_position(position)
             }
