@@ -5,15 +5,14 @@ use windows::Win32::UI::Accessibility::SupportedTextSelection;
 use windows::Win32::UI::Accessibility::ToggleState;
 use windows::Win32::UI::Accessibility::ZoomUnit;
 
+use crate::Result;
+use crate::UIElement;
 use crate::patterns::UITextRange;
 use crate::types::DockPosition;
 use crate::types::ExpandCollapseState;
 use crate::types::Point;
 use crate::types::WindowInteractionState;
-
-use super::Result;
-use super::UIElement;
-use super::variants::Variant;
+use crate::variants::Variant;
 
 /// Define a Invoke action for uielement.
 pub trait Invoke {
