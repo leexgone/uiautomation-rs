@@ -37,7 +37,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
-use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -81,6 +80,7 @@ use crate::types::Point;
 use crate::types::RowOrColumnMajor;
 use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
+use crate::types::TextPatternRangeEndpoint;
 use crate::types::TextUnit;
 use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
@@ -1819,7 +1819,7 @@ impl UITextRange {
 
     pub fn compare_endpoints(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<i32> {
        Ok(unsafe {
-           self.range.CompareEndpoints(src_endpoint, range.as_ref(), target_endpoint)?
+           self.range.CompareEndpoints(src_endpoint.into(), range.as_ref(), target_endpoint.into())?
        }) 
     }
 
@@ -1873,13 +1873,13 @@ impl UITextRange {
 
     pub fn move_endpoint_by_unit(&self, endpoint: TextPatternRangeEndpoint, unit: TextUnit, count: i32) -> Result<i32> {
         Ok(unsafe {
-            self.range.MoveEndpointByUnit(endpoint, unit.into(), count)?
+            self.range.MoveEndpointByUnit(endpoint.into(), unit.into(), count)?
         })
     }
 
     pub fn move_endpoint_by_range(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<()> {
         Ok(unsafe {
-            self.range.MoveEndpointByRange(src_endpoint, range.as_ref(), target_endpoint)?
+            self.range.MoveEndpointByRange(src_endpoint.into(), range.as_ref(), target_endpoint.into())?
         })
     }
 

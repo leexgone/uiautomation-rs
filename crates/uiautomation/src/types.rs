@@ -930,6 +930,30 @@ impl Into<windows::Win32::UI::Accessibility::TextUnit> for TextUnit {
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::TextPatternRangeEndpoint`.
+/// 
+/// Contains values that specify the endpoints of a text range.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum TextPatternRangeEndpoint {
+    /// The starting endpoint of the range.
+    Start = 0i32,
+    /// The ending endpoint of the range.
+    End = 1i32,
+}
+
+impl From<windows::Win32::UI::Accessibility::TextPatternRangeEndpoint> for TextPatternRangeEndpoint {
+    fn from(value: windows::Win32::UI::Accessibility::TextPatternRangeEndpoint) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::TextPatternRangeEndpoint> for TextPatternRangeEndpoint {
+    fn into(self) -> windows::Win32::UI::Accessibility::TextPatternRangeEndpoint {
+        windows::Win32::UI::Accessibility::TextPatternRangeEndpoint(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;
