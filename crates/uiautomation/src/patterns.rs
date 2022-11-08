@@ -38,7 +38,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::Win32::UI::Accessibility::TextPatternRangeEndpoint;
-use windows::Win32::UI::Accessibility::TextUnit;
 use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
 use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
 use windows::Win32::UI::Accessibility::UIA_DockPatternId;
@@ -82,6 +81,7 @@ use crate::types::Point;
 use crate::types::RowOrColumnMajor;
 use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
+use crate::types::TextUnit;
 use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
 use crate::types::WindowVisualState;
@@ -1825,7 +1825,7 @@ impl UITextRange {
 
     pub fn expand_to_enclosing_unit(&self, text_unit: TextUnit) -> Result<()> {
         Ok(unsafe {
-            self.range.ExpandToEnclosingUnit(text_unit)?
+            self.range.ExpandToEnclosingUnit(text_unit.into())?
         })
     }
 
@@ -1867,13 +1867,13 @@ impl UITextRange {
 
     pub fn move_text(&self, unit: TextUnit, count: i32) -> Result<i32> {
         Ok(unsafe {
-            self.range.Move(unit, count)?
+            self.range.Move(unit.into(), count)?
         })
     }
 
     pub fn move_endpoint_by_unit(&self, endpoint: TextPatternRangeEndpoint, unit: TextUnit, count: i32) -> Result<i32> {
         Ok(unsafe {
-            self.range.MoveEndpointByUnit(endpoint, unit, count)?
+            self.range.MoveEndpointByUnit(endpoint, unit.into(), count)?
         })
     }
 

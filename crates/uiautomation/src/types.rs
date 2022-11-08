@@ -896,6 +896,40 @@ impl Into<windows::Win32::UI::Accessibility::WindowVisualState> for WindowVisual
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::TextUnit`.
+/// 
+/// Contains values that specify units of text for the purposes of navigation.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum TextUnit {
+    /// Specifies that the text unit is one character in length.
+    Character = 0i32,
+    /// Specifies that the text unit is the length of a single, common format specification, such as bold, italic, or similar.
+    Format = 1i32,
+    /// Specifies that the text unit is one word in length.
+    Word = 2i32,
+    /// Specifies that the text unit is one line in length.
+    Line = 3i32,
+    /// Specifies that the text unit is one paragraph in length.
+    Paragraph = 4i32,
+    /// Specifies that the text unit is one document-specific page in length.
+    Page = 5i32,
+    /// Specifies that the text unit is an entire document in length.
+    Document = 6i32,
+}
+
+impl From<windows::Win32::UI::Accessibility::TextUnit> for TextUnit {
+    fn from(value: windows::Win32::UI::Accessibility::TextUnit) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::TextUnit> for TextUnit {
+    fn into(self) -> windows::Win32::UI::Accessibility::TextUnit {
+        windows::Win32::UI::Accessibility::TextUnit(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;
