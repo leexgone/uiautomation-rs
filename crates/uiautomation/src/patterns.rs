@@ -70,7 +70,6 @@ use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
 use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
 use windows::Win32::UI::Accessibility::UIA_VirtualizedItemPatternId;
 use windows::Win32::UI::Accessibility::UIA_WindowPatternId;
-use windows::Win32::UI::Accessibility::WindowVisualState;
 use windows::core::BSTR;
 use windows::core::IUnknown;
 use windows::core::InParam;
@@ -85,6 +84,7 @@ use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
 use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
+use crate::types::WindowVisualState;
 use crate::types::ZoomUnit;
 
 use super::core::UIElement;
@@ -2272,14 +2272,15 @@ impl UIWindowPattern {
     }
 
     pub fn get_window_visual_state(&self) -> Result<WindowVisualState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentWindowVisualState()?
-        })
+        };
+        Ok(state.into())
     }
 
     pub fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()> {
         Ok(unsafe {
-            self.pattern.SetWindowVisualState(state)?
+            self.pattern.SetWindowVisualState(state.into())?
         })
     }
 

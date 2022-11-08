@@ -870,6 +870,32 @@ impl Into<windows::Win32::UI::Accessibility::ZoomUnit> for ZoomUnit {
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::WindowVisualState`.
+/// 
+/// Contains values that specify the visual state of a window for the IWindowProvider pattern.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum WindowVisualState {
+    /// Specifies that the window is normal (restored).
+    Normal = 0i32,
+    /// Specifies that the window is maximized.
+    Maximized = 1i32,
+    /// Specifies that the window is minimized.
+    Minimized = 2i32
+}
+
+impl From<windows::Win32::UI::Accessibility::WindowVisualState> for WindowVisualState {
+    fn from(value: windows::Win32::UI::Accessibility::WindowVisualState) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::WindowVisualState> for WindowVisualState {
+    fn into(self) -> windows::Win32::UI::Accessibility::WindowVisualState {
+        windows::Win32::UI::Accessibility::WindowVisualState(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

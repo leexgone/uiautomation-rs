@@ -117,12 +117,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
         
             fn is_normal(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                Ok(pattern.get_window_visual_state()? == windows::Win32::UI::Accessibility::WindowVisualState_Normal)
+                Ok(pattern.get_window_visual_state()? == super::types::WindowVisualState::Normal)
             }
         
             fn normal(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                pattern.set_window_visual_state(windows::Win32::UI::Accessibility::WindowVisualState_Normal)
+                pattern.set_window_visual_state(super::types::WindowVisualState::Normal)
             }
         
             fn can_maximize(&self) -> Result<bool> {
@@ -132,12 +132,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
         
             fn is_maximized(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                Ok(pattern.get_window_visual_state()? == windows::Win32::UI::Accessibility::WindowVisualState_Maximized)
+                Ok(pattern.get_window_visual_state()? == super::types::WindowVisualState::Maximized)
             }
         
             fn maximize(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                pattern.set_window_visual_state(windows::Win32::UI::Accessibility::WindowVisualState_Maximized)
+                pattern.set_window_visual_state(super::types::WindowVisualState::Maximized)
             }
         
             fn can_minimize(&self) -> Result<bool> {
@@ -147,12 +147,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
         
             fn is_minimized(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                Ok(pattern.get_window_visual_state()? == windows::Win32::UI::Accessibility::WindowVisualState_Minimized)
+                Ok(pattern.get_window_visual_state()? == super::types::WindowVisualState::Minimized)
             }
         
             fn minimize(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                pattern.set_window_visual_state(windows::Win32::UI::Accessibility::WindowVisualState_Minimized)
+                pattern.set_window_visual_state(super::types::WindowVisualState::Minimized)
             }
         
             fn is_modal(&self) -> Result<bool> {
