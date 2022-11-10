@@ -1,3 +1,4 @@
+use uiautomation_derive::EnumConvert;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
@@ -37,42 +38,15 @@ use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
-use windows::Win32::UI::Accessibility::UIA_AnnotationPatternId;
-use windows::Win32::UI::Accessibility::UIA_CustomNavigationPatternId;
-use windows::Win32::UI::Accessibility::UIA_DockPatternId;
-use windows::Win32::UI::Accessibility::UIA_DragPatternId;
-use windows::Win32::UI::Accessibility::UIA_DropTargetPatternId;
-use windows::Win32::UI::Accessibility::UIA_ExpandCollapsePatternId;
-use windows::Win32::UI::Accessibility::UIA_GridItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_GridPatternId;
-use windows::Win32::UI::Accessibility::UIA_InvokePatternId;
-use windows::Win32::UI::Accessibility::UIA_ItemContainerPatternId;
-use windows::Win32::UI::Accessibility::UIA_MultipleViewPatternId;
-use windows::Win32::UI::Accessibility::UIA_PATTERN_ID;
-use windows::Win32::UI::Accessibility::UIA_RangeValuePatternId;
-use windows::Win32::UI::Accessibility::UIA_ScrollItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_ScrollPatternId;
-use windows::Win32::UI::Accessibility::UIA_SelectionItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_SelectionPatternId;
-use windows::Win32::UI::Accessibility::UIA_SpreadsheetItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_SpreadsheetPatternId;
-use windows::Win32::UI::Accessibility::UIA_StylesPatternId;
-use windows::Win32::UI::Accessibility::UIA_SynchronizedInputPatternId;
-use windows::Win32::UI::Accessibility::UIA_TableItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_TablePatternId;
-use windows::Win32::UI::Accessibility::UIA_TextChildPatternId;
-use windows::Win32::UI::Accessibility::UIA_TextEditPatternId;
-use windows::Win32::UI::Accessibility::UIA_TextPatternId;
-use windows::Win32::UI::Accessibility::UIA_TogglePatternId;
-use windows::Win32::UI::Accessibility::UIA_TransformPatternId;
-use windows::Win32::UI::Accessibility::UIA_ValuePatternId;
-use windows::Win32::UI::Accessibility::UIA_VirtualizedItemPatternId;
-use windows::Win32::UI::Accessibility::UIA_WindowPatternId;
 use windows::core::BSTR;
 use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
+use crate::errors::ERR_NOTFOUND;
+use crate::errors::Error;
+use crate::Result;
+use crate::UIElement;
 use crate::types::DockPosition;
 use crate::types::ExpandCollapseState;
 use crate::types::NavigateDirection;
@@ -86,18 +60,101 @@ use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
 use crate::types::WindowVisualState;
 use crate::types::ZoomUnit;
+use crate::variants::SafeArray;
+use crate::variants::Variant;
 
-use super::core::UIElement;
-use super::errors::ERR_NOTFOUND;
-use super::errors::Error;
-use super::errors::Result;
-use super::variants::SafeArray;
-use super::variants::Variant;
+/// `UIPatternType` is an enum wrapper for `windows::Win32::UI::Accessibility::UIA_PATTERN_ID`.
+/// 
+/// Describes the named constants that identify Microsoft UI Automation control patterns.
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum UIPatternType {
+    /// Identifies the Invoke control pattern.
+    Invoke = 10000u32,
+    /// Identifies the Selection control pattern.
+    Selection = 10001u32,
+    /// Identifies the Value control pattern.
+    Value = 10002u32,
+    /// Identifies the RangeValue control pattern.
+    RangeValue = 10003u32,
+    /// Identifies the Scroll control pattern.
+    Scroll = 10004u32,
+    /// Identifies the ExpandCollapse control pattern.
+    ExpandCollapse = 10005u32,
+    /// Identifies the Grid control pattern.
+    Grid = 10006u32,
+    /// Identifies the GridItem control pattern.
+    GridItem = 10007u32,
+    /// Identifies the MultipleView control pattern.
+    MultipleView = 10008u32,
+    /// Identifies the Window control pattern.
+    Window = 10009u32,
+    /// Identifies the SelectionItem control pattern.
+    SelectionItem = 10010u32,
+    /// Identifies the Dock control pattern.
+    Dock = 10011u32,
+    /// Identifies the Table control pattern.
+    Table = 10012u32,
+    /// Identifies the TableItem control pattern.
+    TableItem = 10013u32,
+    /// Identifies the Text control pattern.
+    Text = 10014u32,
+    /// Identifies the Toggle control pattern.
+    Toggle = 10015u32,
+    /// Identifies the Transform control pattern.
+    Transform = 10016u32,
+    /// Identifies the ScrollItem control pattern.
+    ScrollItem = 10017u32,
+    /// Identifies the LegacyIAccessible control pattern.
+    LegacyIAccessible = 10018u32,
+    /// Identifies the ItemContainer control pattern.
+    ItemContainer = 10019u32,
+    /// Identifies the VirtualizedItem control pattern.
+    VirtualizedItem = 10020u32,
+    /// Identifies the SynchronizedInput control pattern.
+    SynchronizedInput = 10021u32,
+    /// Identifies the ObjectModel control pattern. Supported starting with Windows 8.
+    ObjectModel = 10022u32,
+    /// Identifies the Annotation control pattern. Supported starting with Windows 8.
+    Annotation = 10023u32,
+    /// Identifies the second version of the Text control pattern. Supported starting with Windows 8.
+    TextP = 10024u32,
+    /// Identifies the Styles control pattern. Supported starting with Windows 8.
+    Styles = 10025u32,
+    /// Identifies the Spreadsheet control pattern. Supported starting with Windows 8.
+    Spreadsheet = 10026u32,
+    /// Identifies the SpreadsheetItem control pattern. Supported starting with Windows 8.
+    SpreadsheetItem = 10027u32,
+    /// Identifies the second version of the Transform control pattern. Supported starting with Windows 8.
+    TransformP = 10028u32,
+    /// Identifies the TextChild control pattern. Supported starting with Windows 8.
+    TextChild = 10029u32,
+    /// Identifies the Drag control pattern. Supported starting with Windows 8.
+    Drag = 10030u32,
+    /// Identifies the DropTarget control pattern. Supported starting with Windows 8.
+    DropTarget = 10031u32,
+    /// Identifies the TextEdit control pattern. Supported starting with Windows 8.1.
+    TextEdit = 10032u32,
+    /// Identifies the CustomNavigation control pattern. Supported starting with Windows 10.
+    CustomNavigation = 10033u32    
+}
+
+impl From<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
+    fn from(value: windows::Win32::UI::Accessibility::UIA_PATTERN_ID) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
+    fn into(self) -> windows::Win32::UI::Accessibility::UIA_PATTERN_ID {
+        windows::Win32::UI::Accessibility::UIA_PATTERN_ID(self as _)
+    }
+}
 
 /// `UIPattern` is the wrapper trait for patterns.
 pub trait UIPattern {
     /// Defines the pattern type id.
-    const PATTERN_ID: UIA_PATTERN_ID;
+    const TYPE: UIPatternType;
 }
 
 #[derive(Debug, Clone)]
@@ -115,7 +172,7 @@ impl UIInvokePattern {
 }
 
 impl UIPattern for UIInvokePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_InvokePatternId;
+    const TYPE: UIPatternType = UIPatternType::Invoke;
 }
 
 impl TryFrom<IUnknown> for UIInvokePattern {
@@ -192,7 +249,7 @@ impl UIAnnotationPattern {
 }
 
 impl UIPattern for UIAnnotationPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_AnnotationPatternId;
+    const TYPE: UIPatternType = UIPatternType::Annotation;
 }
 
 impl TryFrom<IUnknown> for UIAnnotationPattern {
@@ -241,7 +298,7 @@ impl UICustomNavigationPattern {
 }
 
 impl UIPattern for UICustomNavigationPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_CustomNavigationPatternId;
+    const TYPE: UIPatternType = UIPatternType::CustomNavigation;
 }
 
 impl TryFrom<IUnknown> for UICustomNavigationPattern {
@@ -297,7 +354,7 @@ impl UIDockPattern {
 }
 
 impl UIPattern for UIDockPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_DockPatternId;
+    const TYPE: UIPatternType = UIPatternType::Dock;
 }
 
 impl TryFrom<IUnknown> for UIDockPattern {
@@ -383,7 +440,7 @@ impl UIDragPattern {
 }
 
 impl UIPattern for UIDragPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_DragPatternId;
+    const TYPE: UIPatternType = UIPatternType::Drag;
 }
 
 impl TryFrom<IUnknown> for UIDragPattern {
@@ -441,7 +498,7 @@ impl UIDropTargetPattern {
 }
 
 impl UIPattern for UIDropTargetPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_DropTargetPatternId;
+    const TYPE: UIPatternType = UIPatternType::DropTarget;
 }
 
 impl TryFrom<IUnknown> for UIDropTargetPattern {
@@ -502,7 +559,7 @@ impl UIExpandCollapsePattern {
 }
 
 impl UIPattern for UIExpandCollapsePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ExpandCollapsePatternId;
+    const TYPE: UIPatternType = UIPatternType::ExpandCollapse;
 }
 
 impl TryFrom<IUnknown> for UIExpandCollapsePattern {
@@ -563,7 +620,7 @@ impl UIGridPattern {
 }
 
 impl UIPattern for UIGridPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_GridPatternId;
+    const TYPE: UIPatternType = UIPatternType::Grid;
 }
 
 impl TryFrom<IUnknown> for UIGridPattern {
@@ -636,7 +693,7 @@ impl UIGridItemPattern {
 }
 
 impl UIPattern for UIGridItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_GridItemPatternId;
+    const TYPE: UIPatternType = UIPatternType::GridItem;
 }
 
 impl TryFrom<IUnknown> for UIGridItemPattern {
@@ -688,7 +745,7 @@ impl UIItemContainerPattern {
 }
 
 impl UIPattern for UIItemContainerPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ItemContainerPatternId;
+    const TYPE: UIPatternType = UIPatternType::ItemContainer;
 }
 
 impl TryFrom<IUnknown> for UIItemContainerPattern {
@@ -758,7 +815,7 @@ impl UIMultipleViewPattern {
 }
 
 impl UIPattern for UIMultipleViewPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_MultipleViewPatternId;
+    const TYPE: UIPatternType = UIPatternType::MultipleView;
 }
 
 impl TryFrom<IUnknown> for UIMultipleViewPattern {
@@ -843,7 +900,7 @@ impl UIRangeValuePattern {
 }
 
 impl UIPattern for UIRangeValuePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_RangeValuePatternId;
+    const TYPE: UIPatternType = UIPatternType::RangeValue;
 }
 
 impl TryFrom<IUnknown> for UIRangeValuePattern {
@@ -935,7 +992,7 @@ impl UIScrollPattern {
 }
 
 impl UIPattern for UIScrollPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ScrollPatternId;
+    const TYPE: UIPatternType = UIPatternType::Scroll;
 }
 
 impl TryFrom<IUnknown> for UIScrollPattern {
@@ -983,7 +1040,7 @@ impl UIScrollItemPattern {
 }
 
 impl UIPattern for UIScrollItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ScrollItemPatternId;
+    const TYPE: UIPatternType = UIPatternType::ScrollItem;
 }
 
 impl TryFrom<IUnknown> for UIScrollItemPattern {
@@ -1072,7 +1129,7 @@ impl UISelectionPattern {
 }
 
 impl UIPattern for UISelectionPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SelectionPatternId;
+    const TYPE: UIPatternType = UIPatternType::Selection;
 }
 
 impl TryFrom<IUnknown> for UISelectionPattern {
@@ -1146,7 +1203,7 @@ impl UISelectionItemPattern {
 }
 
 impl UIPattern for UISelectionItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SelectionItemPatternId;
+    const TYPE: UIPatternType = UIPatternType::SelectionItem;
 }
 
 impl TryFrom<IUnknown> for UISelectionItemPattern {
@@ -1196,7 +1253,7 @@ impl UISpreadsheetPattern {
 }
 
 impl UIPattern for UISpreadsheetPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SpreadsheetPatternId;
+    const TYPE: UIPatternType = UIPatternType::Spreadsheet;
 }
 
 impl TryFrom<IUnknown> for UISpreadsheetPattern {
@@ -1262,7 +1319,7 @@ impl UISpreadsheetItemPattern {
 }
 
 impl UIPattern for UISpreadsheetItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SpreadsheetItemPatternId;
+    const TYPE: UIPatternType = UIPatternType::SpreadsheetItem;
 }
 
 impl TryFrom<IUnknown> for UISpreadsheetItemPattern {
@@ -1350,7 +1407,7 @@ impl UIStylesPattern {
 }
 
 impl UIPattern for UIStylesPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_StylesPatternId;
+    const TYPE: UIPatternType = UIPatternType::Styles;
 }
 
 impl TryFrom<IUnknown> for UIStylesPattern {
@@ -1404,7 +1461,7 @@ impl UISynchronizedInputPattern {
 }
 
 impl UIPattern for UISynchronizedInputPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SynchronizedInputPatternId;
+    const TYPE: UIPatternType = UIPatternType::SynchronizedInput;
 }
 
 impl TryFrom<IUnknown> for UISynchronizedInputPattern {
@@ -1469,7 +1526,7 @@ impl UITablePattern {
 }
 
 impl UIPattern for UITablePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TablePatternId;
+    const TYPE: UIPatternType = UIPatternType::Table;
 }
 
 impl TryFrom<IUnknown> for UITablePattern {
@@ -1527,7 +1584,7 @@ impl UITableItemPattern {
 }
 
 impl UIPattern for UITableItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TableItemPatternId;
+    const TYPE: UIPatternType = UIPatternType::TableItem;
 }
 
 impl TryFrom<IUnknown> for UITableItemPattern {
@@ -1585,7 +1642,7 @@ impl UITextChildPattern {
 }
 
 impl UIPattern for UITextChildPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TextChildPatternId;
+    const TYPE: UIPatternType = UIPatternType::TextChild;
 }
 
 impl TryFrom<IUnknown> for UITextChildPattern {
@@ -1699,7 +1756,7 @@ impl UITextPattern {
 }
 
 impl UIPattern for UITextPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TextPatternId;
+    const TYPE: UIPatternType = UIPatternType::Text;
 }
 
 impl TryFrom<IUnknown> for UITextPattern {
@@ -1760,7 +1817,7 @@ impl UITextEditPattern {
 }
 
 impl UIPattern for UITextEditPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TextEditPatternId;
+    const TYPE: UIPatternType = UIPatternType::TextEdit;
 }
 
 impl TryFrom<IUnknown> for UITextEditPattern {
@@ -1979,7 +2036,7 @@ impl UITogglePattern {
 }
 
 impl UIPattern for UITogglePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TogglePatternId;
+    const TYPE: UIPatternType = UIPatternType::Toggle;
 }
 
 impl TryFrom<IUnknown> for UITogglePattern {
@@ -2104,7 +2161,7 @@ impl UITransformPattern {
 }
 
 impl UIPattern for UITransformPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TransformPatternId;
+    const TYPE: UIPatternType = UIPatternType::Transform;
 }
 
 impl TryFrom<IUnknown> for UITransformPattern {
@@ -2168,7 +2225,7 @@ impl UIValuePattern {
 }
 
 impl UIPattern for UIValuePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ValuePatternId;
+    const TYPE: UIPatternType = UIPatternType::Value;
 }
 
 impl TryFrom<IUnknown> for UIValuePattern {
@@ -2217,7 +2274,7 @@ impl UIVirtualizedItemPattern {
 }
 
 impl UIPattern for UIVirtualizedItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_VirtualizedItemPatternId;
+    const TYPE: UIPatternType = UIPatternType::VirtualizedItem;
 }
 
 impl TryFrom<IUnknown> for UIVirtualizedItemPattern {
@@ -2322,7 +2379,7 @@ impl UIWindowPattern {
 }
 
 impl UIPattern for UIWindowPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_WindowPatternId;
+    const TYPE: UIPatternType = UIPatternType::Window;
 }
 
 impl TryFrom<IUnknown> for UIWindowPattern {

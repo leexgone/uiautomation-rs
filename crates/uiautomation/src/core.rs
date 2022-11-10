@@ -606,7 +606,7 @@ impl UIElement {
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     pub fn get_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
-            self.element.GetCurrentPattern(T::PATTERN_ID.0 as _)?
+            self.element.GetCurrentPattern(T::TYPE as _)?
         };
 
         // T::new(pattern)

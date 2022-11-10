@@ -23,7 +23,7 @@ pub(crate) fn impl_enum_convert(enum_item: &ItemEnum) -> TokenStream {
         impl TryFrom<#enum_type> for #enum_name {
             type Error = crate::errors::Error;
         
-            fn try_from(value: #enum_type) -> Result<Self, Self::Error> {
+            fn try_from(value: #enum_type) -> core::result::Result<Self, Self::Error> {
                 #( const #var_names: #enum_type = #var_exprs; )*
 
                 match value {
