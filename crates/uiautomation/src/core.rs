@@ -22,7 +22,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::Win32::UI::Accessibility::TreeScope;
 use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
 use windows::core::IUnknown;
 use windows::core::InParam;
@@ -32,6 +31,7 @@ use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::types::OrientationType;
 use crate::types::PropertyConditionFlags;
+use crate::types::TreeScope;
 use crate::types::UIProperty;
 use crate::variants::SafeArray;
 
@@ -296,7 +296,7 @@ impl UIElement {
     /// Retrieves the first child or descendant element that matches the specified condition.
     pub fn find_first(&self, scope: TreeScope, condition: &UICondition) -> Result<UIElement> {
         let result = unsafe {
-            self.element.FindFirst(scope, condition.as_ref())?
+            self.element.FindFirst(scope.into(), condition.as_ref())?
         };
         Ok(result.into())
     }
@@ -304,7 +304,7 @@ impl UIElement {
     /// Returns all UI Automation elements that satisfy the specified condition.
     pub fn find_all(&self, scope: TreeScope, condition: &UICondition) -> Result<Vec<UIElement>> {
         let elements = unsafe {
-            self.element.FindAll(scope, condition.as_ref())?
+            self.element.FindAll(scope.into(), condition.as_ref())?
         };
         Self::to_elements(elements)
     }
@@ -1626,7 +1626,6 @@ impl Into<UICondition> for UIPropertyCondition {
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::IUIAutomationElement;
-    use windows::Win32::UI::Accessibility::TreeScope_Children;
     use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
     use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
@@ -1635,6 +1634,7 @@ mod tests {
     use crate::UIAutomation;
     use crate::UIElement;
     use crate::filters::MatcherFilter;
+    use crate::types::TreeScope;
 
     fn print_element(element: &UIElement) {
         println!("Name: {}", element.get_name().unwrap());
@@ -1701,7 +1701,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         let root = automation.get_root_element().unwrap();
         let condition = automation.create_true_condition().unwrap();
-        let child = root.find_first(TreeScope_Children, &condition).unwrap();
+        let child = root.find_first(TreeScope::Children, &condition).unwrap();
         println!("{}", child);
     }
 

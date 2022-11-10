@@ -1008,6 +1008,40 @@ impl Into<windows::Win32::UI::Accessibility::PropertyConditionFlags> for Propert
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::TreeScope`.
+/// 
+/// Contains values that specify the scope of various operations in the Microsoft UI Automation tree.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum TreeScope {
+    /// The scope excludes the subtree from the search.
+    None = 0i32,
+    /// The scope includes the element itself.
+    Element = 1i32,
+    /// The scope includes children of the element.
+    Children = 2i32,
+    /// The scope includes children and more distant descendants of the element.
+    Descendants = 4i32,
+    /// The scope includes the parent of the element.
+    Parent = 8i32,
+    /// The scope includes the parent and more distant ancestors of the element.
+    Ancestors = 16i32,
+    /// The scope includes the element and all its descendants. This flag is a combination of the TreeScope_Element and TreeScope_Descendants values.
+    Subtree = 7i32
+}
+
+impl From<windows::Win32::UI::Accessibility::TreeScope> for TreeScope {
+    fn from(value: windows::Win32::UI::Accessibility::TreeScope) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::TreeScope> for TreeScope {
+    fn into(self) -> windows::Win32::UI::Accessibility::TreeScope {
+        windows::Win32::UI::Accessibility::TreeScope(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;
