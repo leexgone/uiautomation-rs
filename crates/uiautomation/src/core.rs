@@ -22,11 +22,11 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
 use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
+use crate::controls::ControlType;
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::types::OrientationType;
@@ -356,12 +356,13 @@ impl UIElement {
     }
 
     /// Retrieves the control type of the element.
-    pub fn get_control_type(&self) -> Result<UIA_CONTROLTYPE_ID> {
+    pub fn get_control_type(&self) -> Result<ControlType> {
         let control_type = unsafe {
             self.element.CurrentControlType()?
         };
         
-        Ok(UIA_CONTROLTYPE_ID(control_type as u32))
+        // Ok(UIA_CONTROLTYPE_ID(control_type as u32))
+        ControlType::try_from(control_type as u32)
     }
 
     /// Retrieves a localized description of the control type of the element.
@@ -1051,7 +1052,7 @@ impl UIMatcher {
     }
 
     /// Filters by control type.
-    pub fn control_type(self, control_type: UIA_CONTROLTYPE_ID) -> Self {
+    pub fn control_type(self, control_type: ControlType) -> Self {
         let condition = ControlTypeFilter {
             control_type
         };
@@ -1626,13 +1627,10 @@ impl Into<UICondition> for UIPropertyCondition {
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::IUIAutomationElement;
-    use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
     use crate::UIElement;
+    use crate::controls::ControlType;
     use crate::filters::MatcherFilter;
     use crate::types::TreeScope;
 
@@ -1689,7 +1687,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
-            let matcher = automation.create_matcher().control_type(UIA_MenuItemControlTypeId).from(notepad.clone()).name("文件").depth(5).timeout(1000);
+            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from(notepad.clone()).name("文件").depth(5).timeout(1000);
             if let Ok(menu_item) = matcher.find_first() {
                 menu_item.click().unwrap();
             }
@@ -1714,7 +1712,7 @@ mod tests {
 
             let menubar = automation.create_matcher() //.debug(true)
                 .from(window.clone())
-                .control_type(UIA_PaneControlTypeId)
+                .control_type(ControlType::Pane)
                 .timeout(0)
                 .find_first().unwrap();
 
@@ -1726,7 +1724,7 @@ mod tests {
     fn test_search_from() {
         let automation = UIAutomation::new().unwrap();
         if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
-            let nothing = automation.create_matcher().from(window.clone()).control_type(UIA_WindowControlTypeId).find_first();
+            let nothing = automation.create_matcher().from(window.clone()).control_type(ControlType::Window).find_first();
             assert!(nothing.is_err());
         }
     }
@@ -1767,7 +1765,7 @@ mod tests {
     fn test_automation_id() {
         let automation = UIAutomation::new().unwrap();
         if let Ok(notepad) = automation.create_matcher().timeout(0).classname("Notepad").find_first() {
-            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(UIA_TitleBarControlTypeId).find_first().unwrap();
+            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(ControlType::TitleBar).find_first().unwrap();
             let element: &IUIAutomationElement = title_bar.as_ref();
             let automation_id = unsafe {
                 element.CurrentAutomationId().unwrap()
