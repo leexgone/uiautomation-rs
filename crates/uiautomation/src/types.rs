@@ -980,6 +980,34 @@ impl Into<windows::Win32::UI::Accessibility::OrientationType> for OrientationTyp
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::PropertyConditionFlags`.
+/// 
+/// Contains values used in creating property conditions.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum PropertyConditionFlags {
+    /// No flags.
+    None = 0i32,
+    /// Comparison of string properties is not case-sensitive.
+    IgnoreCase = 1i32,
+    /// Comparison of substring properties is enabled.
+    MatchSubstring = 2i32,
+    /// Combines `IgnoreCase` and `MatchSubstring` flags.
+    All = 3i32
+}
+
+impl From<windows::Win32::UI::Accessibility::PropertyConditionFlags> for PropertyConditionFlags {
+    fn from(value: windows::Win32::UI::Accessibility::PropertyConditionFlags) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::PropertyConditionFlags> for PropertyConditionFlags {
+    fn into(self) -> windows::Win32::UI::Accessibility::PropertyConditionFlags {
+        windows::Win32::UI::Accessibility::PropertyConditionFlags(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

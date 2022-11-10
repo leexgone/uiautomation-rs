@@ -22,7 +22,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
 use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
 use windows::core::IUnknown;
@@ -32,6 +31,7 @@ use windows::core::Interface;
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::types::OrientationType;
+use crate::types::PropertyConditionFlags;
 use crate::types::UIProperty;
 use crate::variants::SafeArray;
 
@@ -255,7 +255,7 @@ impl UIAutomation {
         let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags)?
+                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags.into())?
             } else {
                 self.automation.CreatePropertyCondition(property_id, InParam::owned(val))?
             }
@@ -1568,7 +1568,7 @@ impl UIPropertyCondition {
     pub fn get_property_condition_flags(&self) -> Result<PropertyConditionFlags> {
         Ok(unsafe {
             self.0.PropertyConditionFlags()?
-        })
+        }.into())
     }
 }
 
