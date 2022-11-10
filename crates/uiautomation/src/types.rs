@@ -954,6 +954,32 @@ impl Into<windows::Win32::UI::Accessibility::TextPatternRangeEndpoint> for TextP
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::OrientationType`.
+/// 
+/// Contains values that specify the orientation of a control.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum OrientationType {
+    /// The control has no orientation.
+    None = 0i32,
+    /// The control has horizontal orientation.
+    Horizontal = 1i32,
+    /// The control has vertical orientation.
+    Vertical = 2i32
+}
+
+impl From<windows::Win32::UI::Accessibility::OrientationType> for OrientationType {
+    fn from(value: windows::Win32::UI::Accessibility::OrientationType) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::OrientationType> for OrientationType {
+    fn into(self) -> windows::Win32::UI::Accessibility::OrientationType {
+        windows::Win32::UI::Accessibility::OrientationType(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

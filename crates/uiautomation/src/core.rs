@@ -22,7 +22,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::Win32::UI::Accessibility::OrientationType;
 use windows::Win32::UI::Accessibility::PropertyConditionFlags;
 use windows::Win32::UI::Accessibility::TreeScope;
 use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
@@ -32,6 +31,7 @@ use windows::core::Interface;
 
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
+use crate::types::OrientationType;
 use crate::types::UIProperty;
 use crate::variants::SafeArray;
 
@@ -496,7 +496,7 @@ impl UIElement {
             self.element.CurrentOrientation()?
         };
 
-        Ok(orientation)
+        Ok(orientation.into())
     }
 
     /// Retrieves the name of the underlying UI framework.
