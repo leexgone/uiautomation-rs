@@ -1,4 +1,5 @@
 use uiautomation::UIAutomation;
+use uiautomation::UIElement;
 use uiautomation::actions::Invoke;
 use uiautomation::actions::SelectionItem;
 use uiautomation::actions::Toggle;
@@ -40,11 +41,18 @@ fn main() {
     let update_item: ListItemControl = update.try_into().unwrap();
     update_item.select().unwrap();
 
-    let matcher = automation.create_matcher().from(settings.clone()).match_name("检查更新").control_type(ButtonControl::TYPE);
+    let matcher = automation.create_matcher().from(settings.clone()).timeout(5000)
+        .match_name("检查更新")
+        .control_type(ButtonControl::TYPE)
+        .filter_fn(Box::new(|e: &UIElement| {
+            e.is_enabled()
+        }));
     let update = matcher.find_first().unwrap();
     if update.is_enabled().unwrap() {
         let button: ButtonControl = update.try_into().unwrap();
         button.invoke().unwrap();
+    } else {
+        panic!("调用更新失败！")
     }
 
     if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).find_first() { // Win10
