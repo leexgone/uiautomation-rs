@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
+use crate::controls::ControlType;
 
 use super::core::UIElement;
 use super::errors::Result;
@@ -99,9 +99,9 @@ impl MatcherFilter for ClassNameFilter {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ControlTypeFilter {
-    pub control_type: UIA_CONTROLTYPE_ID
+    pub control_type: ControlType
 }
 
 impl MatcherFilter for ControlTypeFilter {

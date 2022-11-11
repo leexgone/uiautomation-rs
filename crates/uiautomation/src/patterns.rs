@@ -1,24 +1,160 @@
+use uiautomation_derive::EnumConvert;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::System::Com::VARIANT;
-use windows::Win32::UI::Accessibility::*;
+use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationDragPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationDropTargetPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationItemContainerPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationScrollPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSelectionItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern2;
+use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationStylesPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTableItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTablePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextChildPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTextPattern2;
+use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
+use windows::Win32::UI::Accessibility::IUIAutomationTextRange2;
+use windows::Win32::UI::Accessibility::IUIAutomationTextRangeArray;
+use windows::Win32::UI::Accessibility::IUIAutomationTogglePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationTransformPattern2;
+use windows::Win32::UI::Accessibility::IUIAutomationValuePattern;
+use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
+use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::core::BSTR;
 use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
+use crate::errors::ERR_NOTFOUND;
+use crate::errors::Error;
+use crate::Result;
+use crate::UIElement;
+use crate::types::DockPosition;
+use crate::types::ExpandCollapseState;
+use crate::types::NavigateDirection;
 use crate::types::Point;
+use crate::types::RowOrColumnMajor;
+use crate::types::ScrollAmount;
+use crate::types::SupportedTextSelection;
+use crate::types::TextPatternRangeEndpoint;
+use crate::types::TextUnit;
+use crate::types::ToggleState;
+use crate::types::WindowInteractionState;
+use crate::types::WindowVisualState;
+use crate::types::ZoomUnit;
+use crate::variants::SafeArray;
+use crate::variants::Variant;
 
-use super::core::UIElement;
-use super::errors::ERR_NOTFOUND;
-use super::errors::Error;
-use super::errors::Result;
-use super::variants::SafeArray;
-use super::variants::Variant;
+/// `UIPatternType` is an enum wrapper for `windows::Win32::UI::Accessibility::UIA_PATTERN_ID`.
+/// 
+/// Describes the named constants that identify Microsoft UI Automation control patterns.
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum UIPatternType {
+    /// Identifies the Invoke control pattern.
+    Invoke = 10000u32,
+    /// Identifies the Selection control pattern.
+    Selection = 10001u32,
+    /// Identifies the Value control pattern.
+    Value = 10002u32,
+    /// Identifies the RangeValue control pattern.
+    RangeValue = 10003u32,
+    /// Identifies the Scroll control pattern.
+    Scroll = 10004u32,
+    /// Identifies the ExpandCollapse control pattern.
+    ExpandCollapse = 10005u32,
+    /// Identifies the Grid control pattern.
+    Grid = 10006u32,
+    /// Identifies the GridItem control pattern.
+    GridItem = 10007u32,
+    /// Identifies the MultipleView control pattern.
+    MultipleView = 10008u32,
+    /// Identifies the Window control pattern.
+    Window = 10009u32,
+    /// Identifies the SelectionItem control pattern.
+    SelectionItem = 10010u32,
+    /// Identifies the Dock control pattern.
+    Dock = 10011u32,
+    /// Identifies the Table control pattern.
+    Table = 10012u32,
+    /// Identifies the TableItem control pattern.
+    TableItem = 10013u32,
+    /// Identifies the Text control pattern.
+    Text = 10014u32,
+    /// Identifies the Toggle control pattern.
+    Toggle = 10015u32,
+    /// Identifies the Transform control pattern.
+    Transform = 10016u32,
+    /// Identifies the ScrollItem control pattern.
+    ScrollItem = 10017u32,
+    /// Identifies the LegacyIAccessible control pattern.
+    LegacyIAccessible = 10018u32,
+    /// Identifies the ItemContainer control pattern.
+    ItemContainer = 10019u32,
+    /// Identifies the VirtualizedItem control pattern.
+    VirtualizedItem = 10020u32,
+    /// Identifies the SynchronizedInput control pattern.
+    SynchronizedInput = 10021u32,
+    /// Identifies the ObjectModel control pattern. Supported starting with Windows 8.
+    ObjectModel = 10022u32,
+    /// Identifies the Annotation control pattern. Supported starting with Windows 8.
+    Annotation = 10023u32,
+    /// Identifies the second version of the Text control pattern. Supported starting with Windows 8.
+    TextP = 10024u32,
+    /// Identifies the Styles control pattern. Supported starting with Windows 8.
+    Styles = 10025u32,
+    /// Identifies the Spreadsheet control pattern. Supported starting with Windows 8.
+    Spreadsheet = 10026u32,
+    /// Identifies the SpreadsheetItem control pattern. Supported starting with Windows 8.
+    SpreadsheetItem = 10027u32,
+    /// Identifies the second version of the Transform control pattern. Supported starting with Windows 8.
+    TransformP = 10028u32,
+    /// Identifies the TextChild control pattern. Supported starting with Windows 8.
+    TextChild = 10029u32,
+    /// Identifies the Drag control pattern. Supported starting with Windows 8.
+    Drag = 10030u32,
+    /// Identifies the DropTarget control pattern. Supported starting with Windows 8.
+    DropTarget = 10031u32,
+    /// Identifies the TextEdit control pattern. Supported starting with Windows 8.1.
+    TextEdit = 10032u32,
+    /// Identifies the CustomNavigation control pattern. Supported starting with Windows 10.
+    CustomNavigation = 10033u32    
+}
+
+impl From<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
+    fn from(value: windows::Win32::UI::Accessibility::UIA_PATTERN_ID) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
+    fn into(self) -> windows::Win32::UI::Accessibility::UIA_PATTERN_ID {
+        windows::Win32::UI::Accessibility::UIA_PATTERN_ID(self as _)
+    }
+}
 
 /// `UIPattern` is the wrapper trait for patterns.
 pub trait UIPattern {
     /// Defines the pattern type id.
-    const PATTERN_ID: UIA_PATTERN_ID;
+    const TYPE: UIPatternType;
 }
 
 #[derive(Debug, Clone)]
@@ -36,15 +172,7 @@ impl UIInvokePattern {
 }
 
 impl UIPattern for UIInvokePattern {
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_InvokePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIInvokePattern::try_from(pattern)
-    // }
-
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_InvokePatternId;
+    const TYPE: UIPatternType = UIPatternType::Invoke;
 }
 
 impl TryFrom<IUnknown> for UIInvokePattern {
@@ -121,14 +249,7 @@ impl UIAnnotationPattern {
 }
 
 impl UIPattern for UIAnnotationPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_AnnotationPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_AnnotationPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIAnnotationPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Annotation;
 }
 
 impl TryFrom<IUnknown> for UIAnnotationPattern {
@@ -170,22 +291,14 @@ pub struct UICustomNavigationPattern {
 impl UICustomNavigationPattern {
     pub fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
         let element = unsafe {
-            self.pattern.Navigate(direction)?
+            self.pattern.Navigate(direction.into())?
         };
         Ok(element.into())
     }
 }
 
 impl UIPattern for UICustomNavigationPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_CustomNavigationPatternId;
-    
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_CustomNavigationPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UICustomNavigationPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::CustomNavigation;
 }
 
 impl TryFrom<IUnknown> for UICustomNavigationPattern {
@@ -229,27 +342,19 @@ impl UIDockPattern {
         let pos = unsafe {
             self.pattern.CurrentDockPosition()?
         };
-        Ok(pos)
+        Ok(pos.into())
     }
 
     pub fn set_dock_position(&self, position: DockPosition) -> Result<()> {
         unsafe {
-            self.pattern.SetDockPosition(position)?
+            self.pattern.SetDockPosition(position.into())?
         };
         Ok(())
     }
 }
 
 impl UIPattern for UIDockPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_DockPatternId;
-
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_DockPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIDockPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Dock;
 }
 
 impl TryFrom<IUnknown> for UIDockPattern {
@@ -335,14 +440,7 @@ impl UIDragPattern {
 }
 
 impl UIPattern for UIDragPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_DragPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_DragPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIDragPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Drag;
 }
 
 impl TryFrom<IUnknown> for UIDragPattern {
@@ -400,14 +498,7 @@ impl UIDropTargetPattern {
 }
 
 impl UIPattern for UIDropTargetPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_DropTargetPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_DropTargetPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIDropTargetPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::DropTarget;
 }
 
 impl TryFrom<IUnknown> for UIDropTargetPattern {
@@ -460,21 +551,15 @@ impl UIExpandCollapsePattern {
     }
 
     pub fn get_state(&self) -> Result<ExpandCollapseState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentExpandCollapseState()?
-        })
+        };
+        Ok(state.into())
     }
 }
 
 impl UIPattern for UIExpandCollapsePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ExpandCollapsePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ExpandCollapsePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIExpandCollapsePattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::ExpandCollapse;
 }
 
 impl TryFrom<IUnknown> for UIExpandCollapsePattern {
@@ -535,14 +620,7 @@ impl UIGridPattern {
 }
 
 impl UIPattern for UIGridPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_GridPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_GridPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIGridPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Grid;
 }
 
 impl TryFrom<IUnknown> for UIGridPattern {
@@ -615,14 +693,7 @@ impl UIGridItemPattern {
 }
 
 impl UIPattern for UIGridItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_GridItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_GridItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIGridItemPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::GridItem;
 }
 
 impl TryFrom<IUnknown> for UIGridItemPattern {
@@ -674,14 +745,7 @@ impl UIItemContainerPattern {
 }
 
 impl UIPattern for UIItemContainerPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ItemContainerPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ItemContainerPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::ItemContainer;
 }
 
 impl TryFrom<IUnknown> for UIItemContainerPattern {
@@ -751,14 +815,7 @@ impl UIMultipleViewPattern {
 }
 
 impl UIPattern for UIMultipleViewPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_MultipleViewPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_MultipleViewPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIMultipleViewPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::MultipleView;
 }
 
 impl TryFrom<IUnknown> for UIMultipleViewPattern {
@@ -843,14 +900,7 @@ impl UIRangeValuePattern {
 }
 
 impl UIPattern for UIRangeValuePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_RangeValuePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_RangeValuePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIRangeValuePattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::RangeValue;
 }
 
 impl TryFrom<IUnknown> for UIRangeValuePattern {
@@ -892,7 +942,7 @@ pub struct UIScrollPattern {
 impl UIScrollPattern {
     pub fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
         Ok(unsafe {
-            self.pattern.Scroll(horizontal_amount, vertical_amount)?
+            self.pattern.Scroll(horizontal_amount.into(), vertical_amount.into())?
         })
     }
 
@@ -942,14 +992,7 @@ impl UIScrollPattern {
 }
 
 impl UIPattern for UIScrollPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ScrollPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ScrollPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIScrollPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Scroll;
 }
 
 impl TryFrom<IUnknown> for UIScrollPattern {
@@ -997,14 +1040,7 @@ impl UIScrollItemPattern {
 }
 
 impl UIPattern for UIScrollItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ScrollItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ScrollItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UIScrollItemPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::ScrollItem;
 }
 
 impl TryFrom<IUnknown> for UIScrollItemPattern {
@@ -1093,14 +1129,7 @@ impl UISelectionPattern {
 }
 
 impl UIPattern for UISelectionPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SelectionPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SelectionPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UISelectionPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Selection;
 }
 
 impl TryFrom<IUnknown> for UISelectionPattern {
@@ -1174,14 +1203,7 @@ impl UISelectionItemPattern {
 }
 
 impl UIPattern for UISelectionItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SelectionItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SelectionItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     UISelectionItemPattern::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::SelectionItem;
 }
 
 impl TryFrom<IUnknown> for UISelectionItemPattern {
@@ -1231,14 +1253,7 @@ impl UISpreadsheetPattern {
 }
 
 impl UIPattern for UISpreadsheetPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SpreadsheetPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SpreadsheetPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Spreadsheet;
 }
 
 impl TryFrom<IUnknown> for UISpreadsheetPattern {
@@ -1304,14 +1319,7 @@ impl UISpreadsheetItemPattern {
 }
 
 impl UIPattern for UISpreadsheetItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SpreadsheetItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SpreadsheetItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::SpreadsheetItem;
 }
 
 impl TryFrom<IUnknown> for UISpreadsheetItemPattern {
@@ -1399,14 +1407,7 @@ impl UIStylesPattern {
 }
 
 impl UIPattern for UIStylesPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_StylesPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_StylesPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Styles;
 }
 
 impl TryFrom<IUnknown> for UIStylesPattern {
@@ -1460,14 +1461,7 @@ impl UISynchronizedInputPattern {
 }
 
 impl UIPattern for UISynchronizedInputPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_SynchronizedInputPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_SynchronizedInputPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::SynchronizedInput;
 }
 
 impl TryFrom<IUnknown> for UISynchronizedInputPattern {
@@ -1524,21 +1518,15 @@ impl UITablePattern {
     }
 
     pub fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
-        Ok(unsafe {
+        let major = unsafe {
             self.pattern.CurrentRowOrColumnMajor()?
-        })
+        };
+        Ok(major.into())
     }
 }
 
 impl UIPattern for UITablePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TablePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TablePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Table;
 }
 
 impl TryFrom<IUnknown> for UITablePattern {
@@ -1596,14 +1584,7 @@ impl UITableItemPattern {
 }
 
 impl UIPattern for UITableItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TableItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TableItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::TableItem;
 }
 
 impl TryFrom<IUnknown> for UITableItemPattern {
@@ -1661,14 +1642,7 @@ impl UITextChildPattern {
 }
 
 impl UIPattern for UITextChildPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TextChildPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TextChildPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::TextChild;
 }
 
 impl TryFrom<IUnknown> for UITextChildPattern {
@@ -1750,9 +1724,10 @@ impl UITextPattern {
     }
 
     pub fn get_supported_text_selection(&self) -> Result<SupportedTextSelection> {
-        Ok(unsafe {
+        let selection = unsafe {
             self.pattern.SupportedTextSelection()?
-        })
+        };
+        Ok(selection.into())
     }
 
     pub fn get_range_from_annotation(&self, annotation: &UIElement) -> Result<UITextRange> {
@@ -1781,14 +1756,7 @@ impl UITextPattern {
 }
 
 impl UIPattern for UITextPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TextPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TextPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Text;
 }
 
 impl TryFrom<IUnknown> for UITextPattern {
@@ -1849,14 +1817,7 @@ impl UITextEditPattern {
 }
 
 impl UIPattern for UITextEditPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TextEditPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TextEditPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::TextEdit;
 }
 
 impl TryFrom<IUnknown> for UITextEditPattern {
@@ -1915,13 +1876,13 @@ impl UITextRange {
 
     pub fn compare_endpoints(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<i32> {
        Ok(unsafe {
-           self.range.CompareEndpoints(src_endpoint, range.as_ref(), target_endpoint)?
+           self.range.CompareEndpoints(src_endpoint.into(), range.as_ref(), target_endpoint.into())?
        }) 
     }
 
     pub fn expand_to_enclosing_unit(&self, text_unit: TextUnit) -> Result<()> {
         Ok(unsafe {
-            self.range.ExpandToEnclosingUnit(text_unit)?
+            self.range.ExpandToEnclosingUnit(text_unit.into())?
         })
     }
 
@@ -1963,19 +1924,19 @@ impl UITextRange {
 
     pub fn move_text(&self, unit: TextUnit, count: i32) -> Result<i32> {
         Ok(unsafe {
-            self.range.Move(unit, count)?
+            self.range.Move(unit.into(), count)?
         })
     }
 
     pub fn move_endpoint_by_unit(&self, endpoint: TextPatternRangeEndpoint, unit: TextUnit, count: i32) -> Result<i32> {
         Ok(unsafe {
-            self.range.MoveEndpointByUnit(endpoint, unit, count)?
+            self.range.MoveEndpointByUnit(endpoint.into(), unit.into(), count)?
         })
     }
 
     pub fn move_endpoint_by_range(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<()> {
         Ok(unsafe {
-            self.range.MoveEndpointByRange(src_endpoint, range.as_ref(), target_endpoint)?
+            self.range.MoveEndpointByRange(src_endpoint.into(), range.as_ref(), target_endpoint.into())?
         })
     }
 
@@ -2061,9 +2022,10 @@ pub struct UITogglePattern {
 
 impl UITogglePattern {
     pub fn get_toggle_state(&self) -> Result<ToggleState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentToggleState()?
-        })
+        };
+        Ok(state.into())
     }
 
     pub fn toggle(&self) -> Result<()> {
@@ -2074,14 +2036,7 @@ impl UITogglePattern {
 }
 
 impl UIPattern for UITogglePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TogglePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TogglePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Toggle;
 }
 
 impl TryFrom<IUnknown> for UITogglePattern {
@@ -2200,20 +2155,13 @@ impl UITransformPattern {
     pub fn zoom_by_unit(&self, zoom_unit: ZoomUnit) -> Result<()> {
         let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
         Ok(unsafe {
-            pattern2.ZoomByUnit(zoom_unit)?
+            pattern2.ZoomByUnit(zoom_unit.into())?
         })
     }
 }
 
 impl UIPattern for UITransformPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_TransformPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_TransformPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Transform;
 }
 
 impl TryFrom<IUnknown> for UITransformPattern {
@@ -2277,14 +2225,7 @@ impl UIValuePattern {
 }
 
 impl UIPattern for UIValuePattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_ValuePatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_ValuePatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Value;
 }
 
 impl TryFrom<IUnknown> for UIValuePattern {
@@ -2333,14 +2274,7 @@ impl UIVirtualizedItemPattern {
 }
 
 impl UIPattern for UIVirtualizedItemPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_VirtualizedItemPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_VirtualizedItemPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::VirtualizedItem;
 }
 
 impl TryFrom<IUnknown> for UIVirtualizedItemPattern {
@@ -2395,14 +2329,15 @@ impl UIWindowPattern {
     }
 
     pub fn get_window_visual_state(&self) -> Result<WindowVisualState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentWindowVisualState()?
-        })
+        };
+        Ok(state.into())
     }
 
     pub fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()> {
         Ok(unsafe {
-            self.pattern.SetWindowVisualState(state)?
+            self.pattern.SetWindowVisualState(state.into())?
         })
     }
 
@@ -2435,21 +2370,16 @@ impl UIWindowPattern {
     }
 
     pub fn get_window_interaction_state(&self) -> Result<WindowInteractionState> {
-        Ok(unsafe {
+        let state = unsafe {
             self.pattern.CurrentWindowInteractionState()?
-        })
+        };
+
+        Ok(state.into())
     }
 }
 
 impl UIPattern for UIWindowPattern {
-    const PATTERN_ID: UIA_PATTERN_ID = UIA_WindowPatternId;
-    // fn pattern_id() -> UIA_PATTERN_ID {
-    //     UIA_WindowPatternId
-    // }
-
-    // fn new(pattern: IUnknown) -> Result<Self> {
-    //     Self::try_from(pattern)
-    // }
+    const TYPE: UIPatternType = UIPatternType::Window;
 }
 
 impl TryFrom<IUnknown> for UIWindowPattern {

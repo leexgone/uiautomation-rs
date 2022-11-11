@@ -22,17 +22,17 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::Win32::UI::Accessibility::OrientationType;
-use windows::Win32::UI::Accessibility::PropertyConditionFlags;
-use windows::Win32::UI::Accessibility::TreeScope;
-use windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID;
-use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 use windows::core::IUnknown;
 use windows::core::InParam;
 use windows::core::Interface;
 
+use crate::controls::ControlType;
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
+use crate::types::OrientationType;
+use crate::types::PropertyConditionFlags;
+use crate::types::TreeScope;
+use crate::types::UIProperty;
 use crate::variants::SafeArray;
 
 use super::filters::ClassNameFilter;
@@ -255,7 +255,7 @@ impl UIAutomation {
         let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags)?
+                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags.into())?
             } else {
                 self.automation.CreatePropertyCondition(property_id, InParam::owned(val))?
             }
@@ -296,7 +296,7 @@ impl UIElement {
     /// Retrieves the first child or descendant element that matches the specified condition.
     pub fn find_first(&self, scope: TreeScope, condition: &UICondition) -> Result<UIElement> {
         let result = unsafe {
-            self.element.FindFirst(scope, condition.as_ref())?
+            self.element.FindFirst(scope.into(), condition.as_ref())?
         };
         Ok(result.into())
     }
@@ -304,7 +304,7 @@ impl UIElement {
     /// Returns all UI Automation elements that satisfy the specified condition.
     pub fn find_all(&self, scope: TreeScope, condition: &UICondition) -> Result<Vec<UIElement>> {
         let elements = unsafe {
-            self.element.FindAll(scope, condition.as_ref())?
+            self.element.FindAll(scope.into(), condition.as_ref())?
         };
         Self::to_elements(elements)
     }
@@ -356,12 +356,13 @@ impl UIElement {
     }
 
     /// Retrieves the control type of the element.
-    pub fn get_control_type(&self) -> Result<UIA_CONTROLTYPE_ID> {
+    pub fn get_control_type(&self) -> Result<ControlType> {
         let control_type = unsafe {
             self.element.CurrentControlType()?
         };
         
-        Ok(UIA_CONTROLTYPE_ID(control_type as u32))
+        // Ok(UIA_CONTROLTYPE_ID(control_type as u32))
+        ControlType::try_from(control_type as u32)
     }
 
     /// Retrieves a localized description of the control type of the element.
@@ -496,7 +497,7 @@ impl UIElement {
             self.element.CurrentOrientation()?
         };
 
-        Ok(orientation)
+        Ok(orientation.into())
     }
 
     /// Retrieves the name of the underlying UI framework.
@@ -606,7 +607,7 @@ impl UIElement {
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     pub fn get_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
-            self.element.GetCurrentPattern(T::PATTERN_ID.0 as _)?
+            self.element.GetCurrentPattern(T::TYPE as _)?
         };
 
         // T::new(pattern)
@@ -629,9 +630,9 @@ impl UIElement {
     }
 
     /// Retrieves the current value of a property for this UI Automation element.
-    pub fn get_property_value(&self, property_id: UIA_PROPERTY_ID) -> Result<Variant> {
+    pub fn get_property_value(&self, property: UIProperty) -> Result<Variant> {
         let value = unsafe {
-            self.element.GetCurrentPropertyValue(property_id.0 as _)?
+            self.element.GetCurrentPropertyValue(property as _)?
         };
 
         Ok(value.into())
@@ -1051,7 +1052,7 @@ impl UIMatcher {
     }
 
     /// Filters by control type.
-    pub fn control_type(self, control_type: UIA_CONTROLTYPE_ID) -> Self {
+    pub fn control_type(self, control_type: ControlType) -> Self {
         let condition = ControlTypeFilter {
             control_type
         };
@@ -1568,7 +1569,7 @@ impl UIPropertyCondition {
     pub fn get_property_condition_flags(&self) -> Result<PropertyConditionFlags> {
         Ok(unsafe {
             self.0.PropertyConditionFlags()?
-        })
+        }.into())
     }
 }
 
@@ -1626,15 +1627,12 @@ impl Into<UICondition> for UIPropertyCondition {
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::IUIAutomationElement;
-    use windows::Win32::UI::Accessibility::TreeScope_Children;
-    use windows::Win32::UI::Accessibility::UIA_MenuItemControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_PaneControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_TitleBarControlTypeId;
-    use windows::Win32::UI::Accessibility::UIA_WindowControlTypeId;
 
     use crate::UIAutomation;
     use crate::UIElement;
+    use crate::controls::ControlType;
     use crate::filters::MatcherFilter;
+    use crate::types::TreeScope;
 
     fn print_element(element: &UIElement) {
         println!("Name: {}", element.get_name().unwrap());
@@ -1689,7 +1687,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
-            let matcher = automation.create_matcher().control_type(UIA_MenuItemControlTypeId).from(notepad.clone()).name("文件").depth(5).timeout(1000);
+            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from(notepad.clone()).name("文件").depth(5).timeout(1000);
             if let Ok(menu_item) = matcher.find_first() {
                 menu_item.click().unwrap();
             }
@@ -1701,7 +1699,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         let root = automation.get_root_element().unwrap();
         let condition = automation.create_true_condition().unwrap();
-        let child = root.find_first(TreeScope_Children, &condition).unwrap();
+        let child = root.find_first(TreeScope::Children, &condition).unwrap();
         println!("{}", child);
     }
 
@@ -1714,7 +1712,7 @@ mod tests {
 
             let menubar = automation.create_matcher() //.debug(true)
                 .from(window.clone())
-                .control_type(UIA_PaneControlTypeId)
+                .control_type(ControlType::Pane)
                 .timeout(0)
                 .find_first().unwrap();
 
@@ -1726,7 +1724,7 @@ mod tests {
     fn test_search_from() {
         let automation = UIAutomation::new().unwrap();
         if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
-            let nothing = automation.create_matcher().from(window.clone()).control_type(UIA_WindowControlTypeId).find_first();
+            let nothing = automation.create_matcher().from(window.clone()).control_type(ControlType::Window).find_first();
             assert!(nothing.is_err());
         }
     }
@@ -1767,7 +1765,7 @@ mod tests {
     fn test_automation_id() {
         let automation = UIAutomation::new().unwrap();
         if let Ok(notepad) = automation.create_matcher().timeout(0).classname("Notepad").find_first() {
-            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(UIA_TitleBarControlTypeId).find_first().unwrap();
+            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(ControlType::TitleBar).find_first().unwrap();
             let element: &IUIAutomationElement = title_bar.as_ref();
             let automation_id = unsafe {
                 element.CurrentAutomationId().unwrap()

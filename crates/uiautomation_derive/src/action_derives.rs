@@ -117,12 +117,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
         
             fn is_normal(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                Ok(pattern.get_window_visual_state()? == windows::Win32::UI::Accessibility::WindowVisualState_Normal)
+                Ok(pattern.get_window_visual_state()? == super::types::WindowVisualState::Normal)
             }
         
             fn normal(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                pattern.set_window_visual_state(windows::Win32::UI::Accessibility::WindowVisualState_Normal)
+                pattern.set_window_visual_state(super::types::WindowVisualState::Normal)
             }
         
             fn can_maximize(&self) -> Result<bool> {
@@ -132,12 +132,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
         
             fn is_maximized(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                Ok(pattern.get_window_visual_state()? == windows::Win32::UI::Accessibility::WindowVisualState_Maximized)
+                Ok(pattern.get_window_visual_state()? == super::types::WindowVisualState::Maximized)
             }
         
             fn maximize(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                pattern.set_window_visual_state(windows::Win32::UI::Accessibility::WindowVisualState_Maximized)
+                pattern.set_window_visual_state(super::types::WindowVisualState::Maximized)
             }
         
             fn can_minimize(&self) -> Result<bool> {
@@ -147,12 +147,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
         
             fn is_minimized(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                Ok(pattern.get_window_visual_state()? == windows::Win32::UI::Accessibility::WindowVisualState_Minimized)
+                Ok(pattern.get_window_visual_state()? == super::types::WindowVisualState::Minimized)
             }
         
             fn minimize(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
-                pattern.set_window_visual_state(windows::Win32::UI::Accessibility::WindowVisualState_Minimized)
+                pattern.set_window_visual_state(super::types::WindowVisualState::Minimized)
             }
         
             fn is_modal(&self) -> Result<bool> {
@@ -165,7 +165,7 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.is_topmost()
             }
         
-            fn get_window_interaction_state(&self) -> Result<windows::Win32::UI::Accessibility::WindowInteractionState> {
+            fn get_window_interaction_state(&self) -> Result<super::types::WindowInteractionState> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
                 pattern.get_window_interaction_state()
             }
@@ -233,7 +233,7 @@ pub(crate) fn impl_transform(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.zoom(zoom_value)
             }
         
-            fn zoom_by_unit(&self, zoom_unit: windows::Win32::UI::Accessibility::ZoomUnit) -> Result<()> {
+            fn zoom_by_unit(&self, zoom_unit: super::types::ZoomUnit) -> Result<()> {
                 let pattern: UITransformPattern = self.as_ref().get_pattern()?;
                 pattern.zoom_by_unit(zoom_unit)
             }
@@ -279,12 +279,12 @@ pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.collapse()
             }
         
-            fn get_state(&self) -> Result<ExpandCollapseState> {
+            fn get_state(&self) -> Result<super::types::ExpandCollapseState> {
                 let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
                 pattern.get_state()
             }
         }
-            };
+    };
     gen.into()
 }
 
@@ -292,7 +292,7 @@ pub(crate) fn impl_toggle(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Toggle for #name {
-            fn get_toggle_state(&self) -> Result<ToggleState> {
+            fn get_toggle_state(&self) -> Result<super::types::ToggleState> {
                 let pattern: UITogglePattern = self.as_ref().get_pattern()?;
                 pattern.get_toggle_state()
             }
@@ -343,7 +343,7 @@ pub(crate) fn impl_table(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.get_column_headers()
             }
         
-            fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
+            fn get_row_or_column_major(&self) -> Result<super::types::RowOrColumnMajor> {
                 let pattern: UITablePattern = self.as_ref().get_pattern()?;
                 pattern.get_row_or_column_major()
             }
@@ -356,7 +356,7 @@ pub(crate) fn impl_scroll(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Scroll for #name {
-            fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
+            fn scroll(&self, horizontal_amount: super::types::ScrollAmount, vertical_amount: super::types::ScrollAmount) -> Result<()> {
                 let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
                 pattern.scroll(horizontal_amount, vertical_amount)
             }
@@ -447,7 +447,7 @@ pub(crate) fn impl_custom_navigation(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl CustomNavigation for #name {
-            fn navigate(&self, direction: NavigateDirection) -> Result<UIElement> {
+            fn navigate(&self, direction: super::types::NavigateDirection) -> Result<UIElement> {
                 let pattern: UICustomNavigationPattern = self.as_ref().get_pattern()?;
                 pattern.navigate(direction)
             }
@@ -536,7 +536,7 @@ pub(crate) fn impl_text(ast: &syn::DeriveInput) -> TokenStream {
                 pattern.get_document_range()
             }
         
-            fn get_supported_text_selection(&self) -> Result<SupportedTextSelection> {
+            fn get_supported_text_selection(&self) -> Result<super::types::SupportedTextSelection> {
                 let pattern: UITextPattern = self.as_ref().get_pattern()?;
                 pattern.get_supported_text_selection()
             }
@@ -602,12 +602,12 @@ pub(crate) fn impl_dock(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Dock for #name {
-            fn get_dock_position(&self) -> Result<DockPosition> {
+            fn get_dock_position(&self) -> Result<super::types::DockPosition> {
                 let pattern: UIDockPattern = self.as_ref().get_pattern()?;
                 pattern.get_dock_position()
             }
         
-            fn set_dock_position(&self, position: DockPosition) -> Result<()> {
+            fn set_dock_position(&self, position: super::types::DockPosition) -> Result<()> {
                 let pattern: UIDockPattern = self.as_ref().get_pattern()?;
                 pattern.set_dock_position(position)
             }
