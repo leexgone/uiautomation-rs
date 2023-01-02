@@ -25,3 +25,7 @@
 ## v0.3.0
 
 + redefine some automation types
+
+## v0.3.1
+
++ udate dependencies
