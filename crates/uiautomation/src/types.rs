@@ -76,12 +76,6 @@ impl AsMut<POINT> for Point {
     }
 }
 
-// impl<'a> IntoParam<'a, POINT> for Point {
-//     fn into_param(self) -> windows::core::Param<'a, POINT> {
-//         Param::Owned(self.0)
-//     }
-// }
-
 /// A Rect type stores the position and size of a rectangle.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub struct Rect(RECT);
@@ -193,12 +187,6 @@ impl AsMut<RECT> for Rect {
         &mut self.0
     }
 }
-
-// impl<'a> IntoParam<'a, RECT> for Rect {
-//     fn into_param(self) -> Param<'a, RECT> {
-//         Param::Owned(self.0)
-//     }
-// }
 
 /// A Wrapper for windows `HWND`.
 #[derive(Default, Clone, Copy)]
