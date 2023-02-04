@@ -28,4 +28,8 @@
 
 ## v0.3.1
 
-+ udate dependencies
++ uudate dependencies
+
+## v0.3.2
+
++ update to windwos v0.44
