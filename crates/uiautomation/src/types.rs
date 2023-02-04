@@ -1030,6 +1030,234 @@ impl Into<windows::Win32::UI::Accessibility::TreeScope> for TreeScope {
     }
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE`.
+/// 
+/// This type describes the named constants that are used to identify types of annotations in a document.
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum AnnotationType {
+    /// The annotation type is unknown.
+    Unknown = 60000u32,
+    /// A spelling error, often denoted by a red squiggly line.
+    SpellingError = 60001u32,
+    /// A grammatical error, often denoted by a green squiggly line.
+    GrammarError = 60002u32,
+    /// A comment. Comments can take different forms depending on the application.
+    Comment = 60003u32,
+    /// An error in a formula. Formula errors typically include red text and exclamation marks.
+    FormulaError = 60004u32,
+    /// A change that was made to the document.
+    TrackChanges = 60005u32,
+    /// The header for a page in a document.
+    Header = 60006u32,
+    /// The footer for a page in a document.
+    Footer = 60007u32,
+    /// Highlighted content, typically denoted by a contrasting background color.
+    Highlighted = 60008u32,
+    /// The endnote for a document.
+    Endnote = 60009u32,
+    /// The footnote for a page in a document.
+    Footnote = 60010u32,
+    /// An insertion change that was made to the document.
+    InsertionChange = 60011u32,
+    /// A deletion change that was made to the document.
+    DeletionChange = 60012u32,
+    /// A move change that was made to the document.
+    MoveChange = 60013u32,
+    /// A format change that was made.
+    FormatChange = 60014u32,
+    /// An unsynced change that was made to the document.
+    UnsyncedChange = 60015u32,
+    /// An editing locked change that was made to the document.
+    EditingLockedChange = 60016u32,
+    /// An external change that was made to the document.
+    ExternalChange = 60017u32,
+    /// A conflicting change that was made to the document.
+    ConflictingChange = 60018u32,
+    /// The author of the document.
+    Author = 60019u32,
+    /// An advanced proofing issue.
+    AdvancedProofingIssue = 60020u32,
+    /// A data validation error that occurred.
+    DataValidationError = 60021u32,
+    /// A circular reference error that occurred.
+    CircularReferenceError = 60022u32,
+    /// A text range containing mathematics.
+    Mathematics = 60023u32,
+}
+
+impl From<windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE> for AnnotationType {
+    fn from(value: windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE> for AnnotationType {
+    fn into(self) -> windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE {
+        windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE(self as _)
+    }
+}
+
+/// Defines enum for `windows::Win32::UI::Accessibility::UIA_STYLE_ID`.
+/// 
+/// This set of constants describes the named constants used to identify the visual style of text in a document.
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum StyleType {
+    /// A custom style.
+    Custom = 70000u32,
+    /// A first level heading.
+    Heading1 = 70001u32,
+    /// A second level heading.
+    Heading2 = 70002u32,
+    /// A third level heading.
+    Heading3 = 70003u32,
+    /// A fourth level heading.
+    Heading4 = 70004u32,
+    /// A fifth level heading.
+    Heading5 = 70005u32,
+    /// A sixth level heading.
+    Heading6 = 70006u32,
+    /// A seventh level heading.
+    Heading7 = 70007u32,
+    /// An eighth level heading.
+    Heading8 = 70008u32,
+    /// A ninth level heading.
+    Heading9 = 70009u32,
+    /// A title.
+    Title = 70010u32,
+    /// A subtitle.
+    Subtitle = 70011u32,
+    /// Normal style.
+    Normal = 70012u32,
+    /// Text that is emphasized.
+    Emphasis = 70013u32,
+    /// A quotation.
+    Quote = 70014u32,
+    /// A list with bulleted items. Supported starting with Windows 8.1.
+    BulletedList = 70015u32,
+    /// A list with numbered items. Supported starting with Windows 8.1.
+    NumberedList = 70016u32,
+}
+
+impl From<windows::Win32::UI::Accessibility::UIA_STYLE_ID> for StyleType {
+    fn from(value: windows::Win32::UI::Accessibility::UIA_STYLE_ID) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::UIA_STYLE_ID> for StyleType {
+    fn into(self) -> windows::Win32::UI::Accessibility::UIA_STYLE_ID {
+        windows::Win32::UI::Accessibility::UIA_STYLE_ID(self as _)
+    }
+}
+
+/// Defines enum for `windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID`.
+/// 
+/// This type describes the named constants used to identify text attributes of a Microsoft UI Automation text range.
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum TextAttribute {
+    /// Identifies the AnimationStyle text attribute, which specifies the type of animation applied to the text. This attribute is specified as a value from the AnimationStyle enumerated type.
+    AnimationStyle = 40000u32,
+    /// Identifies the BackgroundColor text attribute, which specifies the background color of the text. This attribute is specified as a COLORREF; a 32-bit value used to specify an RGB or RGBA color.
+    BackgroundColor = 40001u32,
+    /// Identifies the BulletStyle text attribute, which specifies the style of bullets used in the text range. This attribute is specified as a value from the BulletStyle enumerated type.
+    BulletStyle = 40002u32,
+    /// Identifies the CapStyle text attribute, which specifies the capitalization style for the text. This attribute is specified as a value from the CapStyle enumerated type.
+    CapStyle = 40003u32,
+    /// Identifies the Culture text attribute, which specifies the locale of the text by locale identifier (LCID).
+    Culture = 40004u32,
+    /// Identifies the FontName text attribute, which specifies the name of the font. Examples: Arial Black; Arial Narrow. The font name string is not localized.
+    FontName = 40005u32,
+    /// Identifies the FontSize text attribute, which specifies the point size of the font.
+    FontSize = 40006u32,
+    /// Identifies the FontWeight text attribute, which specifies the relative stroke, thickness, or boldness of the font. The FontWeight attribute is modeled after the lfWeight member of the GDI LOGFONT structure, and related standards, and can be one of the following values:
+    FontWeight = 40007u32,
+    /// Identifies the ForegroundColor text attribute, which specifies the foreground color of the text. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    ForegroundColor = 40008u32,
+    /// Identifies the HorizontalTextAlignment text attribute, which specifies how the text is aligned horizontally. This attribute is specified as a value from the HorizontalTextAlignmentEnum enumerated type.
+    HorizontalTextAlignment = 40009u32,
+    /// Identifies the IndentationFirstLine text attribute, which specifies how far, in points, to indent the first line of a paragraph.
+    IndentationFirstLine = 40010u32,
+    /// Identifies the IndentationLeading text attribute, which specifies the leading indentation, in points.
+    IndentationLeading = 40011u32,
+    /// Identifies the IndentationTrailing text attribute, which specifies the trailing indentation, in points.
+    IndentationTrailing = 40012u32,
+    /// Identifies the IsHidden text attribute, which indicates whether the text is hidden (TRUE) or visible (FALSE).
+    IsHidden = 40013u32,
+    /// Identifies the IsItalic text attribute, which indicates whether the text is italic (TRUE) or not (FALSE).
+    IsItalic = 40014u32,
+    /// Identifies the IsReadOnly text attribute, which indicates whether the text is read-only (TRUE) or can be modified (FALSE).
+    IsReadOnly = 40015u32,
+    /// Identifies the IsSubscript text attribute, which indicates whether the text is subscript (TRUE) or not (FALSE).
+    IsSubscript = 40016u32,
+    /// Identifies the IsSuperscript text attribute, which indicates whether the text is subscript (TRUE) or not (FALSE).
+    IsSuperscript = 40017u32,
+    /// Identifies the MarginBottom text attribute, which specifies the size, in points, of the bottom margin applied to the page associated with the text range.
+    MarginBottom = 40018u32,
+    /// Identifies the MarginLeading text attribute, which specifies the size, in points, of the leading margin applied to the page associated with the text range.
+    MarginLeading = 40019u32,
+    /// Identifies the MarginTop text attribute, which specifies the size, in points, of the top margin applied to the page associated with the text range.
+    MarginTop = 40020u32,
+    /// Identifies the MarginTrailing text attribute, which specifies the size, in points, of the trailing margin applied to the page associated with the text range.
+    MarginTrailing = 40021u32,
+    /// Identifies the OutlineStyles text attribute, which specifies the outline style of the text. This attribute is specified as a value from the OutlineStyles enumerated type.
+    OutlineStyles = 40022u32,
+    /// Identifies the OverlineColor text attribute, which specifies the color of the overline text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    OverlineColor = 40023u32,
+    /// Identifies the OverlineStyle text attribute, which specifies the style of the overline text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
+    OverlineStyle = 40024u32,
+    /// Identifies the StrikethroughColor text attribute, which specifies the color of the strikethrough text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    StrikethroughColor = 40025u32,
+    /// Identifies the StrikethroughStyle text attribute, which specifies the style of the strikethrough text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
+    StrikethroughStyle = 40026u32,
+    /// Identifies the Tabs text attribute, which is an array specifying the tab stops for the text range. Each array element specifies a distance, in points, from the leading margin.
+    Tabs = 40027u32,
+    /// Identifies the TextFlowDirections text attribute, which specifies the direction of text flow. This attribute is specified as a combination of values from the FlowDirections enumerated type.
+    TextFlowDirections = 40028u32,
+    /// Identifies the UnderlineColor text attribute, which specifies the color of the underline text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    UnderlineColor = 40029u32,
+    /// Identifies the UnderlineStyle text attribute, which specifies the style of the underline text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
+    UnderlineStyle = 40030u32,
+    /// Identifies the AnnotationTypes text attribute, which maintains a list of annotation type identifiers for a range of text. For a list of possible values, see Annotation Type Identifiers. Supported starting with Windows 8.
+    AnnotationTypes = 40031u32,
+    /// Identifies the AnnotationObjects text attribute, which maintains an array of IUIAutomationElement2 interfaces, one for each element in the current text range that implements the Annotation control pattern. Each element might also implement other control patterns as needed to describe the annotation. For example, an annotation that is a comment would also support the Text control pattern. Supported starting with Windows 8.
+    AnnotationObjects = 40032u32,
+    /// Identifies the StyleName text attribute, which identifies the localized name of the text style in use for a text range. Supported starting with Windows 8.
+    StyleName = 40033u32,
+    /// Identifies the StyleId text attribute, which indicates the text styles in use for a text range. For a list of possible values, see Style Identifiers. Supported starting with Windows 8.
+    StyleId = 40034u32,
+    /// Identifies the Link text attribute, which contains the IUIAutomationTextRange interface of the text range that is the target of an internal link in a document. Supported starting with Windows 8.
+    Link = 40035u32,
+    /// Identifies the IsActive text attribute, which indicates whether the control that contains the text range has the keyboard focus (TRUE) or not (FALSE). Supported starting with Windows 8.
+    IsActive = 40036u32,
+    /// Identifies the SelectionActiveEnd text attribute, which indicates the location of the caret relative to a text range that represents the currently selected text. This attribute is specified as a value from the ActiveEnd enumeration. Supported starting with Windows 8.
+    SelectionActiveEnd = 40037u32,
+    /// Identifies the CaretPosition text attribute, which indicates whether the caret is at the beginning or the end of a line of text in the text range. This attribute is specified as a value from the CaretPosition enumerated type. Supported starting with Windows 8.
+    CaretPosition = 40038u32,
+    /// Identifies the CaretBidiMode text attribute, which indicates the direction of text flow in the text range. This attribute is specified as a value from the CaretBidiMode enumerated type. Supported starting with Windows 8.
+    CaretBidiMode = 40039u32,
+    /// Identifies the LineSpacing text attribute, which specifies the spacing between lines of text.
+    LineSpacing = 40040u32,
+    /// Identifies the BeforeParagraphSpacing text attribute, which specifies the size of spacing before the paragraph.
+    BeforeParagraphSpacing = 40041u32,
+    /// Identifies the AfterParagraphSpacing text attribute, which specifies the size of spacing after the paragraph.
+    AfterParagraphSpacing = 40042u32,
+}
+
+impl From<windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID> for TextAttribute {
+    fn from(value: windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
+impl Into<windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID> for TextAttribute {
+    fn into(self) -> windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID {
+        windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID(self as _)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility;

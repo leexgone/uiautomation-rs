@@ -251,13 +251,13 @@ impl UIAutomation {
     }
 
     /// Creates a condition that selects elements that have a property with the specified value, using optional flags.
-    pub fn create_property_condition(&self, property_id: i32, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
+    pub fn create_property_condition(&self, property: UIProperty, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
         let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags.into())?
+                self.automation.CreatePropertyConditionEx(property.into(), val, flags.into())?
             } else {
-                self.automation.CreatePropertyCondition(property_id, InParam::owned(val))?
+                self.automation.CreatePropertyCondition(property.into(), val)?
             }
         };
         Ok(condition.into())
@@ -361,8 +361,7 @@ impl UIElement {
             self.element.CurrentControlType()?
         };
         
-        // Ok(UIA_CONTROLTYPE_ID(control_type as u32))
-        ControlType::try_from(control_type as u32)
+        Ok(ControlType::from(control_type))
     }
 
     /// Retrieves a localized description of the control type of the element.
@@ -607,7 +606,7 @@ impl UIElement {
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     pub fn get_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
-            self.element.GetCurrentPattern(T::TYPE as _)?
+            self.element.GetCurrentPattern(T::TYPE.into())?
         };
 
         // T::new(pattern)
@@ -632,7 +631,7 @@ impl UIElement {
     /// Retrieves the current value of a property for this UI Automation element.
     pub fn get_property_value(&self, property: UIProperty) -> Result<Variant> {
         let value = unsafe {
-            self.element.GetCurrentPropertyValue(property as _)?
+            self.element.GetCurrentPropertyValue(property.into())?
         };
 
         Ok(value.into())
@@ -770,8 +769,8 @@ impl Into<IUIAutomationElement> for UIElement {
     }
 }
 
-impl<'a> Into<InParam<'a, IUIAutomationElement>> for UIElement {
-    fn into(self) -> InParam<'a, IUIAutomationElement> {
+impl<'a> Into<InParam<IUIAutomationElement>> for UIElement {
+    fn into(self) -> InParam<IUIAutomationElement> {
         InParam::owned(self.element)
     }
 }
@@ -1551,10 +1550,11 @@ pub struct UIPropertyCondition(IUIAutomationPropertyCondition);
 
 impl UIPropertyCondition {
     /// Retrieves the identifier of the property on which this condition is based.
-    pub fn get_property_id(&self) -> Result<i32> {
-        Ok(unsafe {
+    pub fn get_property(&self) -> Result<UIProperty> {
+        let property_id = unsafe {
             self.0.PropertyId()?    
-        })
+        };
+        Ok(property_id.into())
     }
 
     /// Retrieves the property value that must be matched for the condition to be true.

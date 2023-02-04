@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -19,11 +19,11 @@ targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows
 
 chrono = "0.4.23"
 phf = { version = "0.11.1", features = ["macros"] }
-uiautomation_derive = { version = "0.1.1", path = "../uiautomation_derive" }
+uiautomation_derive = { version = "0.1.2", path = "../uiautomation_derive" }
 # uiautomation_derive = "0.0.5"
 
 [dependencies.windows]
-version = "0.43.0"
+version = "0.44.0"
 features = [
     # "alloc",
     "Win32_Foundation",
