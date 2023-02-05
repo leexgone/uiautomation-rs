@@ -4,11 +4,12 @@ mod action_derives;
 mod enum_derives;
 
 use proc_macro::TokenStream;
+use syn::AttributeArgs;
 use syn::ItemEnum;
+use syn::parse_macro_input;
 
-use crate::action_derives::*;
-
-use self::enum_derives::impl_enum_convert;
+use self::action_derives::*;
+use self::enum_derives::*;
 
 #[proc_macro_derive(Invoke)]
 pub fn derive_invoke(input: TokenStream) -> TokenStream {
@@ -152,7 +153,15 @@ pub fn derive_dock(input: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(EnumConvert)]
 pub fn derive_enum_convert(input: TokenStream) -> TokenStream {
-    let enum_item = syn::parse::<ItemEnum>(input).expect("#[EnumConvert] must be used on enums only");
+    let enum_item = syn::parse::<ItemEnum>(input).expect("#[Derive(EnumConvert)] must be used on enums only");
 
-    impl_enum_convert(&enum_item)
+    impl_enum_convert(enum_item)
+}
+
+#[proc_macro_attribute]
+pub fn map_as(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let enum_item: ItemEnum = syn::parse(item).expect("#[map_as()] must be used on enums only");
+    let args = parse_macro_input!(attr as AttributeArgs);
+
+    impl_map_as(args, enum_item)
 }

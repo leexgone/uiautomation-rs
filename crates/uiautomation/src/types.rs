@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 
 use uiautomation_derive::EnumConvert;
+use uiautomation_derive::map_as;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
@@ -222,11 +223,12 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-/// Defines enum for `UIA_PROPERTY_ID`.
+/// Defines enum for `windows::Win32::UI::Accessibility::UIA_PROPERTY_ID`.
 /// 
 /// Describes the named constants that identify the properties of Microsoft UI Automation elements.
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_PROPERTY_ID)]
 pub enum UIProperty {
     /// Identifies the RuntimeId property, which is an array of integers representing the identifier for an automation element.
     RuntimeId = 30000u32,
@@ -580,23 +582,12 @@ pub enum UIProperty {
     IsDialog = 30174u32,
 }
 
-impl From<windows::Win32::UI::Accessibility::UIA_PROPERTY_ID> for UIProperty {
-    fn from(prop: windows::Win32::UI::Accessibility::UIA_PROPERTY_ID) -> Self {
-        prop.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::UIA_PROPERTY_ID> for UIProperty {
-    fn into(self) -> windows::Win32::UI::Accessibility::UIA_PROPERTY_ID {
-        windows::Win32::UI::Accessibility::UIA_PROPERTY_ID(self as u32)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::WindowInteractionState`.
 /// 
 /// Contains values that specify the current state of the window for purposes of user interaction.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::WindowInteractionState)]
 pub enum WindowInteractionState {
     /// The window is running. This does not guarantee that the window is ready for user interaction or is responding.
     Running = 0i32, 
@@ -610,23 +601,12 @@ pub enum WindowInteractionState {
     NotResponding = 4i32
 }
 
-impl From<windows::Win32::UI::Accessibility::WindowInteractionState> for WindowInteractionState {
-    fn from(state: windows::Win32::UI::Accessibility::WindowInteractionState) -> Self {
-        state.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::WindowInteractionState> for WindowInteractionState {
-    fn into(self) -> windows::Win32::UI::Accessibility::WindowInteractionState {
-        windows::Win32::UI::Accessibility::WindowInteractionState(self as i32)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::DockPosition`.
 /// 
 /// Contains values that specify the dock position of an object, represented by a DockPattern, within a docking container.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::DockPosition)]
 pub enum DockPosition {
     /// Indicates that the UI Automation element is docked along the top edge of the docking container.
     Top = 0i32,
@@ -642,23 +622,12 @@ pub enum DockPosition {
     None = 5i32,
 }
 
-impl From<windows::Win32::UI::Accessibility::DockPosition> for DockPosition {
-    fn from(value: windows::Win32::UI::Accessibility::DockPosition) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::DockPosition> for DockPosition {
-    fn into(self) -> windows::Win32::UI::Accessibility::DockPosition {
-        windows::Win32::UI::Accessibility::DockPosition(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::ExpandCollapseState`.
 /// 
 /// Contains values that specify the ExpandCollapseState automation property value of a UI Automation element.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::ExpandCollapseState)]
 pub enum ExpandCollapseState {
     /// No child nodes, controls, or content of the UI Automation element are displayed.
     Collapsed = 0i32,
@@ -670,23 +639,12 @@ pub enum ExpandCollapseState {
     LeafNode = 3i32
 }
 
-impl From<windows::Win32::UI::Accessibility::ExpandCollapseState> for ExpandCollapseState {
-    fn from(value: windows::Win32::UI::Accessibility::ExpandCollapseState) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::ExpandCollapseState> for ExpandCollapseState {
-    fn into(self) -> windows::Win32::UI::Accessibility::ExpandCollapseState {
-        windows::Win32::UI::Accessibility::ExpandCollapseState(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::NavigateDirection`.
 /// 
 /// Contains values used to specify the direction of navigation within the Microsoft UI Automation tree.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::NavigateDirection)]
 pub enum NavigateDirection {
     /// The navigation direction is to the parent.
     Parent = 0i32,
@@ -700,23 +658,12 @@ pub enum NavigateDirection {
     LastChild = 4i32
 }
 
-impl From<windows::Win32::UI::Accessibility::NavigateDirection> for NavigateDirection {
-    fn from(value: windows::Win32::UI::Accessibility::NavigateDirection) -> Self {
-        value.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::NavigateDirection> for NavigateDirection {
-    fn into(self) -> windows::Win32::UI::Accessibility::NavigateDirection {
-        windows::Win32::UI::Accessibility::NavigateDirection(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::RowOrColumnMajor`.
 /// 
 /// Contains values that specify whether data in a table should be read primarily by row or by column.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::RowOrColumnMajor)]
 pub enum RowOrColumnMajor {
     /// Data in the table should be read row by row.
     RowMajor = 0i32,
@@ -726,23 +673,12 @@ pub enum RowOrColumnMajor {
     Indeterminate = 2i32
 }
 
-impl From<windows::Win32::UI::Accessibility::RowOrColumnMajor> for RowOrColumnMajor {
-    fn from(value: windows::Win32::UI::Accessibility::RowOrColumnMajor) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::RowOrColumnMajor> for RowOrColumnMajor {
-    fn into(self) -> windows::Win32::UI::Accessibility::RowOrColumnMajor {
-        windows::Win32::UI::Accessibility::RowOrColumnMajor(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::ScrollAmount`.
 /// 
 /// Contains values that specify the direction and distance to scroll.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::ScrollAmount)]
 pub enum ScrollAmount {
     /// Scrolling is done in large decrements, equivalent to pressing the PAGE UP key or clicking on a blank part of a scroll bar. 
     /// If one page up is not a relevant amount for the control and no scroll bar exists, the value represents an amount equal to the current visible window.
@@ -758,23 +694,12 @@ pub enum ScrollAmount {
     SmallIncrement = 4i32
 }
 
-impl From<windows::Win32::UI::Accessibility::ScrollAmount> for ScrollAmount {
-    fn from(value: windows::Win32::UI::Accessibility::ScrollAmount) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::ScrollAmount> for ScrollAmount {
-    fn into(self) -> windows::Win32::UI::Accessibility::ScrollAmount {
-        windows::Win32::UI::Accessibility::ScrollAmount(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::SupportedTextSelection`.
 /// 
 /// Contains values that specify the supported text selection attribute.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::SupportedTextSelection)]
 pub enum SupportedTextSelection {
     /// Does not support text selections.
     None = 0i32,
@@ -784,23 +709,12 @@ pub enum SupportedTextSelection {
     Multiple = 2i32,
 }
 
-impl From<windows::Win32::UI::Accessibility::SupportedTextSelection> for SupportedTextSelection {
-    fn from(value: windows::Win32::UI::Accessibility::SupportedTextSelection) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::SupportedTextSelection> for SupportedTextSelection {
-    fn into(self) -> windows::Win32::UI::Accessibility::SupportedTextSelection {
-        windows::Win32::UI::Accessibility::SupportedTextSelection(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::ToggleState`.
 /// 
 /// Contains values that specify the toggle state of a Microsoft UI Automation element that implements the Toggle control pattern.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::ToggleState)]
 pub enum ToggleState {
     /// The UI Automation element is not selected, checked, marked or otherwise activated.
     Off = 0i32,
@@ -816,23 +730,12 @@ pub enum ToggleState {
     Indeterminate = 2i32,
 }
 
-impl From<windows::Win32::UI::Accessibility::ToggleState> for ToggleState {
-    fn from(value: windows::Win32::UI::Accessibility::ToggleState) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::ToggleState> for ToggleState {
-    fn into(self) -> windows::Win32::UI::Accessibility::ToggleState {
-        windows::Win32::UI::Accessibility::ToggleState(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::ZoomUnit`.
 /// 
 /// Contains possible values for the IUIAutomationTransformPattern2::ZoomByUnit method, which zooms the viewport of a control by the specified unit.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::ZoomUnit)]
 pub enum ZoomUnit {
     /// No increase or decrease in zoom.
     NoAmount = 0i32,
@@ -846,23 +749,12 @@ pub enum ZoomUnit {
     SmallIncrement = 4i32,
 }
 
-impl From<windows::Win32::UI::Accessibility::ZoomUnit> for ZoomUnit {
-    fn from(value: windows::Win32::UI::Accessibility::ZoomUnit) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::ZoomUnit> for ZoomUnit {
-    fn into(self) -> windows::Win32::UI::Accessibility::ZoomUnit {
-        windows::Win32::UI::Accessibility::ZoomUnit(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::WindowVisualState`.
 /// 
 /// Contains values that specify the visual state of a window for the IWindowProvider pattern.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::WindowVisualState)]
 pub enum WindowVisualState {
     /// Specifies that the window is normal (restored).
     Normal = 0i32,
@@ -872,23 +764,12 @@ pub enum WindowVisualState {
     Minimized = 2i32
 }
 
-impl From<windows::Win32::UI::Accessibility::WindowVisualState> for WindowVisualState {
-    fn from(value: windows::Win32::UI::Accessibility::WindowVisualState) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::WindowVisualState> for WindowVisualState {
-    fn into(self) -> windows::Win32::UI::Accessibility::WindowVisualState {
-        windows::Win32::UI::Accessibility::WindowVisualState(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::TextUnit`.
 /// 
 /// Contains values that specify units of text for the purposes of navigation.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::TextUnit)]
 pub enum TextUnit {
     /// Specifies that the text unit is one character in length.
     Character = 0i32,
@@ -906,23 +787,12 @@ pub enum TextUnit {
     Document = 6i32,
 }
 
-impl From<windows::Win32::UI::Accessibility::TextUnit> for TextUnit {
-    fn from(value: windows::Win32::UI::Accessibility::TextUnit) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::TextUnit> for TextUnit {
-    fn into(self) -> windows::Win32::UI::Accessibility::TextUnit {
-        windows::Win32::UI::Accessibility::TextUnit(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::TextPatternRangeEndpoint`.
 /// 
 /// Contains values that specify the endpoints of a text range.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::TextPatternRangeEndpoint)]
 pub enum TextPatternRangeEndpoint {
     /// The starting endpoint of the range.
     Start = 0i32,
@@ -930,23 +800,12 @@ pub enum TextPatternRangeEndpoint {
     End = 1i32,
 }
 
-impl From<windows::Win32::UI::Accessibility::TextPatternRangeEndpoint> for TextPatternRangeEndpoint {
-    fn from(value: windows::Win32::UI::Accessibility::TextPatternRangeEndpoint) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::TextPatternRangeEndpoint> for TextPatternRangeEndpoint {
-    fn into(self) -> windows::Win32::UI::Accessibility::TextPatternRangeEndpoint {
-        windows::Win32::UI::Accessibility::TextPatternRangeEndpoint(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::OrientationType`.
 /// 
 /// Contains values that specify the orientation of a control.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::OrientationType)]
 pub enum OrientationType {
     /// The control has no orientation.
     None = 0i32,
@@ -956,23 +815,12 @@ pub enum OrientationType {
     Vertical = 2i32
 }
 
-impl From<windows::Win32::UI::Accessibility::OrientationType> for OrientationType {
-    fn from(value: windows::Win32::UI::Accessibility::OrientationType) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::OrientationType> for OrientationType {
-    fn into(self) -> windows::Win32::UI::Accessibility::OrientationType {
-        windows::Win32::UI::Accessibility::OrientationType(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::PropertyConditionFlags`.
 /// 
 /// Contains values used in creating property conditions.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::PropertyConditionFlags)]
 pub enum PropertyConditionFlags {
     /// No flags.
     None = 0i32,
@@ -984,23 +832,12 @@ pub enum PropertyConditionFlags {
     All = 3i32
 }
 
-impl From<windows::Win32::UI::Accessibility::PropertyConditionFlags> for PropertyConditionFlags {
-    fn from(value: windows::Win32::UI::Accessibility::PropertyConditionFlags) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::PropertyConditionFlags> for PropertyConditionFlags {
-    fn into(self) -> windows::Win32::UI::Accessibility::PropertyConditionFlags {
-        windows::Win32::UI::Accessibility::PropertyConditionFlags(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::TreeScope`.
 /// 
 /// Contains values that specify the scope of various operations in the Microsoft UI Automation tree.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::TreeScope)]
 pub enum TreeScope {
     /// The scope excludes the subtree from the search.
     None = 0i32,
@@ -1018,23 +855,12 @@ pub enum TreeScope {
     Subtree = 7i32
 }
 
-impl From<windows::Win32::UI::Accessibility::TreeScope> for TreeScope {
-    fn from(value: windows::Win32::UI::Accessibility::TreeScope) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::TreeScope> for TreeScope {
-    fn into(self) -> windows::Win32::UI::Accessibility::TreeScope {
-        windows::Win32::UI::Accessibility::TreeScope(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE`.
 /// 
 /// This type describes the named constants that are used to identify types of annotations in a document.
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE)]
 pub enum AnnotationType {
     /// The annotation type is unknown.
     Unknown = 60000u32,
@@ -1086,23 +912,12 @@ pub enum AnnotationType {
     Mathematics = 60023u32,
 }
 
-impl From<windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE> for AnnotationType {
-    fn from(value: windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE> for AnnotationType {
-    fn into(self) -> windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE {
-        windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_STYLE_ID`.
 /// 
 /// This set of constants describes the named constants used to identify the visual style of text in a document.
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_STYLE_ID)]
 pub enum StyleType {
     /// A custom style.
     Custom = 70000u32,
@@ -1140,23 +955,12 @@ pub enum StyleType {
     NumberedList = 70016u32,
 }
 
-impl From<windows::Win32::UI::Accessibility::UIA_STYLE_ID> for StyleType {
-    fn from(value: windows::Win32::UI::Accessibility::UIA_STYLE_ID) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::UIA_STYLE_ID> for StyleType {
-    fn into(self) -> windows::Win32::UI::Accessibility::UIA_STYLE_ID {
-        windows::Win32::UI::Accessibility::UIA_STYLE_ID(self as _)
-    }
-}
-
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID`.
 /// 
 /// This type describes the named constants used to identify text attributes of a Microsoft UI Automation text range.
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID)]
 pub enum TextAttribute {
     /// Identifies the AnimationStyle text attribute, which specifies the type of animation applied to the text. This attribute is specified as a value from the AnimationStyle enumerated type.
     AnimationStyle = 40000u32,
@@ -1244,18 +1048,6 @@ pub enum TextAttribute {
     BeforeParagraphSpacing = 40041u32,
     /// Identifies the AfterParagraphSpacing text attribute, which specifies the size of spacing after the paragraph.
     AfterParagraphSpacing = 40042u32,
-}
-
-impl From<windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID> for TextAttribute {
-    fn from(value: windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
-impl Into<windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID> for TextAttribute {
-    fn into(self) -> windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID {
-        windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID(self as _)
-    }
 }
 
 #[cfg(test)]
