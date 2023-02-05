@@ -33,3 +33,7 @@
 ## v0.3.2
 
 + update to windwos v0.44
+
+## v0.3.3
+
++ refactor enum types
