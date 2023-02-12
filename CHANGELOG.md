@@ -28,7 +28,7 @@
 
 ## v0.3.1
 
-+ uudate dependencies
++ update dependencies
 
 ## v0.3.2
 
@@ -37,3 +37,7 @@
 ## v0.3.3
 
 + refactor enum types
+
+## v0.3.4
+
++ update dependencies
