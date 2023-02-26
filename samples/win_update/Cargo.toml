@@ -6,14 +6,3 @@ edition = "2021"
 [dependencies]
 
 uiautomation = { path = "../../crates/uiautomation" }
-
-# [dependencies.windows]
-# version = "0.41.0"
-# features = [
-#     # "alloc",
-#     "Win32_Foundation",
-#     "Win32_System_Com",
-#     "Win32_System_Ole",
-#     "Win32_UI_Accessibility",
-#     "UI_UIAutomation"
-# ]
