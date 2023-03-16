@@ -6,6 +6,7 @@ use uiautomation_derive::map_as;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
+use windows::core::IntoParam;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -220,6 +221,12 @@ impl Into<HWND> for Handle {
 impl AsRef<HWND> for Handle {
     fn as_ref(&self) -> &HWND {
         &self.0
+    }
+}
+
+impl IntoParam<HWND> for Handle {
+    fn into_param(self) -> windows::core::Param<HWND> {
+        windows::core::Param::Owned(self.0)
     }
 }
 

@@ -41,3 +41,7 @@
 ## v0.3.4
 
 + update dependencies
+
+## v0.3.6
+
++ update to `windows v0.46`

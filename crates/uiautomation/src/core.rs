@@ -22,9 +22,10 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
+use windows::core::ComInterface;
 use windows::core::IUnknown;
-use windows::core::InParam;
 use windows::core::Interface;
+use windows::core::IntoParam;
 
 use crate::controls::ControlType;
 use crate::filters::FnFilter;
@@ -132,8 +133,8 @@ impl UIAutomation {
     /// ```
     pub fn create_tree_walker(&self) -> Result<UITreeWalker> {
         let tree_walker = unsafe {
-            let condition = self.automation.CreateTrueCondition()?;
-            self.automation.CreateTreeWalker(InParam::owned(condition))?
+            let condition = self.create_true_condition()?; //self.automation.CreateTrueCondition()?;
+            self.automation.CreateTreeWalker(condition)?
         };
 
         Ok(UITreeWalker::from(tree_walker))
@@ -141,9 +142,9 @@ impl UIAutomation {
 
     /// Retrieves a filtered tree walker object that can be used to traverse the Microsoft UI Automation tree.
     pub fn filter_tree_walker(&self, condition: UICondition) -> Result<UITreeWalker> {
-        let condition: IUIAutomationCondition = condition.into();
+        // let condition: IUIAutomationCondition = condition.into();
         let tree_walker = unsafe {
-            self.automation.CreateTreeWalker(InParam::owned(condition))?
+            self.automation.CreateTreeWalker(condition)?
         };
         Ok(tree_walker.into())
     }
@@ -223,29 +224,29 @@ impl UIAutomation {
 
     /// Creates a condition that is the negative of a specified condition.
     pub fn create_not_condition(&self, condition: UICondition) -> Result<UICondition> {
-        let condition: IUIAutomationCondition = condition.into();
+        // let condition: IUIAutomationCondition = condition.into();
         let result = unsafe {
-            self.automation.CreateNotCondition(InParam::owned(condition))?
+            self.automation.CreateNotCondition(condition)?
         };
         Ok(result.into())
     }
 
     /// Creates a condition that selects elements that match both of two conditions.
     pub fn create_and_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        let c1: IUIAutomationCondition = condition1.into();
-        let c2: IUIAutomationCondition = condition2.into();
+        // let c1: IUIAutomationCondition = condition1.into();
+        // let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateAndCondition(InParam::owned(c1), InParam::owned(c2))?
+            self.automation.CreateAndCondition(condition1, condition2)?
         };
         Ok(result.into())
     }
 
     /// Creates a combination of two conditions where a match exists if either of the conditions is true.
     pub fn create_or_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        let c1: IUIAutomationCondition = condition1.into();
-        let c2: IUIAutomationCondition = condition2.into();
+        // let c1: IUIAutomationCondition = condition1.into();
+        // let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateOrCondition(InParam::owned(c1), InParam::owned(c2))?
+            self.automation.CreateOrCondition(condition1, condition2)?
         };
         Ok(result.into())
     }
@@ -769,9 +770,15 @@ impl Into<IUIAutomationElement> for UIElement {
     }
 }
 
-impl<'a> Into<InParam<IUIAutomationElement>> for UIElement {
-    fn into(self) -> InParam<IUIAutomationElement> {
-        InParam::owned(self.element)
+// impl<'a> Into<InParam<IUIAutomationElement>> for UIElement {
+//     fn into(self) -> InParam<IUIAutomationElement> {
+//         InParam::owned(self.element)
+//     }
+// }
+
+impl IntoParam<IUIAutomationElement> for UIElement {
+    fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
+        windows::core::Param::Owned(self.element)
     }
 }
 
@@ -1260,6 +1267,12 @@ impl Into<IUIAutomationCondition> for UICondition {
 impl AsRef<IUIAutomationCondition> for UICondition {
     fn as_ref(&self) -> &IUIAutomationCondition {
         &self.0
+    }
+}
+
+impl IntoParam<IUIAutomationCondition> for UICondition {
+    fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
+        windows::core::Param::Owned(self.0)
     }
 }
 

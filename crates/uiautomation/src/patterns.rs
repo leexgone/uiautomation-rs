@@ -39,8 +39,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::core::BSTR;
+use windows::core::ComInterface;
 use windows::core::IUnknown;
-use windows::core::Interface;
 
 use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
