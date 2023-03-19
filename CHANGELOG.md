@@ -45,3 +45,7 @@
 ## v0.3.6
 
 + update to `windows v0.46`
+
+## v0.3.7
+
++ update to `syn v2.0.2`

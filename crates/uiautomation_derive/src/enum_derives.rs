@@ -1,13 +1,10 @@
 use proc_macro::TokenStream;
 use proc_macro2::Ident;
-use proc_macro2::TokenTree;
 use quote::format_ident;
 use quote::quote;
-use syn::AttributeArgs;
 use syn::Expr;
 use syn::ItemEnum;
-use syn::Meta;
-use syn::NestedMeta;
+use syn::Path;
 use syn::parse_quote;
 
 const REPR_TYPES: &[&'static str] = &["u8", "u16", "u32", "u64", "usize", "i8", "i16", "i32", "i64", "isize"];
@@ -41,21 +38,11 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
 }
 
 fn get_repr_type(enum_item: &syn::ItemEnum) -> Option<Ident> {
-    let repr_attr = enum_item.attrs.iter().filter(|a| {
-        (*a).path.is_ident("repr")
-        // if let Some(ident) = (*a).path.get_ident() {
-        //     ident == "repr"
-        // } else {
-        //     false
-        // }
-    }).next().expect("#[EnumConvert] must be used on enum which has #[repr(_)]");
-
-    let tokens = repr_attr.tokens.clone();
-    if let Some(TokenTree::Group(group)) = tokens.into_iter().next() {
-        group.stream().into_iter().filter_map(|t| {
-            if let TokenTree::Ident(ident) = t {
+    enum_item.attrs.iter().filter_map(|attr| {
+        if attr.path().is_ident("repr") {
+            if let Ok(ident) = attr.parse_args::<Ident>() {
                 let type_name = ident.to_string();
-                if REPR_TYPES.iter().any(|t| *t == &type_name) {
+                if REPR_TYPES.iter().any(|t| *t == type_name) {
                     Some(ident)
                 } else {
                     None
@@ -63,10 +50,10 @@ fn get_repr_type(enum_item: &syn::ItemEnum) -> Option<Ident> {
             } else {
                 None
             }
-        }).next()
-    } else {
-        None
-    }
+        } else {
+            None
+        }
+    }).next()
 }
 
 fn get_variants(enum_item: &ItemEnum) -> (Vec<Ident>, Vec<Expr>) {
@@ -87,33 +74,24 @@ fn get_variants(enum_item: &ItemEnum) -> (Vec<Ident>, Vec<Expr>) {
     }).unzip()
 }
 
-pub(crate) fn impl_map_as(args: AttributeArgs, enum_item: ItemEnum) -> TokenStream {
+pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
     let enum_name = &enum_item.ident;
 
-    let mut gen = quote! {
+    let gen = quote! {
         #enum_item
 
-    };
-
-    for arg in args.into_iter() {
-        if let NestedMeta::Meta(Meta::Path(type_path)) = arg {
-            let mapping = quote!{
-                impl From<#type_path> for #enum_name {
-                    fn from(value: #type_path) -> Self {
-                        value.0.try_into().unwrap()
-                    }
-                }
-                
-                impl Into<#type_path> for #enum_name {
-                    fn into(self) -> #type_path {
-                        #type_path(self as _)
-                    }
-                }        
-            };
-
-            gen.extend(mapping);
+        impl From<#type_path> for #enum_name {
+            fn from(value: #type_path) -> Self {
+                value.0.try_into().unwrap()
+            }
         }
-    }
+        
+        impl Into<#type_path> for #enum_name {
+            fn into(self) -> #type_path {
+                #type_path(self as _)
+            }
+        }        
+    };
 
     gen.into()
 }
