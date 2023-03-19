@@ -22,9 +22,10 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
+use windows::core::ComInterface;
 use windows::core::IUnknown;
-use windows::core::InParam;
 use windows::core::Interface;
+use windows::core::IntoParam;
 
 use crate::controls::ControlType;
 use crate::filters::FnFilter;
@@ -132,8 +133,8 @@ impl UIAutomation {
     /// ```
     pub fn create_tree_walker(&self) -> Result<UITreeWalker> {
         let tree_walker = unsafe {
-            let condition = self.automation.CreateTrueCondition()?;
-            self.automation.CreateTreeWalker(InParam::owned(condition))?
+            let condition = self.create_true_condition()?; //self.automation.CreateTrueCondition()?;
+            self.automation.CreateTreeWalker(condition)?
         };
 
         Ok(UITreeWalker::from(tree_walker))
@@ -141,9 +142,9 @@ impl UIAutomation {
 
     /// Retrieves a filtered tree walker object that can be used to traverse the Microsoft UI Automation tree.
     pub fn filter_tree_walker(&self, condition: UICondition) -> Result<UITreeWalker> {
-        let condition: IUIAutomationCondition = condition.into();
+        // let condition: IUIAutomationCondition = condition.into();
         let tree_walker = unsafe {
-            self.automation.CreateTreeWalker(InParam::owned(condition))?
+            self.automation.CreateTreeWalker(condition)?
         };
         Ok(tree_walker.into())
     }
@@ -223,41 +224,41 @@ impl UIAutomation {
 
     /// Creates a condition that is the negative of a specified condition.
     pub fn create_not_condition(&self, condition: UICondition) -> Result<UICondition> {
-        let condition: IUIAutomationCondition = condition.into();
+        // let condition: IUIAutomationCondition = condition.into();
         let result = unsafe {
-            self.automation.CreateNotCondition(InParam::owned(condition))?
+            self.automation.CreateNotCondition(condition)?
         };
         Ok(result.into())
     }
 
     /// Creates a condition that selects elements that match both of two conditions.
     pub fn create_and_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        let c1: IUIAutomationCondition = condition1.into();
-        let c2: IUIAutomationCondition = condition2.into();
+        // let c1: IUIAutomationCondition = condition1.into();
+        // let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateAndCondition(InParam::owned(c1), InParam::owned(c2))?
+            self.automation.CreateAndCondition(condition1, condition2)?
         };
         Ok(result.into())
     }
 
     /// Creates a combination of two conditions where a match exists if either of the conditions is true.
     pub fn create_or_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        let c1: IUIAutomationCondition = condition1.into();
-        let c2: IUIAutomationCondition = condition2.into();
+        // let c1: IUIAutomationCondition = condition1.into();
+        // let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
-            self.automation.CreateOrCondition(InParam::owned(c1), InParam::owned(c2))?
+            self.automation.CreateOrCondition(condition1, condition2)?
         };
         Ok(result.into())
     }
 
     /// Creates a condition that selects elements that have a property with the specified value, using optional flags.
-    pub fn create_property_condition(&self, property_id: i32, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
+    pub fn create_property_condition(&self, property: UIProperty, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
         let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property_id, InParam::owned(val), flags.into())?
+                self.automation.CreatePropertyConditionEx(property.into(), val, flags.into())?
             } else {
-                self.automation.CreatePropertyCondition(property_id, InParam::owned(val))?
+                self.automation.CreatePropertyCondition(property.into(), val)?
             }
         };
         Ok(condition.into())
@@ -361,8 +362,7 @@ impl UIElement {
             self.element.CurrentControlType()?
         };
         
-        // Ok(UIA_CONTROLTYPE_ID(control_type as u32))
-        ControlType::try_from(control_type as u32)
+        Ok(ControlType::from(control_type))
     }
 
     /// Retrieves a localized description of the control type of the element.
@@ -607,7 +607,7 @@ impl UIElement {
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     pub fn get_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
-            self.element.GetCurrentPattern(T::TYPE as _)?
+            self.element.GetCurrentPattern(T::TYPE.into())?
         };
 
         // T::new(pattern)
@@ -632,7 +632,7 @@ impl UIElement {
     /// Retrieves the current value of a property for this UI Automation element.
     pub fn get_property_value(&self, property: UIProperty) -> Result<Variant> {
         let value = unsafe {
-            self.element.GetCurrentPropertyValue(property as _)?
+            self.element.GetCurrentPropertyValue(property.into())?
         };
 
         Ok(value.into())
@@ -770,9 +770,15 @@ impl Into<IUIAutomationElement> for UIElement {
     }
 }
 
-impl<'a> Into<InParam<'a, IUIAutomationElement>> for UIElement {
-    fn into(self) -> InParam<'a, IUIAutomationElement> {
-        InParam::owned(self.element)
+// impl<'a> Into<InParam<IUIAutomationElement>> for UIElement {
+//     fn into(self) -> InParam<IUIAutomationElement> {
+//         InParam::owned(self.element)
+//     }
+// }
+
+impl IntoParam<IUIAutomationElement> for UIElement {
+    fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
+        windows::core::Param::Owned(self.element)
     }
 }
 
@@ -1264,6 +1270,12 @@ impl AsRef<IUIAutomationCondition> for UICondition {
     }
 }
 
+impl IntoParam<IUIAutomationCondition> for UICondition {
+    fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
+        windows::core::Param::Owned(self.0)
+    }
+}
+
 /// Represents a condition that can be either TRUE (selects all elements) or FALSE (selects no elements).
 #[derive(Debug, Clone)]
 pub struct UIBoolCondition(IUIAutomationBoolCondition);
@@ -1551,10 +1563,11 @@ pub struct UIPropertyCondition(IUIAutomationPropertyCondition);
 
 impl UIPropertyCondition {
     /// Retrieves the identifier of the property on which this condition is based.
-    pub fn get_property_id(&self) -> Result<i32> {
-        Ok(unsafe {
+    pub fn get_property(&self) -> Result<UIProperty> {
+        let property_id = unsafe {
             self.0.PropertyId()?    
-        })
+        };
+        Ok(property_id.into())
     }
 
     /// Retrieves the property value that must be matched for the condition to be true.

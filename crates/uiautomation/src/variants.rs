@@ -17,11 +17,11 @@ use super::Result;
 use super::errors::ERR_NULL_PTR;
 use super::errors::ERR_TYPE;
 
-const VARIANT_TRUE: i16 = -1;
-const VARIANT_FALSE: i16 = 0;
+// const VARIANT_TRUE: i16 = -1;
+// const VARIANT_FALSE: i16 = 0;
 
 /// enum type value for `Variant`
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub enum Value {
     EMPTY,
     NULL,
@@ -87,7 +87,7 @@ impl Display for Value {
 }
 
 /// A Wrapper for windows `VARIANT`
-#[derive(Clone, PartialEq, Eq, Default)]
+#[derive(Clone, Default)]
 pub struct Variant {
     value: VARIANT
 }
@@ -338,7 +338,7 @@ impl From<Value> for Variant {
             Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
             Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
             Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: if v { VARIANT_TRUE } else { VARIANT_FALSE }}),
+            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: v.into() }), //if v { VARIANT_TRUE } else { VARIANT_FALSE }}),
             Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
             Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
             Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
@@ -479,7 +479,7 @@ impl TryInto<Value> for &Variant {
             Ok(Value::HRESULT(HRESULT(val)))
         } else if vt == VT_BOOL {
             let val = unsafe {
-                self.get_data().__OBSOLETE__VARIANT_BOOL != 0
+                self.get_data().__OBSOLETE__VARIANT_BOOL.into() // != 0
             };
             Ok(Value::BOOL(val))
         } else if vt == VT_VARIANT {
@@ -522,7 +522,7 @@ impl TryInto<bool> for &Variant {
 
     fn try_into(self) -> Result<bool> {
         // let vt = self.vt();
-        let val: i16 = unsafe {
+        let val = unsafe {
             match self.get_type() {
                 VT_BOOL => self.get_data().boolVal,
                 VT_CY => VarBoolFromCy(self.get_data().cyVal)?,
@@ -546,12 +546,12 @@ impl TryInto<bool> for &Variant {
                 VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                     VarBoolFromDisp(disp, 0)?
                 } else {
-                    VARIANT_FALSE
+                    false.into()
                 },
                 _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
             }
         };
-        Ok(val != 0)
+        Ok(val.as_bool())
     }
 }
 
@@ -1799,7 +1799,7 @@ impl TryFrom<&Vec<bool>> for SafeArray {
     type Error = Error;
 
     fn try_from(value: &Vec<bool>) -> Result<Self> {
-        let bools: Vec<i16> = value.iter().map(|b| if *b { VARIANT_TRUE } else { VARIANT_FALSE }).collect();
+        let bools: Vec<i16> = value.iter().map(|b| if *b { 1 } else { 0 }).collect();
         Self::from_vector(VT_BOOL, &bools)
     }
 }

@@ -28,4 +28,24 @@
 
 ## v0.3.1
 
-+ udate dependencies
++ update dependencies
+
+## v0.3.2
+
++ update to windwos v0.44
+
+## v0.3.3
+
++ refactor enum types
+
+## v0.3.4
+
++ update dependencies
+
+## v0.3.6
+
++ update to `windows v0.46`
+
+## v0.3.7
+
++ update to `syn v2.0.2`

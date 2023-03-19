@@ -39,24 +39,27 @@ use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::core::BSTR;
+use windows::core::ComInterface;
 use windows::core::IUnknown;
-use windows::core::InParam;
-use windows::core::Interface;
 
 use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
 use crate::Result;
 use crate::UIElement;
+use crate::types::AnnotationType;
 use crate::types::DockPosition;
 use crate::types::ExpandCollapseState;
 use crate::types::NavigateDirection;
 use crate::types::Point;
 use crate::types::RowOrColumnMajor;
 use crate::types::ScrollAmount;
+use crate::types::StyleType;
 use crate::types::SupportedTextSelection;
+use crate::types::TextAttribute;
 use crate::types::TextPatternRangeEndpoint;
 use crate::types::TextUnit;
 use crate::types::ToggleState;
+use crate::types::UIProperty;
 use crate::types::WindowInteractionState;
 use crate::types::WindowVisualState;
 use crate::types::ZoomUnit;
@@ -212,11 +215,11 @@ pub struct UIAnnotationPattern {
 }
 
 impl UIAnnotationPattern {
-    pub fn get_type_id(&self) -> Result<i32> {
+    pub fn get_type(&self) -> Result<AnnotationType> {
         let id = unsafe {
             self.pattern.CurrentAnnotationTypeId()?
         };
-        Ok(id)
+        Ok(id.into())
     }
 
     pub fn get_type_nane(&self) -> Result<String> {
@@ -734,10 +737,10 @@ pub struct UIItemContainerPattern {
 }
 
 impl UIItemContainerPattern {
-    pub fn find_item_by_property(&self, start_after: UIElement, property_id: i32, value: Variant) -> Result<UIElement> {
+    pub fn find_item_by_property(&self, start_after: UIElement, property: UIProperty, value: Variant) -> Result<UIElement> {
         let val: VARIANT = value.into();
         let element = unsafe {
-            self.pattern.FindItemByProperty(start_after.as_ref(), property_id, InParam::owned(val))?
+            self.pattern.FindItemByProperty(start_after.as_ref(), property.into(), val)?
         };
 
         Ok(element.into())
@@ -1359,10 +1362,11 @@ pub struct UIStylesPattern {
 }
 
 impl UIStylesPattern {
-    pub fn get_style_id(&self) -> Result<i32> {
-        Ok(unsafe {
+    pub fn get_style(&self) -> Result<StyleType> {
+        let style_id = unsafe {
             self.pattern.CurrentStyleId()?
-        })
+        };
+        Ok(style_id.into())
     }
 
     pub fn get_style_name(&self) -> Result<String> {
@@ -1886,9 +1890,9 @@ impl UITextRange {
         })
     }
 
-    pub fn find_attribute(&self, attr: i32, value: Variant, backward: bool) -> Result<UITextRange> {
+    pub fn find_attribute(&self, attr: TextAttribute, value: Variant, backward: bool) -> Result<UITextRange> {
         let range = unsafe {
-            self.range.FindAttribute(attr, value.as_ref(), backward)?
+            self.range.FindAttribute(attr.into(), value.into(), backward)?
         };
         Ok(range.into())
     }
@@ -1901,9 +1905,9 @@ impl UITextRange {
         Ok(range.into())
     }
 
-    pub fn get_attribute_value(&self, attr: i32) -> Result<Variant> {
+    pub fn get_attribute_value(&self, attr: TextAttribute) -> Result<Variant> {
         let value = unsafe {
-            self.range.GetAttributeValue(attr)?
+            self.range.GetAttributeValue(attr.into())?
         };
         Ok(value.into())
     }
