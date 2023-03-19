@@ -42,11 +42,12 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
 
 fn get_repr_type(enum_item: &syn::ItemEnum) -> Option<Ident> {
     let repr_attr = enum_item.attrs.iter().filter(|a| {
-        if let Some(ident) = (*a).path.get_ident() {
-            ident == "repr"
-        } else {
-            false
-        }
+        (*a).path.is_ident("repr")
+        // if let Some(ident) = (*a).path.get_ident() {
+        //     ident == "repr"
+        // } else {
+        //     false
+        // }
     }).next().expect("#[EnumConvert] must be used on enum which has #[repr(_)]");
 
     let tokens = repr_attr.tokens.clone();
