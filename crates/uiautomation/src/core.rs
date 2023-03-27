@@ -1639,6 +1639,9 @@ impl Into<UICondition> for UIPropertyCondition {
 
 #[cfg(test)]
 mod tests {
+    use std::thread::sleep;
+    use std::time::Duration;
+
     use windows::Win32::UI::Accessibility::IUIAutomationElement;
 
     use crate::UIAutomation;
@@ -1669,6 +1672,9 @@ mod tests {
     #[test]
     fn test_element_properties() {
         let automation = UIAutomation::new().unwrap();
+
+        sleep(Duration::new(0, 500));
+
         let root = automation.get_root_element().unwrap();
 
         println!("---------------------");

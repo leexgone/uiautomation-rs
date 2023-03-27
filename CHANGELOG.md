@@ -49,3 +49,7 @@
 ## v0.3.7
 
 + update to `syn v2.0.2`
+
+## v0.3.8
+
++ update to `syn v2.0.10` & `proc-macro2 v1.0.54`
