@@ -53,3 +53,7 @@
 ## v0.3.8
 
 + update to `syn v2.0.10` & `proc-macro2 v1.0.54`
+
+## v0.3.9
+
++ update to `syn v2.0.11` & `windows v0.47.0`
