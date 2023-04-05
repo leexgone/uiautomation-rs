@@ -61,3 +61,7 @@
 ## v0.3.10
 
 + update to `syn v2.0.12` & `windows v0.48.0`
+
+## v0.4.0
+
++ add dialogs support.
