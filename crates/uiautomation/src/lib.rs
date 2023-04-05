@@ -8,6 +8,7 @@ pub mod controls;
 pub mod actions;
 pub mod inputs;
 pub mod processes;
+pub mod dialogs;
 
 pub use self::errors::Error;
 pub use self::errors::Result;

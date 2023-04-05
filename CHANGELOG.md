@@ -49,3 +49,19 @@
 ## v0.3.7
 
 + update to `syn v2.0.2`
+
+## v0.3.8
+
++ update to `syn v2.0.10` & `proc-macro2 v1.0.54`
+
+## v0.3.9
+
++ update to `syn v2.0.11` & `windows v0.47.0`
+
+## v0.3.10
+
++ update to `syn v2.0.12` & `windows v0.48.0`
+
+## v0.4.0
+
++ add dialogs support.
