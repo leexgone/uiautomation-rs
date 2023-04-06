@@ -4,14 +4,7 @@
 
 ## 使用
 
-使用时将下面的依赖行加入到Cargo.toml文件中：
-
-``` toml
-[dependencies]
-uiautomation = "0.4"
-```
-
-你可以直接使用封装好的API进行操作。
+使用时将对本包的依赖行加入到Cargo.toml文件中。你可以直接使用封装好的API进行操作。
 
 ## 示例程序
 
