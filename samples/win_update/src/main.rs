@@ -15,7 +15,8 @@ use uiautomation::dialogs::show_error;
 fn main() {
     let ret = auto_update();
     if let Err(ref e) = ret {
-        show_error(e.message(), "更新失败");
+        show_error(if e.code() == 0 { "遇到未知的错误" } else { e.message() }, "更新失败");
+
         ret.unwrap();
     }
 }
@@ -23,12 +24,12 @@ fn main() {
 fn auto_update() -> Result<()> {
     let automation = UIAutomation::new()?;
 
-    if let Ok(start) = automation.create_matcher().match_name("开始").classname("Start").find_first() {     // 尝试Win10
-        let button: ButtonControl = start.try_into()?;
-        button.invoke()?;
-    } else if let Ok(start) = automation.create_matcher().match_name("开始").classname("ToggleButton").find_first() {   // 尝试Win11
+    if let Ok(start) = automation.create_matcher().match_name("开始").classname("ToggleButton").find_first() {     // 尝试Win11
         let button: ButtonControl = start.try_into()?;
         button.toggle()?;
+    } else if let Ok(start) = automation.create_matcher().match_name("开始").classname("Start").find_first() {      // 尝试Win10
+        let button: ButtonControl = start.try_into()?;
+        button.invoke()?;
     } else {
         return Err("无法定位开始按钮".into());
     }

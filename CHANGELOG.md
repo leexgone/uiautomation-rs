@@ -65,3 +65,8 @@
 ## v0.4.0
 
 + add dialogs support.
+
+## v0.4.1
+
++ update dependencies
++ refactor `win-update` sample codes.
