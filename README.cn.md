@@ -4,14 +4,7 @@
 
 ## 使用
 
-使用时将下面的依赖行加入到Cargo.toml文件中：
-
-``` toml
-[dependencies]
-uiautomation = "0.3"
-```
-
-你可以直接使用封装好的API进行操作。
+使用时将对本包的依赖行加入到Cargo.toml文件中。你可以直接使用封装好的API进行操作。
 
 ## 示例程序
 
@@ -41,10 +34,10 @@ fn print_element(walker: &UITreeWalker, element: &UIElement, level: usize) -> Re
         print_element(walker, &child, level + 1)?;
 
         let mut next = child;
-        while let Ok(sibing) = walker.get_next_sibling(&next) {
-            print_element(walker, &sibing, level + 1)?;
+        while let Ok(sibling) = walker.get_next_sibling(&next) {
+            print_element(walker, &sibling, level + 1)?;
 
-            next = sibing;
+            next = sibling;
         }
     }
     

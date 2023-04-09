@@ -4,14 +4,7 @@ The `uiatomation-rs` crate is a wrapper for windows uiautomation. This crate can
 
 ## Usages
 
-Start by adding the following line to your Cargo.toml file:
-
-``` toml
-[dependencies]
-uiautomation = "0.3"
-```
-
-Make use of any windows uiautomation calls as needed.
+Start by adding the dependency of this crate to your Cargo.toml file. Make use of any windows uiautomation calls as needed.
 
 ## Examples
 

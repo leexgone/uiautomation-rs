@@ -1117,7 +1117,7 @@ impl UIMatcher {
 
             let now = Local::now().timestamp_millis();
             if now - start >= self.timeout as i64 {
-                return Err(Error::new(ERR_TIMEOUT, "find time out"));
+                return Err(Error::new(ERR_TIMEOUT, "find element time out"));
             }
 
             sleep(Duration::from_millis(self.interval));

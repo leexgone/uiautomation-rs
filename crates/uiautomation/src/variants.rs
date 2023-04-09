@@ -17,9 +17,6 @@ use super::Result;
 use super::errors::ERR_NULL_PTR;
 use super::errors::ERR_TYPE;
 
-// const VARIANT_TRUE: i16 = -1;
-// const VARIANT_FALSE: i16 = 0;
-
 /// enum type value for `Variant`
 #[derive(Clone)]
 pub enum Value {
