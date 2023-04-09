@@ -34,10 +34,10 @@ fn print_element(walker: &UITreeWalker, element: &UIElement, level: usize) -> Re
         print_element(walker, &child, level + 1)?;
 
         let mut next = child;
-        while let Ok(sibing) = walker.get_next_sibling(&next) {
-            print_element(walker, &sibing, level + 1)?;
+        while let Ok(sibling) = walker.get_next_sibling(&next) {
+            print_element(walker, &sibling, level + 1)?;
 
-            next = sibing;
+            next = sibling;
         }
     }
     
