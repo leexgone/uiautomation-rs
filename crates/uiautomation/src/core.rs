@@ -1766,19 +1766,13 @@ mod tests {
         println!("{}", element.unwrap());
     }
 
-    // #[test]
-    // fn test_function_search() {
-    //     let automation = UIAutomation::new().unwrap();
-    //     let matcher = automation.create_matcher().filter_fn(Box::new(|e: &UIElement| {
-    //         let framework_id = e.get_framework_id()?;
-    //         let class_name = e.get_classname()?;
-            
-    //         Ok("Win32" == framework_id && class_name.starts_with("Shell"))
-    //     })).timeout(0);
-    //     let element = matcher.find_first();
-    //     assert!(element.is_ok());
-    //     print!("{}", element.unwrap());
-    // }
+    #[test]
+    fn test_find_no_wait() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().timeout(0).name("You can find nothing!");
+        let item = matcher.find_first();
+        assert!(item.is_err());
+    }
 
     #[test]
     fn test_automation_id() {
