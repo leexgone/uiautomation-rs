@@ -974,6 +974,8 @@ impl UIMatcher {
 
     /// Sets the the time in millionseconds for matching element. The default timeout is 3000 millionseconds(3 seconds).
     /// 
+    /// The `UIMatcher` will not retry to find when you set `timeout` to `0`.
+    /// 
     /// A timeout error will occur after this time.
     pub fn timeout(mut self, timeout: u64) -> Self {
         self.timeout = timeout;
