@@ -70,3 +70,7 @@
 
 + update dependencies
 + refactor `win-update` sample codes.
+
+## v0.4.2
+
++ update dependencies
