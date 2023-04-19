@@ -1645,6 +1645,7 @@ mod tests {
     use std::time::Duration;
 
     use windows::Win32::UI::Accessibility::IUIAutomationElement;
+    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
     use crate::UIAutomation;
     use crate::UIElement;
@@ -1787,5 +1788,21 @@ mod tests {
             };
             println!("{} -> {}", title_bar, automation_id);
         }
+    }
+
+    #[test]
+    fn test_window_rect_prop() {
+        let window = unsafe { GetForegroundWindow() };
+        if window.0 == 0 {
+            return;
+        }
+
+        let automation = UIAutomation::new().unwrap();
+        let element = automation.element_from_handle(window.into()).unwrap();
+        let rect = element.get_bounding_rectangle().unwrap();
+        println!("Window Rect = {}", rect);
+
+        // let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
+        // println!("Window Bounding Rect = {}", val.to_string());
     }
 }

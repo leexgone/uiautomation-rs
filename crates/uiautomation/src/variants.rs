@@ -495,7 +495,7 @@ impl TryInto<Value> for &Variant {
             };
             Ok(Value::SAFEARRAY(SafeArray::new(arr, false)))
         } else {
-            Err(Error::new(ERR_TYPE, ""))
+            Err(Error::new(ERR_TYPE, "unknown variant type"))
         }
     }
 }
