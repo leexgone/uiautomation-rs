@@ -1802,7 +1802,7 @@ mod tests {
         let rect = element.get_bounding_rectangle().unwrap();
         println!("Window Rect = {}", rect);
 
-        // let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
-        // println!("Window Bounding Rect = {}", val.to_string());
+        let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
+        println!("Window Bounding Rect = {}", val.to_string());
     }
 }
