@@ -1807,10 +1807,10 @@ mod tests {
         assert!(val.is_array());
 
         let arr = val.get_array().unwrap();
-        let x: f64 = arr.get_element(0).unwrap();
-        let y: f64 = arr.get_element(1).unwrap();
+        let l: f64 = arr.get_element(0).unwrap();
+        let t: f64 = arr.get_element(1).unwrap();
         let r: f64 = arr.get_element(2).unwrap();
         let b: f64 = arr.get_element(3).unwrap();
-        println!("Window Rect Array = [{}, {}, {}, {}]", x, y, r, b);
+        println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
     }
 }
