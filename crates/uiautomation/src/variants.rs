@@ -412,7 +412,7 @@ macro_rules! variant_as_vec {
     ($fetch: ident, $variant: expr) => {
         {
             let count = unsafe { VariantGetElementCount(&$variant) };
-            let mut arr = Vec::new();
+            let mut arr = Vec::with_capacity(count as _);
             for i in 0..count {
                 let val = unsafe { $fetch(&$variant, i)? };
                 arr.push(val);
@@ -1258,7 +1258,7 @@ pub struct SafeArray {
 }
 
 impl SafeArray {
-    /// Create `SafeArray` wrapper. 
+    /// Creates `SafeArray` wrapper. 
     /// 
     /// if the array is from a VARIANT or owned by other object, set `owned` as `false`.
     pub(crate) fn new(array: *mut SAFEARRAY, owned: bool) -> Self {
@@ -1268,7 +1268,7 @@ impl SafeArray {
         }
     }
 
-    /// Create a vector array.
+    /// Creates a vector array.
     pub fn new_vector(var_type: VARENUM, len: u32) -> Result<Self> {
         unsafe {
             let array = SafeArrayCreateVector(var_type, 0, len);
@@ -1283,11 +1283,12 @@ impl SafeArray {
         }
     }
 
-    /// Retrieve the raw `*mut SAFEARRAY`
+    /// Retrieves the raw `*mut SAFEARRAY`
     pub fn get_array(&self) -> *mut SAFEARRAY {
         self.array
     }
 
+    /// Retrieves the data type of the elements inside the array.
     pub fn get_var_type(&self) -> Result<VARENUM> {
         let vt = unsafe {
             SafeArrayGetVartype(self.array)?
@@ -1296,24 +1297,30 @@ impl SafeArray {
         Ok(vt)     
     }
 
+    /// Gets the number of dimensions in the array.
     pub fn get_dim(&self) -> u32 {
         unsafe {
             SafeArrayGetDim(self.array)
         }
     }
 
+    /// Gets the lower bound for any dimension of the specified safe array.
     pub fn get_lower_bound(&self, dimension: u32) -> Result<i32> {
         Ok(unsafe {
             SafeArrayGetLBound(self.array, dimension)?
         })
     }
 
+    /// Gets the upper bound for any dimension of the specified safe array.
     pub fn get_upper_bound(&self, dimension: u32) -> Result<i32> {
         Ok(unsafe {
             SafeArrayGetUBound(self.array, dimension)?
         })
     }
 
+    /// Retrieves a single element of the array.
+    /// 
+    /// The `<T>` type must match the data type of the elements. The return value will be undefined when getting the wrong data type.
     pub fn get_element<T: Default>(&self, index: i32) -> Result<T> {
         let indices: [i32; 1] = [index];
         let mut value = T::default();
@@ -1324,6 +1331,7 @@ impl SafeArray {
         Ok(value)
     }
 
+    /// Retrieves a interface element of the array.
     pub fn get_interface<T: Interface>(&self, index: i32) -> Result<T> {
         let indices: [i32; 1] = [index];
         let mut result: Option<T> = None;
@@ -1339,6 +1347,7 @@ impl SafeArray {
         }
     }
 
+    /// Stores the data element at the specified location in the array.
     pub fn put_element<T>(&mut self, index: i32, value: T) -> Result<()> {
         let indices: [i32; 1] = [index];
         let v_ref: *const T = &value;

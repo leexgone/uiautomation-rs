@@ -1809,8 +1809,8 @@ mod tests {
         let arr = val.get_array().unwrap();
         let x: f64 = arr.get_element(0).unwrap();
         let y: f64 = arr.get_element(1).unwrap();
-        let w: f64 = arr.get_element(2).unwrap();
-        let h: f64 = arr.get_element(3).unwrap();
-        println!("Window Rect Array = [{}, {}, {}, {}]", x, y, w, h);
+        let r: f64 = arr.get_element(2).unwrap();
+        let b: f64 = arr.get_element(3).unwrap();
+        println!("Window Rect Array = [{}, {}, {}, {}]", x, y, r, b);
     }
 }
