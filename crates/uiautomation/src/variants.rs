@@ -5,6 +5,16 @@ use std::ptr::null_mut;
 use windows::Win32::Foundation::DECIMAL;
 use windows::Win32::System::Com::*;
 use windows::Win32::System::Ole::*;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetBooleanElem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetDoubleElem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetElementCount;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt16Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt32Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt64Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetStringElem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt16Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt32Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt64Elem;
 use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
@@ -398,6 +408,20 @@ impl From<Value> for Variant {
     }
 }
 
+macro_rules! variant_as_vec {
+    ($fetch: ident, $variant: expr) => {
+        {
+            let count = unsafe { VariantGetElementCount(&$variant) };
+            let mut arr = Vec::new();
+            for i in 0..count {
+                let val = unsafe { $fetch(&$variant, i)? };
+                arr.push(val);
+            }
+            arr
+        }
+    };
+}
+
 impl TryInto<Value> for &Variant {
     type Error = Error;
 
@@ -405,7 +429,25 @@ impl TryInto<Value> for &Variant {
         let vt = self.vt();
 
         if vt.0 & VT_ARRAY.0 != 0 {
-            todo!("read array value")
+            let t = VARENUM(vt.0 & VT_TYPEMASK.0);
+            match t {
+                VT_BOOL => {
+                    let arr = variant_as_vec!(VariantGetBooleanElem, self.value);
+                    Ok(Value::ArrayBool(arr.into_iter().map(|v| v.as_bool()).collect()))
+                }
+                VT_R8 => Ok(Value::ArrayR8(variant_as_vec!(VariantGetDoubleElem, self.value))),
+                VT_I2 => Ok(Value::ArrayI2(variant_as_vec!(VariantGetInt16Elem, self.value))),
+                VT_I4 => Ok(Value::ArrayI4(variant_as_vec!(VariantGetInt32Elem, self.value))),
+                VT_I8 => Ok(Value::ArrayI8(variant_as_vec!(VariantGetInt64Elem, self.value))),
+                VT_UI2 => Ok(Value::ArrayUI2(variant_as_vec!(VariantGetUInt16Elem, self.value))),
+                VT_UI4 => Ok(Value::ArrayUI4(variant_as_vec!(VariantGetUInt32Elem, self.value))),
+                VT_UI8 => Ok(Value::ArrayUI8(variant_as_vec!(VariantGetUInt64Elem, self.value))),
+                VT_BSTR | VT_LPWSTR | VT_LPSTR => {
+                    let arr = variant_as_vec!(VariantGetStringElem, self.value);
+                    Ok(Value::ArrayString(arr.into_iter().map(|v| unsafe { v.to_string().unwrap() }).collect()))
+                }
+                _ => Err(Error::new(ERR_TYPE, "unknown variant type"))
+            }
         } else if vt == VT_EMPTY {
             Ok(Value::EMPTY)
         } else if vt == VT_NULL {
@@ -545,7 +587,7 @@ impl TryInto<Value> for &Variant {
                 (*self.get_data().pdecVal).clone()
             };
             Ok(Value::DECIMAL(val))
-        } else if vt == VT_SAFEARRAY || vt == VT_ARRAY {
+        } else if vt == VT_SAFEARRAY {
             let arr = unsafe {
                 self.get_data().parray.clone()
             };

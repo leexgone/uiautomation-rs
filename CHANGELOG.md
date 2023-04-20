@@ -74,3 +74,7 @@
 ## v0.4.2
 
 + update dependencies
+
+## v0.5.0
+
++ fix variant array error. [issue-35](https://github.com/leexgone/uiautomation-rs/issues/35)

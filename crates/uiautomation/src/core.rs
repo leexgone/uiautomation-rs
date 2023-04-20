@@ -1803,6 +1803,14 @@ mod tests {
         println!("Window Rect = {}", rect);
 
         let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
-        println!("Window Bounding Rect = {}", val.to_string());
+        println!("Window Rect Prop = {}", val.to_string());
+        assert!(val.is_array());
+
+        let arr = val.get_array().unwrap();
+        let x: f64 = arr.get_element(0).unwrap();
+        let y: f64 = arr.get_element(1).unwrap();
+        let w: f64 = arr.get_element(2).unwrap();
+        let h: f64 = arr.get_element(3).unwrap();
+        println!("Window Rect Array = [{}, {}, {}, {}]", x, y, w, h);
     }
 }
