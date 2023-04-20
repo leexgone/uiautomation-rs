@@ -5,6 +5,16 @@ use std::ptr::null_mut;
 use windows::Win32::Foundation::DECIMAL;
 use windows::Win32::System::Com::*;
 use windows::Win32::System::Ole::*;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetBooleanElem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetDoubleElem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetElementCount;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt16Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt32Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt64Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetStringElem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt16Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt32Elem;
+use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt64Elem;
 use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
@@ -46,7 +56,15 @@ pub enum Value {
     VARIANT(Variant),
     DECIMAL(DECIMAL),
     SAFEARRAY(SafeArray),
-    ARRAY(SafeArray)
+    ArrayBool(Vec<bool>),
+    ArrayR8(Vec<f64>),
+    ArrayI2(Vec<i16>),
+    ArrayI4(Vec<i32>),
+    ArrayI8(Vec<i64>),
+    ArrayUI2(Vec<u16>),
+    ArrayUI4(Vec<u32>),
+    ArrayUI8(Vec<u64>),
+    ArrayString(Vec<String>)
 }
 
 impl Display for Value {
@@ -78,9 +96,29 @@ impl Display for Value {
             Value::VARIANT(value) => write!(f, "VARIANT({})", value),
             Value::DECIMAL(_) => write!(f, "DECIMAL"),
             Value::SAFEARRAY(value) => write!(f, "SAFEARRAY({})", value),
-            Value::ARRAY(value) => write!(f, "ARRAY({})", value),
+            Value::ArrayBool(value) => fmt_array(f, value),
+            Value::ArrayR8(value) => fmt_array(f, value),
+            Value::ArrayI2(value) => fmt_array(f, value),
+            Value::ArrayI4(value) => fmt_array(f, value),
+            Value::ArrayI8(value) => fmt_array(f, value),
+            Value::ArrayUI2(value) => fmt_array(f, value),
+            Value::ArrayUI4(value) => fmt_array(f, value),
+            Value::ArrayUI8(value) => fmt_array(f, value),
+            Value::ArrayString(value) => fmt_array(f, value),
         }
     }
+}
+
+fn fmt_array<D: Display>(f: &mut std::fmt::Formatter<'_>, arr: &Vec<D>) -> std::fmt::Result {
+    write!(f, "ARRAY(")?;
+    for (i, v) in arr.iter().enumerate() {
+        if i > 0 {
+            write!(f, ", ")?;
+        }
+
+        write!(f, "{}", v)?;
+    }
+    write!(f, ")")
 }
 
 /// A Wrapper for windows `VARIANT`
@@ -176,7 +214,7 @@ impl Variant {
     /// Return `true` when vt is `VT_SAFEARRAY` or `VT_ARRAY`.
     pub fn is_array(&self) -> bool {
         let vt = self.vt();
-        vt == VT_SAFEARRAY || vt == VT_ARRAY
+        vt == VT_SAFEARRAY || (vt.0 & VT_ARRAY.0) != 0
     }
 
     /// Try to get array value.
@@ -186,7 +224,15 @@ impl Variant {
         let value = self.get_value()?;
         match value {
             Value::SAFEARRAY(arr) => Ok(arr),
-            Value::ARRAY(arr) => Ok(arr),
+            Value::ArrayBool(arr) => arr.try_into(),
+            Value::ArrayR8(arr) => arr.try_into(),
+            Value::ArrayI2(arr) => arr.try_into(),
+            Value::ArrayI4(arr) => arr.try_into(),
+            Value::ArrayI8(arr) => arr.try_into(),
+            Value::ArrayUI2(arr) => arr.try_into(),
+            Value::ArrayUI4(arr) => arr.try_into(),
+            Value::ArrayUI8(arr) => arr.try_into(),
+            Value::ArrayString(arr) => arr.try_into(),
             _ => Err(Error::new(ERR_TYPE, "Error Variant Type"))
         }
     }
@@ -310,6 +356,16 @@ impl Display for Variant {
     }
 }
 
+macro_rules! vec_to_variant {
+    ($v: expr, $t: expr) => {
+        {
+            let vt = VARENUM(VT_ARRAY.0 | $t.0);
+            let arr: SafeArray = $v.try_into().unwrap();
+            Variant::new(vt, VARIANT_0_0_0 { parray: arr.array })
+        }
+    };
+}
+
 impl From<Value> for Variant {
     fn from(value: Value) -> Self {
         match value {
@@ -335,13 +391,35 @@ impl From<Value> for Variant {
             Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
             Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
             Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: v.into() }), //if v { VARIANT_TRUE } else { VARIANT_FALSE }}),
+            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: v.into() }),
             Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
             Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
             Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
-            Value::ARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
+            Value::ArrayBool(v) => vec_to_variant!(v, VT_BOOL), //Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
+            Value::ArrayR8(v) => vec_to_variant!(v, VT_R8),
+            Value::ArrayI2(v) => vec_to_variant!(v, VT_I2),
+            Value::ArrayI4(v) => vec_to_variant!(v, VT_I4),
+            Value::ArrayI8(v) => vec_to_variant!(v, VT_I8),
+            Value::ArrayUI2(v) => vec_to_variant!(v, VT_UI2),
+            Value::ArrayUI4(v) => vec_to_variant!(v, VT_UI4),
+            Value::ArrayUI8(v) => vec_to_variant!(v, VT_UI8),
+            Value::ArrayString(v) => vec_to_variant!(v, VT_BSTR),
         }
     }
+}
+
+macro_rules! variant_as_vec {
+    ($fetch: ident, $variant: expr) => {
+        {
+            let count = unsafe { VariantGetElementCount(&$variant) };
+            let mut arr = Vec::with_capacity(count as _);
+            for i in 0..count {
+                let val = unsafe { $fetch(&$variant, i)? };
+                arr.push(val);
+            }
+            arr
+        }
+    };
 }
 
 impl TryInto<Value> for &Variant {
@@ -350,7 +428,27 @@ impl TryInto<Value> for &Variant {
     fn try_into(self) -> Result<Value> {
         let vt = self.vt();
 
-        if vt == VT_EMPTY {
+        if vt.0 & VT_ARRAY.0 != 0 {
+            let t = VARENUM(vt.0 & VT_TYPEMASK.0);
+            match t {
+                VT_BOOL => {
+                    let arr = variant_as_vec!(VariantGetBooleanElem, self.value);
+                    Ok(Value::ArrayBool(arr.into_iter().map(|v| v.as_bool()).collect()))
+                }
+                VT_R8 => Ok(Value::ArrayR8(variant_as_vec!(VariantGetDoubleElem, self.value))),
+                VT_I2 => Ok(Value::ArrayI2(variant_as_vec!(VariantGetInt16Elem, self.value))),
+                VT_I4 => Ok(Value::ArrayI4(variant_as_vec!(VariantGetInt32Elem, self.value))),
+                VT_I8 => Ok(Value::ArrayI8(variant_as_vec!(VariantGetInt64Elem, self.value))),
+                VT_UI2 => Ok(Value::ArrayUI2(variant_as_vec!(VariantGetUInt16Elem, self.value))),
+                VT_UI4 => Ok(Value::ArrayUI4(variant_as_vec!(VariantGetUInt32Elem, self.value))),
+                VT_UI8 => Ok(Value::ArrayUI8(variant_as_vec!(VariantGetUInt64Elem, self.value))),
+                VT_BSTR | VT_LPWSTR | VT_LPSTR => {
+                    let arr = variant_as_vec!(VariantGetStringElem, self.value);
+                    Ok(Value::ArrayString(arr.into_iter().map(|v| unsafe { v.to_string().unwrap() }).collect()))
+                }
+                _ => Err(Error::new(ERR_TYPE, "unknown variant type"))
+            }
+        } else if vt == VT_EMPTY {
             Ok(Value::EMPTY)
         } else if vt == VT_NULL {
             Ok(Value::NULL)
@@ -489,13 +587,13 @@ impl TryInto<Value> for &Variant {
                 (*self.get_data().pdecVal).clone()
             };
             Ok(Value::DECIMAL(val))
-        } else if vt == VT_SAFEARRAY || vt == VT_ARRAY {
+        } else if vt == VT_SAFEARRAY {
             let arr = unsafe {
                 self.get_data().parray.clone()
             };
             Ok(Value::SAFEARRAY(SafeArray::new(arr, false)))
         } else {
-            Err(Error::new(ERR_TYPE, ""))
+            Err(Error::new(ERR_TYPE, "unknown variant type"))
         }
     }
 }
@@ -1160,7 +1258,7 @@ pub struct SafeArray {
 }
 
 impl SafeArray {
-    /// Create `SafeArray` wrapper. 
+    /// Creates `SafeArray` wrapper. 
     /// 
     /// if the array is from a VARIANT or owned by other object, set `owned` as `false`.
     pub(crate) fn new(array: *mut SAFEARRAY, owned: bool) -> Self {
@@ -1170,7 +1268,7 @@ impl SafeArray {
         }
     }
 
-    /// Create a vector array.
+    /// Creates a vector array.
     pub fn new_vector(var_type: VARENUM, len: u32) -> Result<Self> {
         unsafe {
             let array = SafeArrayCreateVector(var_type, 0, len);
@@ -1185,11 +1283,12 @@ impl SafeArray {
         }
     }
 
-    /// Retrieve the raw `*mut SAFEARRAY`
+    /// Retrieves the raw `*mut SAFEARRAY`
     pub fn get_array(&self) -> *mut SAFEARRAY {
         self.array
     }
 
+    /// Retrieves the data type of the elements inside the array.
     pub fn get_var_type(&self) -> Result<VARENUM> {
         let vt = unsafe {
             SafeArrayGetVartype(self.array)?
@@ -1198,24 +1297,30 @@ impl SafeArray {
         Ok(vt)     
     }
 
+    /// Gets the number of dimensions in the array.
     pub fn get_dim(&self) -> u32 {
         unsafe {
             SafeArrayGetDim(self.array)
         }
     }
 
+    /// Gets the lower bound for any dimension of the specified safe array.
     pub fn get_lower_bound(&self, dimension: u32) -> Result<i32> {
         Ok(unsafe {
             SafeArrayGetLBound(self.array, dimension)?
         })
     }
 
+    /// Gets the upper bound for any dimension of the specified safe array.
     pub fn get_upper_bound(&self, dimension: u32) -> Result<i32> {
         Ok(unsafe {
             SafeArrayGetUBound(self.array, dimension)?
         })
     }
 
+    /// Retrieves a single element of the array.
+    /// 
+    /// The `<T>` type must match the data type of the elements. The return value will be undefined when getting the wrong data type.
     pub fn get_element<T: Default>(&self, index: i32) -> Result<T> {
         let indices: [i32; 1] = [index];
         let mut value = T::default();
@@ -1226,6 +1331,7 @@ impl SafeArray {
         Ok(value)
     }
 
+    /// Retrieves a interface element of the array.
     pub fn get_interface<T: Interface>(&self, index: i32) -> Result<T> {
         let indices: [i32; 1] = [index];
         let mut result: Option<T> = None;
@@ -1241,6 +1347,7 @@ impl SafeArray {
         }
     }
 
+    /// Stores the data element at the specified location in the array.
     pub fn put_element<T>(&mut self, index: i32, value: T) -> Result<()> {
         let indices: [i32; 1] = [index];
         let v_ref: *const T = &value;

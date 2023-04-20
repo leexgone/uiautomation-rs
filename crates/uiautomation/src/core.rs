@@ -974,6 +974,8 @@ impl UIMatcher {
 
     /// Sets the the time in millionseconds for matching element. The default timeout is 3000 millionseconds(3 seconds).
     /// 
+    /// The `UIMatcher` will not retry to find when you set `timeout` to `0`.
+    /// 
     /// A timeout error will occur after this time.
     pub fn timeout(mut self, timeout: u64) -> Self {
         self.timeout = timeout;
@@ -1643,6 +1645,7 @@ mod tests {
     use std::time::Duration;
 
     use windows::Win32::UI::Accessibility::IUIAutomationElement;
+    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
     use crate::UIAutomation;
     use crate::UIElement;
@@ -1766,19 +1769,13 @@ mod tests {
         println!("{}", element.unwrap());
     }
 
-    // #[test]
-    // fn test_function_search() {
-    //     let automation = UIAutomation::new().unwrap();
-    //     let matcher = automation.create_matcher().filter_fn(Box::new(|e: &UIElement| {
-    //         let framework_id = e.get_framework_id()?;
-    //         let class_name = e.get_classname()?;
-            
-    //         Ok("Win32" == framework_id && class_name.starts_with("Shell"))
-    //     })).timeout(0);
-    //     let element = matcher.find_first();
-    //     assert!(element.is_ok());
-    //     print!("{}", element.unwrap());
-    // }
+    #[test]
+    fn test_find_no_wait() {
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().timeout(0).name("You can find nothing!");
+        let item = matcher.find_first();
+        assert!(item.is_err());
+    }
 
     #[test]
     fn test_automation_id() {
@@ -1791,5 +1788,29 @@ mod tests {
             };
             println!("{} -> {}", title_bar, automation_id);
         }
+    }
+
+    #[test]
+    fn test_window_rect_prop() {
+        let window = unsafe { GetForegroundWindow() };
+        if window.0 == 0 {
+            return;
+        }
+
+        let automation = UIAutomation::new().unwrap();
+        let element = automation.element_from_handle(window.into()).unwrap();
+        let rect = element.get_bounding_rectangle().unwrap();
+        println!("Window Rect = {}", rect);
+
+        let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
+        println!("Window Rect Prop = {}", val.to_string());
+        assert!(val.is_array());
+
+        let arr = val.get_array().unwrap();
+        let l: f64 = arr.get_element(0).unwrap();
+        let t: f64 = arr.get_element(1).unwrap();
+        let r: f64 = arr.get_element(2).unwrap();
+        let b: f64 = arr.get_element(3).unwrap();
+        println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
     }
 }
