@@ -78,3 +78,7 @@
 ## v0.5.0
 
 + fix variant array error. [issue-35](https://github.com/leexgone/uiautomation-rs/issues/35)
+
+## v0.5.1
+
++ add `UIAutomation::new_direct()` to create `UIAutomation` without initializing the COM library. [issue-37](https://github.com/leexgone/uiautomation-rs/issues/37)

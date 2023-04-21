@@ -61,9 +61,21 @@ pub struct UIAutomation {
 
 impl UIAutomation {
     /// Creates a uiautomation client instance. 
+    /// 
+    /// This method initializes the COM library each time, sets the thread's concurrency model as `COINIT_MULTITHREADED`.
     pub fn new() -> Result<UIAutomation> {
-        let automation: IUIAutomation = unsafe {
+        unsafe {
             CoInitializeEx(None, COINIT_MULTITHREADED)?;
+        };
+
+        UIAutomation::new_direct()
+    }
+
+    /// Creates a uiautomation client instance without initializing the COM library.
+    /// 
+    /// The COM library should be initialized manually before invoking.
+    pub fn new_direct() -> Result<UIAutomation> {
+        let automation: IUIAutomation = unsafe {
             CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?
         };
 
@@ -1812,5 +1824,13 @@ mod tests {
         let r: f64 = arr.get_element(2).unwrap();
         let b: f64 = arr.get_element(3).unwrap();
         println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
+    }
+
+    #[test]
+    fn test_create() {
+        let _ = UIAutomation::new();
+        
+        let uiautomation = UIAutomation::new_direct();
+        assert!(uiautomation.is_ok());
     }
 }
