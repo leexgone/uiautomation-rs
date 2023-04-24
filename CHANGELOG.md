@@ -82,3 +82,7 @@
 ## v0.5.1
 
 + add `UIAutomation::new_direct()` to create `UIAutomation` without initializing the COM library. [issue-37](https://github.com/leexgone/uiautomation-rs/issues/37)
+
+## v0.5.2
+
++ Update sample codes in README
