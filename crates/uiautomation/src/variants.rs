@@ -237,6 +237,7 @@ impl Variant {
         }
     }
 
+    /// Returns the absolute value of a variant.
     pub fn abs(&self) -> Result<Variant> {
         let v = unsafe {
             VarAbs(&self.value)?
@@ -245,6 +246,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Returns the sum of two variants.
     pub fn add(&self, augend: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarAdd(&self.value, &augend.value)?
@@ -253,6 +255,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Subtracts two variants.
     pub fn subtract(&self, subtrahend: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarSub(&self.value, &subtrahend.value)?
@@ -261,6 +264,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Returns the result from multiplying two variants.
     pub fn multiply(&self, multiplicand: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarMul(&self.value, &multiplicand.value)?
@@ -269,6 +273,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Returns the result from dividing two variants.
     pub fn divide(&self, divisor: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarDiv(&self.value, &divisor.value)?
@@ -277,6 +282,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Divides two variants and returns only the remainder.
     pub fn mod_by(&self, m: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarMod(&self.value, &m.value)?
@@ -285,6 +291,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Performs logical negation on a variant.
     pub fn negate(&self) -> Result<Variant> {
         let v = unsafe {
             VarNeg(&self.value)?
@@ -293,6 +300,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Performs the bitwise not negation operation on a variant.
     pub fn not(&self) -> Result<Variant> {
         let v = unsafe {
             VarNot(&self.value)?
@@ -301,6 +309,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Performs a bitwise And operation between two variants of any integral type.
     pub fn and(&self, val: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarAnd(&self.value, &val.value)?
@@ -309,6 +318,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Performs a logical disjunction on two variants.
     pub fn or(&self, val: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarOr(&self.value, &val.value)?
@@ -317,6 +327,7 @@ impl Variant {
         Ok(v.into())
     }
 
+    /// Performs a logical exclusion on two variants.
     pub fn xor(&self, val: &Variant) -> Result<Variant> {
         let v = unsafe {
             VarXor(&self.value, &val.value)?
@@ -1357,6 +1368,7 @@ impl SafeArray {
         Ok(())
     }
 
+    /// Gets array values as `Vec<T>`.
     pub fn into_vector<T: Default>(&self, var_type: VARENUM) -> Result<Vec<T>> {
         if self.get_var_type()? != var_type {
             return Err(Error::new(ERR_TYPE, "Err SafeArray Type"));
@@ -1378,6 +1390,7 @@ impl SafeArray {
         Ok(arr)
     }
 
+    /// Gets array values as `Vec<String>`.
     pub fn into_string_vector(&self) -> Result<Vec<String>> {
         let bstrs: Vec<BSTR> = self.into_vector(VT_BSTR)?;
         let strings: Vec<String> = bstrs.iter().map(|s| s.to_string()).collect();
@@ -1406,6 +1419,7 @@ impl SafeArray {
         Ok(arr)
     }
 
+    /// Creates a `SafeArray` value from `Vec<T>`.
     pub fn from_vector<T: Default>(var_type: VARENUM, src: &Vec<T>) -> Result<SafeArray> {
         let arr = Self::new_vector(var_type, src.len() as _)?;
         for i in 0..src.len() {
@@ -1418,6 +1432,7 @@ impl SafeArray {
         Ok(arr)
     }
 
+    /// Creates a `SafeArray` value from string vec.
     pub fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
         let bstrs: Vec<BSTR> = src.iter().map(|s| s.as_ref().into()).collect();
         Self::from_vector(VT_BSTR, &bstrs)
