@@ -86,3 +86,11 @@
 ## v0.5.2
 
 + Update sample codes in README
+
+## v0.5.3
+
++ update dependencies
+
+## v0.5.4
+
++ update dependencies
