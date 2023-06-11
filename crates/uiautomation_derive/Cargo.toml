@@ -20,4 +20,4 @@ targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows
 [dependencies]
 syn = { version = "2.0.18", features = ["full"] }
 quote = "1.0.28"
-proc-macro2 = "1.0.59"
+proc-macro2 = "1.0.60"
