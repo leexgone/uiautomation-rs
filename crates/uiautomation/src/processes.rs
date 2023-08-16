@@ -39,7 +39,27 @@ impl Process {
         let mut information = PROCESS_INFORMATION::default();
         let mut buffer = command.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
         let si = Process::startupinfo();
-        let ret = unsafe {
+        // let ret = unsafe {
+        //     CreateProcessW(PCWSTR::null(), 
+        //         PWSTR::from_raw(buffer.as_mut_ptr()), 
+        //         None, 
+        //         None, 
+        //         false, 
+        //         PROCESS_CREATION_FLAGS::default(), 
+        //         None,
+        //         PCWSTR::null(),
+        //         &si,
+        //         &mut information)
+        // };
+
+        // if ret.as_bool() {
+        //     Ok(Self {
+        //         information
+        //     })
+        // } else {
+        //     Err(Error::last_os_error())
+        // }
+        unsafe {
             CreateProcessW(PCWSTR::null(), 
                 PWSTR::from_raw(buffer.as_mut_ptr()), 
                 None, 
@@ -49,16 +69,10 @@ impl Process {
                 None,
                 PCWSTR::null(),
                 &si,
-                &mut information)
+                &mut information)?
         };
 
-        if ret.as_bool() {
-            Ok(Self {
-                information
-            })
-        } else {
-            Err(Error::last_os_error())
-        }
+        Ok(Self { information })
     }
 
     #[inline]
@@ -70,15 +84,19 @@ impl Process {
 
     /// Exit the process with `exit_code` by force.
     pub fn terminate(&self, exit_code: u32) -> Result<()> {
-        let ret = unsafe {
-            TerminateProcess(self.information.hProcess, exit_code)
-        };
+        // let ret = unsafe {
+        //     TerminateProcess(self.information.hProcess, exit_code)
+        // };
 
-        if ret.as_bool() {
-            Ok(())
-        } else {
-            Err(Error::last_os_error())
-        }
+        // if ret.as_bool() {
+        //     Ok(())
+        // } else {
+        //     Err(Error::last_os_error())
+        // }
+        unsafe {
+            TerminateProcess(self.information.hProcess, exit_code)?
+        };
+        Ok(())
     }
 
     /// Wait for the process to exit.
@@ -103,23 +121,28 @@ impl Process {
     /// Get the exit code of the process.
     pub fn get_exit_code(&self) -> Result<u32> {
         let mut exit_code: u32 = 0;
-        let ret = unsafe {
-            GetExitCodeProcess(self.information.hProcess, &mut exit_code)
+        // let ret = unsafe {
+        //     GetExitCodeProcess(self.information.hProcess, &mut exit_code)
+        // };
+
+        // if ret.as_bool() {
+        //     Ok(exit_code)
+        // } else {
+        //     Err(Error::last_os_error())
+        // }
+        unsafe {
+            GetExitCodeProcess(self.information.hProcess, &mut exit_code)?
         };
 
-        if ret.as_bool() {
-            Ok(exit_code)
-        } else {
-            Err(Error::last_os_error())
-        }
+        Ok(exit_code)
     }
 }
 
 impl Drop for Process {
     fn drop(&mut self) {
         unsafe {
-            CloseHandle(self.information.hProcess);
-            CloseHandle(self.information.hThread);
+            let _ = CloseHandle(self.information.hProcess);
+            let _ = CloseHandle(self.information.hThread);
         }
     }
 }

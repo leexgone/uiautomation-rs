@@ -572,25 +572,29 @@ impl Mouse {
     /// Retrieves the position of the mouse cursor, in screen coordinates.
     pub fn get_cursor_pos() -> Result<Point> {
         let mut pos: Point = Point::default();
-        let ret = unsafe {
-            GetCursorPos(pos.as_mut())
-        };
+        // let ret = unsafe {
+        //     GetCursorPos(pos.as_mut())
+        // };
 
-        if ret.as_bool() {
-            Ok(pos)
-        } else {
-            Err(Error::last_os_error())
-        }
+        // if ret.as_bool() {
+        //     Ok(pos)
+        // } else {
+        //     Err(Error::last_os_error())
+        // }
+        unsafe { GetCursorPos(pos.as_mut())? };
+        Ok(pos)
     }
 
     /// Moves the cursor to the specified screen coordinates. 
     pub fn set_cursor_pos(pos: Point) -> Result<()> {
-        let ret = unsafe { SetCursorPos(pos.get_x(), pos.get_y()) };
-        if ret.as_bool() {
-            Ok(())
-        } else {
-            Err(Error::last_os_error())
-        }
+        // let ret = unsafe { SetCursorPos(pos.get_x(), pos.get_y()) };
+        // if ret.as_bool() {
+        //     Ok(())
+        // } else {
+        //     Err(Error::last_os_error())
+        // }
+        unsafe { SetCursorPos(pos.get_x(), pos.get_y())? };
+        Ok(())
     }
 
     /// Moves the cursor from current position to the `target` position.

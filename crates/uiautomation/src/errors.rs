@@ -36,13 +36,18 @@ impl Error {
 
     pub fn last_os_error() -> Error {
         let error = unsafe { GetLastError() };
-        let code: i32 = if (error.0 as i32) < 0 {
-            error.0 as _
-        } else { 
-            ((error.0 & 0x0000FFFF) | 0x80070000) as _
-        };
+        // let code: i32 = if (error.0 as i32) < 0 {
+        //     error.0 as _
+        // } else { 
+        //     ((error.0 & 0x0000FFFF) | 0x80070000) as _
+        // };
 
-        HRESULT(code).into()
+        // HRESULT(code).into()
+        if let Err(e) = error {
+            e.into()
+        } else {
+            HRESULT(0).into()
+        }
     }
 
     pub fn code(&self) -> i32 {

@@ -94,3 +94,7 @@
 ## v0.5.4
 
 + update dependencies
+
+## v0.6.0
+
++ update to `windows v0.51.0`
