@@ -8,3 +8,5 @@ members = [
     "samples/uia_varaint",
     "samples/win_update"
 ]
+
+resolver = "2"
