@@ -2,10 +2,14 @@ use uiautomation::Result;
 use uiautomation::UIAutomation;
 use uiautomation::UIElement;
 use uiautomation::UITreeWalker;
+use uiautomation::controls::ControlType;
+use uiautomation::types::UIProperty;
+use uiautomation::variants::Variant;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
-    let walker = automation.get_control_view_walker().unwrap(); 
+    let filter = automation.create_property_condition(UIProperty::ControlType, Variant::from(ControlType::Pane as i32), None).unwrap();
+    let walker = automation.filter_tree_walker(filter).unwrap(); //automation.get_control_view_walker().unwrap(); 
     let root = automation.get_root_element().unwrap();
 
     print_element(&walker, &root, 0).unwrap();

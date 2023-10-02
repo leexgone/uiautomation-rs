@@ -11,6 +11,8 @@ use uiautomation::controls::PaneControl;
 use uiautomation::controls::ToolBarControl;
 use uiautomation::controls::WindowControl;
 use uiautomation::dialogs::show_error;
+use uiautomation::filters::NameFilter;
+use uiautomation::filters::OrFilter;
 
 fn main() {
     let ret = auto_update();
@@ -52,8 +54,13 @@ fn auto_update() -> Result<()> {
     let update_item: ListItemControl = update.try_into()?;
     update_item.select()?;
 
-    let matcher = automation.create_matcher().from(settings.clone()).timeout(5000)
-        .match_name("检查更新")
+    let filter = OrFilter {
+        left: Box::new(NameFilter { value: String::from("检查更新"), casesensitive: false, partial: true }),
+        right: Box::new(NameFilter { value: String::from("下载并安装"), casesensitive: false, partial: true }),
+    };
+    let matcher = automation.create_matcher().from(settings.clone()).timeout(5000) //.debug(true)
+        .filter(Box::new(filter))
+        // .match_name("检查更新")
         .control_type(ButtonControl::TYPE)
         .filter_fn(Box::new(|e: &UIElement| {
             e.is_enabled()

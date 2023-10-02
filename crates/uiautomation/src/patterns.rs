@@ -1,6 +1,6 @@
 use uiautomation_derive::EnumConvert;
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::System::Com::VARIANT;
+use windows::Win32::System::Variant::VARIANT;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;

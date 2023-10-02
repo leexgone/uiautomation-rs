@@ -5,16 +5,7 @@ use std::ptr::null_mut;
 use windows::Win32::Foundation::DECIMAL;
 use windows::Win32::System::Com::*;
 use windows::Win32::System::Ole::*;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetBooleanElem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetDoubleElem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetElementCount;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt16Elem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt32Elem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetInt64Elem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetStringElem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt16Elem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt32Elem;
-use windows::Win32::UI::Shell::PropertiesSystem::VariantGetUInt64Elem;
+use windows::Win32::System::Variant::*;
 use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
@@ -1950,7 +1941,7 @@ impl TryInto<Vec<bool>> for SafeArray {
 
 #[cfg(test)]
 mod tests {
-    use windows::Win32::System::Com::VT_BOOL;
+    use windows::Win32::System::Variant::VT_BOOL;
 
     use crate::variants::SafeArray;
     use crate::variants::Value;
