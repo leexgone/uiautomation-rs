@@ -414,7 +414,9 @@ impl Keyboard {
     pub fn send_keys(&self, keys: &str) -> Result<()> {
         let inputs = parse_input(keys)?;
         for ref input in inputs {
-            self.send_keyboard(input)?;
+            // self.send_keyboard(input)?;
+            let input_keys = input.create_inputs()?;
+            self.send_keyboard(&input_keys)?;
         }
 
         Ok(())
@@ -443,7 +445,8 @@ impl Keyboard {
         for holdkey in &holdkeys {
             holdkey_inputs.push(Input::create_virtual_key(*holdkey, KEYEVENTF_KEYDOWN));
         }
-        send_input(&holdkey_inputs.as_slice())?;
+        // send_input(&holdkey_inputs.as_slice())?;
+        self.send_keyboard(&holdkey_inputs)?;
 
         self.holdkeys.extend(holdkeys);
 
@@ -461,16 +464,33 @@ impl Keyboard {
             }
             self.holdkeys.clear();
 
-            send_input(&holdkey_inputs.as_slice())
+            // send_input(&holdkey_inputs.as_slice())
+            self.send_keyboard(&holdkey_inputs)
         }
     }
 
-    fn send_keyboard(&self, input: &Input) -> Result<()> {
-        let input_keys = input.create_inputs()?;
+    // fn send_keyboard(&self, input: &Input) -> Result<()> {
+    //     let input_keys = input.create_inputs()?;
+    //     if self.interval == 0 {
+    //         send_input(&input_keys.as_slice())
+    //     } else {
+    //         for input_key in &input_keys {
+    //             let input_key_slice: [INPUT; 1] = [input_key.clone()];
+    //             send_input(&input_key_slice)?;
+
+    //             self.wait();
+    //         }
+
+    //         Ok(())
+    //     }
+    // }
+
+    fn send_keyboard(&self, input_keys: &[INPUT]) -> Result<()> {
+        // let input_keys = input.create_inputs()?;
         if self.interval == 0 {
-            send_input(&input_keys.as_slice())
+            send_input(input_keys)
         } else {
-            for input_key in &input_keys {
+            for input_key in input_keys {
                 let input_key_slice: [INPUT; 1] = [input_key.clone()];
                 send_input(&input_key_slice)?;
 
@@ -480,6 +500,7 @@ impl Keyboard {
             Ok(())
         }
     }
+
 
     fn wait(&self) {
         if self.interval > 0 {

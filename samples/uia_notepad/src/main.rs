@@ -13,7 +13,7 @@ fn main() {
         println!("Found: {} - {}", notepad.get_name().unwrap(), notepad.get_classname().unwrap());
 
         notepad.send_keys("Hello, Rust UIAutomation!", 10).unwrap();
-        notepad.hold_send_keys("{Shift}", "{Left}{Left}", 50).unwrap();
+        notepad.hold_send_keys("{Ctrl}{Shift}", "{Left}{Left}", 50).unwrap();
 
         let window: WindowControl = notepad.try_into().unwrap();
         window.maximize().unwrap();

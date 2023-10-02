@@ -98,3 +98,7 @@
 ## v0.6.0
 
 + update to `windows v0.51.0`
+
+## v0.6.4
+
++ `Keyboard.begin_hold_keys()` & `Keyboard.end_hold_keys()` respond to `Keyboard.interval()` setting.
