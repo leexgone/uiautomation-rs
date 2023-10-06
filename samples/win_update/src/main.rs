@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use uiautomation::Result;
 use uiautomation::UIAutomation;
 use uiautomation::UIElement;
@@ -17,7 +19,7 @@ use uiautomation::filters::OrFilter;
 fn main() {
     let ret = auto_update();
     if let Err(ref e) = ret {
-        show_error(if e.code() == 0 { "遇到未知的错误" } else { e.message() }, "更新失败");
+        show_error(if e.code() == 0 { "遇到未知的错误" } else { e.message() }, "win-update");
 
         ret.unwrap();
     }
