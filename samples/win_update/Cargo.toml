@@ -6,3 +6,7 @@ edition = "2021"
 [dependencies]
 
 uiautomation = { path = "../../crates/uiautomation" }
+
+[[bin]]
+name = "win-update"
+subsystem = "windows"
