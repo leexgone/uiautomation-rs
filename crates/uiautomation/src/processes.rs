@@ -11,7 +11,7 @@ use windows::Win32::System::Threading::INFINITE;
 use windows::Win32::System::Threading::PROCESS_CREATION_FLAGS;
 use windows::Win32::System::Threading::PROCESS_INFORMATION;
 use windows::Win32::System::Threading::STARTUPINFOW;
-use windows::Win32::System::Threading::TerminateProcess;
+use windows::Win32::System::Threading::WaitForInputIdle;
 use windows::Win32::System::Threading::WaitForSingleObject;
 use windows::core::PCWSTR;
 use windows::core::PWSTR;
@@ -25,10 +25,34 @@ use super::errors::ERR_TIMEOUT;
 /// Windows process wrapper.
 #[derive(Debug)]
 pub struct Process {
-    command: String,
+    application: Option<String>,
+    command: Option<String>,
     cur_dir: Option<String>,
+    wait_for_idle: Option<u32>,
     startup_info: STARTUPINFOW,
     proc_info: PROCESS_INFORMATION
+}
+
+macro_rules! to_pcwstr {
+    ($text: expr) => {
+        if let Some(ref val) = $text {
+            let buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
+            PCWSTR::from_raw(buf.as_ptr())
+        } else {
+            PCWSTR::null()
+        }
+    };
+}
+
+macro_rules! to_pwstr {
+    ($text: expr) => {
+        if let Some(ref val) = $text {
+            let mut buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
+            PWSTR::from_raw(buf.as_mut_ptr())
+        } else {
+            PWSTR::null()
+        }
+    };
 }
 
 impl Process {
@@ -57,11 +81,25 @@ impl Process {
     /// Create a process by `command`. This process will not startup until it is called by `run()`. 
     pub fn new<S: Into<String>>(command: S) -> Self {
         Self { 
-            command: command.into(),
+            application: None,
+            command: Some(command.into()),
             cur_dir: None,
+            wait_for_idle: None,
             startup_info: Self::startupinfo(), 
             proc_info: PROCESS_INFORMATION::default(),
         }
+    }
+
+    /// Set the name of the module to be executed.
+    pub fn application<S: Into<String>>(mut self, application: S) -> Self {
+        self.application = Some(application.into());
+        self
+    }
+
+    /// Set the command line to be executed.
+    pub fn command<S: Into<String>>(mut self, command: S) -> Self {
+        self.command = Some(command.into());
+        self
     }
 
     /// Set the current directory as `dir`, which is the full path to the current directory for the process. 
@@ -70,24 +108,24 @@ impl Process {
         self
     }
 
+    /// Set to wait until the specified process has finished processing its initial input and is waiting for user input with no input pending, 
+    /// or until the time-out interval(`milliseconds`) has elapsed.
+    pub fn wait_for_idle(mut self, milliseconds: u32) -> Self {
+        self.wait_for_idle = Some(milliseconds);
+        self
+    }
+
     /// Run the current process.
     pub fn run(&mut self) -> Result<()> {
         if !self.proc_info.hProcess.is_invalid() {
             Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
         } else {
-            let cmd = {
-                let mut buf: Vec<u16> = self.command.encode_utf16().chain(std::iter::once(0)).collect();
-                PWSTR::from_raw(buf.as_mut_ptr())
-            };
-            let cur_dir = if let Some(ref val) = self.cur_dir {
-                let buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
-                PCWSTR::from_raw(buf.as_ptr())
-            } else {
-                PCWSTR::null()
-            };
+            let app = to_pcwstr!(self.application);
+            let cmd = to_pwstr!(self.command);
+            let cur_dir = to_pcwstr!(self.cur_dir);
 
             unsafe {
-                CreateProcessW(PCWSTR::null(), 
+                CreateProcessW(app, 
                     cmd,
                     None, 
                     None, 
@@ -95,22 +133,25 @@ impl Process {
                     PROCESS_CREATION_FLAGS::default(), 
                     None,
                     cur_dir,
-
                     &self.startup_info,
                     &mut self.proc_info)?
             };
+
+            if let Some(timeout) = self.wait_for_idle {
+                unsafe { WaitForInputIdle(self.proc_info.hProcess, timeout) };
+            }
     
             Ok(())
         }
     }
 
-    /// Exit the process with `exit_code` by force.
-    pub fn terminate(&self, exit_code: u32) -> Result<()> {
-        unsafe {
-            TerminateProcess(self.proc_info.hProcess, exit_code)?
-        };
-        Ok(())
-    }
+    // /// Exit the process with `exit_code` by force.
+    // pub fn terminate(&self, exit_code: u32) -> Result<()> {
+    //     unsafe {
+    //         TerminateProcess(self.proc_info.hProcess, exit_code)?
+    //     };
+    //     Ok(())
+    // }
 
     /// Wait for the process to exit.
     /// 
@@ -167,26 +208,27 @@ impl Drop for Process {
     }
 }
 
+impl Default for Process {
+    fn default() -> Self {
+        Self { 
+            application: None, 
+            command: None, 
+            cur_dir: None,
+            wait_for_idle: None,
+            startup_info: Self::startupinfo(), 
+            proc_info: Default::default() 
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::thread::sleep;
-    use std::time::Duration;
-
     use crate::processes::Process;
 
     #[test]
     fn run_notepad() {
         let proc_notepad = Process::create("notepad.exe");
         assert!(proc_notepad.is_ok());
-
-        sleep(Duration::from_secs(1));
-
-        let notepad = proc_notepad.unwrap();
-        let ret = notepad.terminate(1);
-        assert!(ret.is_ok());
-
-        let exit_code = notepad.get_exit_code().unwrap();
-        assert_eq!(exit_code, 1);
     }
 
     #[test]
@@ -194,5 +236,11 @@ mod tests {
         let mut ping = Process::new("ping.exe localhost -n 1").current_directory("C:/");
         ping.run().unwrap();
         ping.wait().unwrap();
+    }
+
+    #[test]
+    fn run_calc() {
+        let mut calc = Process::default().application("C:\\Windows\\System32\\calc.exe").current_directory("C:\\").wait_for_idle(5000);
+        calc.run().unwrap();
     }
 }
