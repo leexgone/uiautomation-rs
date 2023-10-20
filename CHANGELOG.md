@@ -102,3 +102,7 @@
 ## v0.6.4
 
 + `Keyboard.begin_hold_keys()` & `Keyboard.end_hold_keys()` respond to `Keyboard.interval()` setting.
+
+## v0.7.0
+
++ refactor `Process`, add more controls.

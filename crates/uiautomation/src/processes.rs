@@ -7,6 +7,7 @@ use windows::Win32::Foundation::WAIT_OBJECT_0;
 use windows::Win32::Foundation::WAIT_TIMEOUT;
 use windows::Win32::System::Threading::CreateProcessW;
 use windows::Win32::System::Threading::GetExitCodeProcess;
+use windows::Win32::System::Threading::INFINITE;
 use windows::Win32::System::Threading::PROCESS_CREATION_FLAGS;
 use windows::Win32::System::Threading::PROCESS_INFORMATION;
 use windows::Win32::System::Threading::STARTUPINFOW;
@@ -25,6 +26,7 @@ use super::errors::ERR_TIMEOUT;
 #[derive(Debug)]
 pub struct Process {
     command: String,
+    cur_dir: Option<String>,
     startup_info: STARTUPINFOW,
     proc_info: PROCESS_INFORMATION
 }
@@ -40,23 +42,6 @@ impl Process {
     /// assert!(p.is_ok());
     /// ```
     pub fn create(command: &str) -> Result<Self> {
-        // let mut information = PROCESS_INFORMATION::default();
-        // let mut buffer = command.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
-        // let si = Process::startupinfo();
-        // unsafe {
-        //     CreateProcessW(PCWSTR::null(), 
-        //         PWSTR::from_raw(buffer.as_mut_ptr()), 
-        //         None, 
-        //         None, 
-        //         false, 
-        //         PROCESS_CREATION_FLAGS::default(), 
-        //         None,
-        //         PCWSTR::null(),
-        //         &si,
-        //         &mut information)?
-        // };
-
-        // Ok(Self { proc_info: information })
         let mut process = Self::new(command);
         process.run()?;
         Ok(process)
@@ -69,30 +54,48 @@ impl Process {
         si
     }
 
-    /// Create a process with `command`. This process will not startup until it is called by `run()`. 
-    pub fn new(command: &str) -> Self {
+    /// Create a process by `command`. This process will not startup until it is called by `run()`. 
+    pub fn new<S: Into<String>>(command: S) -> Self {
         Self { 
-            command: command.into(), 
+            command: command.into(),
+            cur_dir: None,
             startup_info: Self::startupinfo(), 
             proc_info: PROCESS_INFORMATION::default(),
         }
     }
 
+    /// Set the current directory as `dir`, which is the full path to the current directory for the process. 
+    pub fn current_directory<S: Into<String>>(mut self, dir: S) -> Self {
+        self.cur_dir = Some(dir.into());
+        self
+    }
+
     /// Run the current process.
     pub fn run(&mut self) -> Result<()> {
         if !self.proc_info.hProcess.is_invalid() {
-            Err(Error::new(ERR_ALREADY_RUNNING, "process is already running"))
+            Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
         } else {
-            let mut buffer = self.command.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
+            let cmd = {
+                let mut buf: Vec<u16> = self.command.encode_utf16().chain(std::iter::once(0)).collect();
+                PWSTR::from_raw(buf.as_mut_ptr())
+            };
+            let cur_dir = if let Some(ref val) = self.cur_dir {
+                let buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
+                PCWSTR::from_raw(buf.as_ptr())
+            } else {
+                PCWSTR::null()
+            };
+
             unsafe {
                 CreateProcessW(PCWSTR::null(), 
-                    PWSTR::from_raw(buffer.as_mut_ptr()), 
+                    cmd,
                     None, 
                     None, 
-                    false, 
+                    true, 
                     PROCESS_CREATION_FLAGS::default(), 
                     None,
-                    PCWSTR::null(),
+                    cur_dir,
+
                     &self.startup_info,
                     &mut self.proc_info)?
             };
@@ -128,6 +131,11 @@ impl Process {
         }
     }
 
+    /// Wait until the process exits.
+    pub fn wait(&self) -> Result<()> {
+        self.wait_for(INFINITE)
+    }
+
     /// Get the exit code of the process.
     pub fn get_exit_code(&self) -> Result<u32> {
         let mut exit_code: u32 = 0;
@@ -156,10 +164,6 @@ impl Drop for Process {
 
         close_handle!(self.proc_info.hThread);
         close_handle!(self.proc_info.hProcess);
-        // unsafe {
-        //     let _ = CloseHandle(self.proc_info.hProcess);
-        //     let _ = CloseHandle(self.proc_info.hThread);
-        // }
     }
 }
 
@@ -167,8 +171,6 @@ impl Drop for Process {
 mod tests {
     use std::thread::sleep;
     use std::time::Duration;
-
-    use windows::Win32::System::Threading::INFINITE;
 
     use crate::processes::Process;
 
@@ -189,8 +191,8 @@ mod tests {
 
     #[test]
     fn run_ping() {
-        let mut ping = Process::new("ping localhost -n 1");
+        let mut ping = Process::new("ping.exe localhost -n 1").current_directory("C:/");
         ping.run().unwrap();
-        ping.wait_for(INFINITE).unwrap();
+        ping.wait().unwrap();
     }
 }

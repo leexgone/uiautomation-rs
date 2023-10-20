@@ -9,4 +9,3 @@ uiautomation = { path = "../../crates/uiautomation" }
 
 [[bin]]
 name = "win-update"
-subsystem = "windows"
