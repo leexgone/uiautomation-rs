@@ -240,7 +240,10 @@ mod tests {
 
     #[test]
     fn run_calc() {
-        let mut calc = Process::default().application("C:\\Windows\\System32\\calc.exe").current_directory("C:\\").wait_for_idle(5000);
+        let mut calc = Process::default()
+            .application("C:\\Windows\\System32\\calc.exe")
+            .current_directory("C:\\")
+            .wait_for_idle(5000);
         calc.run().unwrap();
     }
 }
