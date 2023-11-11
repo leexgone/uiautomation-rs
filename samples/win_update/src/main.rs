@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use uiautomation::Result;
 use uiautomation::UIAutomation;
 use uiautomation::UIElement;
@@ -17,7 +19,7 @@ use uiautomation::filters::OrFilter;
 fn main() {
     let ret = auto_update();
     if let Err(ref e) = ret {
-        show_error(if e.code() == 0 { "遇到未知的错误" } else { e.message() }, "更新失败");
+        show_error(if e.code() == 0 { "遇到未知的错误" } else { e.message() }, "win-update");
 
         ret.unwrap();
     }
@@ -48,7 +50,7 @@ fn auto_update() -> Result<()> {
     window.set_foregrand()?;
     settings.set_focus()?;
 
-    let matcher = automation.create_matcher().from(settings.clone()).match_name("Windows 更新").control_type(ListItemControl::TYPE);
+    let matcher = automation.create_matcher().from(settings.clone()).contains_name("Windows 更新").control_type(ListItemControl::TYPE).timeout(10000);
     let update = matcher.find_first()?;
     // println!("{}", update.get_control_type()?);
     let update_item: ListItemControl = update.try_into()?;

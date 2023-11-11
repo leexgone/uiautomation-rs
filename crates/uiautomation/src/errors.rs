@@ -19,6 +19,8 @@ pub const ERR_NULL_PTR:  i32 = 5;
 pub const ERR_FORMAT: i32 = 6;
 /// Error invalid object.
 pub const ERR_INVALID_OBJECT: i32 = 7;
+/// Error already running.
+pub const ERR_ALREADY_RUNNING: i32 = 8;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {

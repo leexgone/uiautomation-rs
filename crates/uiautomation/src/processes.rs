@@ -1,32 +1,62 @@
 use std::mem;
 
 use windows::Win32::Foundation::CloseHandle;
+use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::WAIT_FAILED;
 use windows::Win32::Foundation::WAIT_OBJECT_0;
 use windows::Win32::Foundation::WAIT_TIMEOUT;
 use windows::Win32::System::Threading::CreateProcessW;
 use windows::Win32::System::Threading::GetExitCodeProcess;
+use windows::Win32::System::Threading::INFINITE;
 use windows::Win32::System::Threading::PROCESS_CREATION_FLAGS;
 use windows::Win32::System::Threading::PROCESS_INFORMATION;
 use windows::Win32::System::Threading::STARTUPINFOW;
-use windows::Win32::System::Threading::TerminateProcess;
+use windows::Win32::System::Threading::WaitForInputIdle;
 use windows::Win32::System::Threading::WaitForSingleObject;
 use windows::core::PCWSTR;
 use windows::core::PWSTR;
 
 use super::Error;
 use super::Result;
+use crate::errors::ERR_ALREADY_RUNNING;
 use super::errors::ERR_NONE;
 use super::errors::ERR_TIMEOUT;
 
 /// Windows process wrapper.
 #[derive(Debug)]
 pub struct Process {
-    information: PROCESS_INFORMATION
+    application: Option<String>,
+    command: Option<String>,
+    cur_dir: Option<String>,
+    wait_for_idle: Option<u32>,
+    startup_info: STARTUPINFOW,
+    proc_info: PROCESS_INFORMATION
+}
+
+macro_rules! to_pcwstr {
+    ($text: expr) => {
+        if let Some(ref val) = $text {
+            let buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
+            PCWSTR::from_raw(buf.as_ptr())
+        } else {
+            PCWSTR::null()
+        }
+    };
+}
+
+macro_rules! to_pwstr {
+    ($text: expr) => {
+        if let Some(ref val) = $text {
+            let mut buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
+            PWSTR::from_raw(buf.as_mut_ptr())
+        } else {
+            PWSTR::null()
+        }
+    };
 }
 
 impl Process {
-    /// Create process by command line.
+    /// Create and run a process by command line.
     /// 
     /// # Examples
     /// ```
@@ -36,43 +66,9 @@ impl Process {
     /// assert!(p.is_ok());
     /// ```
     pub fn create(command: &str) -> Result<Self> {
-        let mut information = PROCESS_INFORMATION::default();
-        let mut buffer = command.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
-        let si = Process::startupinfo();
-        // let ret = unsafe {
-        //     CreateProcessW(PCWSTR::null(), 
-        //         PWSTR::from_raw(buffer.as_mut_ptr()), 
-        //         None, 
-        //         None, 
-        //         false, 
-        //         PROCESS_CREATION_FLAGS::default(), 
-        //         None,
-        //         PCWSTR::null(),
-        //         &si,
-        //         &mut information)
-        // };
-
-        // if ret.as_bool() {
-        //     Ok(Self {
-        //         information
-        //     })
-        // } else {
-        //     Err(Error::last_os_error())
-        // }
-        unsafe {
-            CreateProcessW(PCWSTR::null(), 
-                PWSTR::from_raw(buffer.as_mut_ptr()), 
-                None, 
-                None, 
-                false, 
-                PROCESS_CREATION_FLAGS::default(), 
-                None,
-                PCWSTR::null(),
-                &si,
-                &mut information)?
-        };
-
-        Ok(Self { information })
+        let mut process = Self::new(command);
+        process.run()?;
+        Ok(process)
     }
 
     #[inline]
@@ -82,29 +78,87 @@ impl Process {
         si
     }
 
-    /// Exit the process with `exit_code` by force.
-    pub fn terminate(&self, exit_code: u32) -> Result<()> {
-        // let ret = unsafe {
-        //     TerminateProcess(self.information.hProcess, exit_code)
-        // };
-
-        // if ret.as_bool() {
-        //     Ok(())
-        // } else {
-        //     Err(Error::last_os_error())
-        // }
-        unsafe {
-            TerminateProcess(self.information.hProcess, exit_code)?
-        };
-        Ok(())
+    /// Create a process by `command`. This process will not startup until it is called by `run()`. 
+    pub fn new<S: Into<String>>(command: S) -> Self {
+        Self { 
+            application: None,
+            command: Some(command.into()),
+            cur_dir: None,
+            wait_for_idle: None,
+            startup_info: Self::startupinfo(), 
+            proc_info: PROCESS_INFORMATION::default(),
+        }
     }
+
+    /// Set the name of the module to be executed.
+    pub fn application<S: Into<String>>(mut self, application: S) -> Self {
+        self.application = Some(application.into());
+        self
+    }
+
+    /// Set the command line to be executed.
+    pub fn command<S: Into<String>>(mut self, command: S) -> Self {
+        self.command = Some(command.into());
+        self
+    }
+
+    /// Set the current directory as `dir`, which is the full path to the current directory for the process. 
+    pub fn current_directory<S: Into<String>>(mut self, dir: S) -> Self {
+        self.cur_dir = Some(dir.into());
+        self
+    }
+
+    /// Set to wait until the specified process has finished processing its initial input and is waiting for user input with no input pending, 
+    /// or until the time-out interval(`milliseconds`) has elapsed.
+    pub fn wait_for_idle(mut self, milliseconds: u32) -> Self {
+        self.wait_for_idle = Some(milliseconds);
+        self
+    }
+
+    /// Run the current process.
+    pub fn run(&mut self) -> Result<()> {
+        if !self.proc_info.hProcess.is_invalid() {
+            Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
+        } else {
+            let app = to_pcwstr!(self.application);
+            let cmd = to_pwstr!(self.command);
+            let cur_dir = to_pcwstr!(self.cur_dir);
+
+            unsafe {
+                CreateProcessW(app, 
+                    cmd,
+                    None, 
+                    None, 
+                    true, 
+                    PROCESS_CREATION_FLAGS::default(), 
+                    None,
+                    cur_dir,
+                    &self.startup_info,
+                    &mut self.proc_info)?
+            };
+
+            if let Some(timeout) = self.wait_for_idle {
+                unsafe { WaitForInputIdle(self.proc_info.hProcess, timeout) };
+            }
+    
+            Ok(())
+        }
+    }
+
+    // /// Exit the process with `exit_code` by force.
+    // pub fn terminate(&self, exit_code: u32) -> Result<()> {
+    //     unsafe {
+    //         TerminateProcess(self.proc_info.hProcess, exit_code)?
+    //     };
+    //     Ok(())
+    // }
 
     /// Wait for the process to exit.
     /// 
     /// `timeout` is the milliseconds to wait for.
     pub fn wait_for(&self, timeout: u32) -> Result<()> {
         let ret = unsafe {
-            WaitForSingleObject(self.information.hProcess, timeout)
+            WaitForSingleObject(self.proc_info.hProcess, timeout)
         };
 
         if ret == WAIT_OBJECT_0 {
@@ -118,54 +172,78 @@ impl Process {
         }
     }
 
+    /// Wait until the process exits.
+    pub fn wait(&self) -> Result<()> {
+        self.wait_for(INFINITE)
+    }
+
     /// Get the exit code of the process.
     pub fn get_exit_code(&self) -> Result<u32> {
         let mut exit_code: u32 = 0;
-        // let ret = unsafe {
-        //     GetExitCodeProcess(self.information.hProcess, &mut exit_code)
-        // };
-
-        // if ret.as_bool() {
-        //     Ok(exit_code)
-        // } else {
-        //     Err(Error::last_os_error())
-        // }
         unsafe {
-            GetExitCodeProcess(self.information.hProcess, &mut exit_code)?
+            GetExitCodeProcess(self.proc_info.hProcess, &mut exit_code)?
         };
 
         Ok(exit_code)
     }
 }
 
+macro_rules! close_handle {
+    ($handle: expr) => {
+        if !$handle.is_invalid() {
+            let _ = unsafe { CloseHandle($handle) };
+            $handle = HANDLE::default();
+        }
+    };
+}
+
 impl Drop for Process {
     fn drop(&mut self) {
-        unsafe {
-            let _ = CloseHandle(self.information.hProcess);
-            let _ = CloseHandle(self.information.hThread);
+        close_handle!(self.startup_info.hStdInput);
+        close_handle!(self.startup_info.hStdOutput);
+        close_handle!(self.startup_info.hStdError);
+
+        close_handle!(self.proc_info.hThread);
+        close_handle!(self.proc_info.hProcess);
+    }
+}
+
+impl Default for Process {
+    fn default() -> Self {
+        Self { 
+            application: None, 
+            command: None, 
+            cur_dir: None,
+            wait_for_idle: None,
+            startup_info: Self::startupinfo(), 
+            proc_info: Default::default() 
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::thread::sleep;
-    use std::time::Duration;
-
     use crate::processes::Process;
 
     #[test]
     fn run_notepad() {
         let proc_notepad = Process::create("notepad.exe");
         assert!(proc_notepad.is_ok());
+    }
 
-        sleep(Duration::from_secs(1));
+    #[test]
+    fn run_ping() {
+        let mut ping = Process::new("ping.exe localhost -n 1").current_directory("C:/");
+        ping.run().unwrap();
+        ping.wait().unwrap();
+    }
 
-        let notepad = proc_notepad.unwrap();
-        let ret = notepad.terminate(1);
-        assert!(ret.is_ok());
-
-        let exit_code = notepad.get_exit_code().unwrap();
-        assert_eq!(exit_code, 1);
+    #[test]
+    fn run_calc() {
+        let mut calc = Process::default()
+            .application("C:\\Windows\\System32\\calc.exe")
+            .current_directory("C:\\")
+            .wait_for_idle(5000);
+        calc.run().unwrap();
     }
 }

@@ -230,6 +230,24 @@ impl IntoParam<HWND> for Handle {
     }
 }
 
+impl From<isize> for Handle {
+    fn from(value: isize) -> Self {
+        Self(HWND(value))
+    }
+}
+
+impl Into<isize> for Handle {
+    fn into(self) -> isize {
+        self.0.0
+    }
+}
+
+impl AsRef<isize> for Handle {
+    fn as_ref(&self) -> &isize {
+        &self.0.0
+    }
+}
+
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_PROPERTY_ID`.
 /// 
 /// Describes the named constants that identify the properties of Microsoft UI Automation elements.
@@ -1059,8 +1077,10 @@ pub enum TextAttribute {
 
 #[cfg(test)]
 mod tests {
+    use windows::Win32::Foundation::HWND;
     use windows::Win32::UI::Accessibility;
 
+    use super::Handle;
     use super::WindowInteractionState;
 
     #[test]
@@ -1073,5 +1093,11 @@ mod tests {
 
         assert_eq!(Accessibility::WindowInteractionState_ReadyForUserInteraction, WindowInteractionState::ReadyForUserInteraction.into());
         assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.into());
+    }
+
+    #[test]
+    fn test_handle() {
+        let handle = Handle::from(0x001);
+        assert_eq!(HWND(0x001), handle.into());
     }
 }
