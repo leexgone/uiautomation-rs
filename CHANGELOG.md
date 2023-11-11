@@ -106,3 +106,7 @@
 ## v0.7.0
 
 + refactor `Process`, add more controls.
+
+## v0.7.2
+
++ support converting `isize` to `Handle`. [issue-44](https://github.com/leexgone/uiautomation-rs/issues/44)
