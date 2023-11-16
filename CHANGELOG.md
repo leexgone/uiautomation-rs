@@ -110,3 +110,7 @@
 ## v0.7.2
 
 + support converting `isize` to `Handle`. [issue-44](https://github.com/leexgone/uiautomation-rs/issues/44)
+
+## v0.7.3
+
++ update to `widnows v0.52.0`
