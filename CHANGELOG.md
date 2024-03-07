@@ -114,3 +114,7 @@
 ## v0.7.3
 
 + update to `widnows v0.52.0`
+
+## v0.8.0
+
++ update to `windows v0.54.0`
