@@ -1,17 +1,20 @@
+use std::ffi::c_void;
 use std::fmt::Display;
 use std::mem::ManuallyDrop;
 use std::ptr::null_mut;
 
-use windows::Win32::Foundation::DECIMAL;
-use windows::Win32::System::Com::*;
-use windows::Win32::System::Ole::*;
-use windows::Win32::System::Variant::*;
+use windows::core::VARIANT;
 use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
 use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::PSTR;
+use windows::core::imp;
+use windows::Win32::Foundation::DECIMAL;
+use windows::Win32::System::Com::*;
+use windows::Win32::System::Ole::*;
+use windows::Win32::System::Variant::*;
 
 use super::Error;
 use super::Result;
@@ -121,40 +124,49 @@ pub struct Variant {
 impl Variant {
     /// Create a null variant.
     fn new_null(vt: VARENUM) -> Variant {
-        let mut val = VARIANT_0_0::default();
-        val.vt = vt; // vt.0 as u16;
+        // let mut val = VARIANT_0_0::default();
+        // val.vt = vt; // vt.0 as u16;
 
-        let variant = VARIANT {
-            Anonymous: VARIANT_0 {
-                Anonymous: ManuallyDrop::new(val)
-            }
-        };
+        // let variant = VARIANT {
+        //     Anonymous: VARIANT_0 {
+        //         Anonymous: ManuallyDrop::new(val)
+        //     }
+        // };
+        let variant = VARIANT::default();
+        let val = variant.as_raw();
+        val.Anonymous.Anonymous.vt = vt.0;
 
         variant.into()
     }
 
     /// Create a `Variant` from `vt` and `value`.
-    fn new(vt: VARENUM, value: VARIANT_0_0_0) -> Variant {
-        let variant = VARIANT {
-            Anonymous: VARIANT_0 {
-                Anonymous: ManuallyDrop::new(VARIANT_0_0 {
-                    vt: vt, //vt.0 as u16,
-                    wReserved1: 0,
-                    wReserved2: 0,
-                    wReserved3: 0,
-                    Anonymous: value
-                })
-            }
-        };
+    fn new(vt: VARENUM, value: imp::VARIANT_0_0_0) -> Variant {
+        // let variant = VARIANT {
+        //     Anonymous: VARIANT_0 {
+        //         Anonymous: ManuallyDrop::new(VARIANT_0_0 {
+        //             vt: vt, //vt.0 as u16,
+        //             wReserved1: 0,
+        //             wReserved2: 0,
+        //             wReserved3: 0,
+        //             Anonymous: value
+        //         })
+        //     }
+        // };
+        let variant = VARIANT::default();
+        let val = variant.as_raw();
+        val.Anonymous.Anonymous.vt = vt.0;
+        val.Anonymous.Anonymous.Anonymous = value;
 
         variant.into()
     }
 
     /// Retrieve the variant type.
     fn vt(&self) -> VARENUM {
-        unsafe {
-            self.value.Anonymous.Anonymous.vt //as i32
-        }
+        let val = self.value.as_raw();
+        VARENUM(val.Anonymous.Anonymous.vt)
+        // unsafe {
+        //     self.value.Anonymous.Anonymous.vt //as i32
+        // }
     }
 
     /// Retrieve the variant type as `VARENUM`.
@@ -164,8 +176,10 @@ impl Variant {
     }
 
     /// Retrieve the data of the variant.
-    pub(crate) unsafe fn get_data(&self) -> &VARIANT_0_0_0 {
-        &self.value.Anonymous.Anonymous.Anonymous
+    pub(crate) fn get_data(&self) -> &imp::VARIANT_0_0_0 {
+        // &self.value.Anonymous.Anonymous.Anonymous
+        let var = self.value.as_raw();
+        &var.Anonymous.Anonymous.Anonymous
     }
 
     /// Try to get value.
@@ -363,7 +377,7 @@ macro_rules! vec_to_variant {
         {
             let vt = VARENUM(VT_ARRAY.0 | $t.0);
             let arr: SafeArray = $v.try_into().unwrap();
-            Variant::new(vt, VARIANT_0_0_0 { parray: arr.array })
+            Variant::new(vt, imp::VARIANT_0_0_0 { parray: arr.array })
         }
     };
 }
@@ -374,29 +388,29 @@ impl From<Value> for Variant {
             Value::EMPTY => Variant::new_null(VT_EMPTY),
             Value::NULL => Variant::new_null(VT_NULL),
             Value::VOID => Variant::new_null(VT_VOID),
-            Value::I1(v) => Variant::new(VT_I1, VARIANT_0_0_0 { bVal: v as u8 }),
-            Value::I2(v) => Variant::new(VT_I2, VARIANT_0_0_0 { iVal: v }),
-            Value::I4(v) => Variant::new(VT_I4, VARIANT_0_0_0 { lVal: v }),
-            Value::I8(v) => Variant::new(VT_I8, VARIANT_0_0_0 { llVal: v }),
-            Value::INT(v) => Variant::new(VT_INT, VARIANT_0_0_0 { lVal: v }),
-            Value::UI1(v) => Variant::new(VT_UI1, VARIANT_0_0_0 { bVal: v }),
-            Value::UI2(v) => Variant::new(VT_UI2, VARIANT_0_0_0 { uiVal: v }),
-            Value::UI4(v) => Variant::new(VT_UI4, VARIANT_0_0_0 { ulVal: v }),
-            Value::UI8(v) => Variant::new(VT_UI8, VARIANT_0_0_0 { ullVal: v }),
-            Value::UINT(v) => Variant::new(VT_UINT, VARIANT_0_0_0 { uintVal: v }),
-            Value::R4(v) => Variant::new(VT_R4, VARIANT_0_0_0 { fltVal: v }),
-            Value::R8(v) => Variant::new(VT_R8, VARIANT_0_0_0 { dblVal: v }),
-            Value::CURRENCY(v) => Variant::new(VT_CY, VARIANT_0_0_0 { cyVal: CY { int64: v} }),
-            Value::DATE(v) => Variant::new(VT_DATE, VARIANT_0_0_0 { date: v }),
-            Value::STRING(v) => Variant::new(VT_BSTR, VARIANT_0_0_0 { bstrVal: ManuallyDrop::new(BSTR::from(v)) }),
-            Value::UNKNOWN(v) => Variant::new(VT_UNKNOWN, VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
-            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
-            Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: v.into() }),
-            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
-            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
-            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
+            Value::I1(v) => Variant::new(VT_I1, imp::VARIANT_0_0_0 { bVal: v as u8 }),
+            Value::I2(v) => Variant::new(VT_I2, imp::VARIANT_0_0_0 { iVal: v }),
+            Value::I4(v) => Variant::new(VT_I4, imp::VARIANT_0_0_0 { lVal: v }),
+            Value::I8(v) => Variant::new(VT_I8, imp::VARIANT_0_0_0 { llVal: v }),
+            Value::INT(v) => Variant::new(VT_INT, imp::VARIANT_0_0_0 { lVal: v }),
+            Value::UI1(v) => Variant::new(VT_UI1, imp::VARIANT_0_0_0 { bVal: v }),
+            Value::UI2(v) => Variant::new(VT_UI2, imp::VARIANT_0_0_0 { uiVal: v }),
+            Value::UI4(v) => Variant::new(VT_UI4, imp::VARIANT_0_0_0 { ulVal: v }),
+            Value::UI8(v) => Variant::new(VT_UI8, imp::VARIANT_0_0_0 { ullVal: v }),
+            Value::UINT(v) => Variant::new(VT_UINT, imp::VARIANT_0_0_0 { uintVal: v }),
+            Value::R4(v) => Variant::new(VT_R4, imp::VARIANT_0_0_0 { fltVal: v }),
+            Value::R8(v) => Variant::new(VT_R8, imp::VARIANT_0_0_0 { dblVal: v }),
+            Value::CURRENCY(v) => Variant::new(VT_CY, imp::VARIANT_0_0_0 { cyVal: imp::CY { int64: v} }),
+            Value::DATE(v) => Variant::new(VT_DATE, imp::VARIANT_0_0_0 { date: v }),
+            Value::STRING(v) => { let s = BSTR::from(v); let v = VARIANT::from(s); v.into() }, //Variant::new(VT_BSTR, imp::VARIANT_0_0_0 { bstrVal: v.as_str() as _ }),
+            Value::UNKNOWN(v) => { let var = VARIANT::from(v); var.into() } //Variant::new(VT_UNKNOWN, imp::VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
+            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, imp::VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
+            Value::ERROR(v) => Variant::new(VT_ERROR, imp::VARIANT_0_0_0 { intVal: v.0 }),
+            Value::HRESULT(v) => Variant::new(VT_HRESULT, imp::VARIANT_0_0_0 { intVal: v.0 }),
+            Value::BOOL(v) => Variant::new(VT_BOOL, imp::VARIANT_0_0_0 { boolVal: v.into() }),
+            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, imp::VARIANT_0_0_0 { pvarVal: &mut v.value }),
+            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut v }),
+            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, imp::VARIANT_0_0_0 { parray: v.array }),
             Value::ArrayBool(v) => vec_to_variant!(v, VT_BOOL), //Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
             Value::ArrayR8(v) => vec_to_variant!(v, VT_R8),
             Value::ArrayI2(v) => vec_to_variant!(v, VT_I2),

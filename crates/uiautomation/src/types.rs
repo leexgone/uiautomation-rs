@@ -225,7 +225,7 @@ impl AsRef<HWND> for Handle {
 }
 
 impl IntoParam<HWND> for Handle {
-    fn into_param(self) -> windows::core::Param<HWND> {
+    unsafe fn into_param(self) -> windows::core::Param<HWND> {
         windows::core::Param::Owned(self.0)
     }
 }
