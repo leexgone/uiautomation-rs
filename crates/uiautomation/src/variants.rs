@@ -12,6 +12,7 @@ use windows::core::Interface;
 use windows::core::PSTR;
 use windows::core::imp;
 use windows::Win32::Foundation::DECIMAL;
+use windows::Win32::Foundation::VARIANT_BOOL;
 use windows::Win32::System::Com::*;
 use windows::Win32::System::Ole::*;
 use windows::Win32::System::Variant::*;
@@ -372,12 +373,21 @@ impl Display for Variant {
     }
 }
 
+macro_rules! val_to_variant {
+    ($v: expr) => {
+        {
+            let variant = VARIANT::from($v);
+            variant.into()
+        }
+    };
+}
+
 macro_rules! vec_to_variant {
     ($v: expr, $t: expr) => {
         {
             let vt = VARENUM(VT_ARRAY.0 | $t.0);
             let arr: SafeArray = $v.try_into().unwrap();
-            Variant::new(vt, imp::VARIANT_0_0_0 { parray: arr.array })
+            Variant::new(vt, imp::VARIANT_0_0_0 { parray: arr.into() })
         }
     };
 }
@@ -388,29 +398,43 @@ impl From<Value> for Variant {
             Value::EMPTY => Variant::new_null(VT_EMPTY),
             Value::NULL => Variant::new_null(VT_NULL),
             Value::VOID => Variant::new_null(VT_VOID),
-            Value::I1(v) => Variant::new(VT_I1, imp::VARIANT_0_0_0 { bVal: v as u8 }),
-            Value::I2(v) => Variant::new(VT_I2, imp::VARIANT_0_0_0 { iVal: v }),
-            Value::I4(v) => Variant::new(VT_I4, imp::VARIANT_0_0_0 { lVal: v }),
-            Value::I8(v) => Variant::new(VT_I8, imp::VARIANT_0_0_0 { llVal: v }),
-            Value::INT(v) => Variant::new(VT_INT, imp::VARIANT_0_0_0 { lVal: v }),
-            Value::UI1(v) => Variant::new(VT_UI1, imp::VARIANT_0_0_0 { bVal: v }),
-            Value::UI2(v) => Variant::new(VT_UI2, imp::VARIANT_0_0_0 { uiVal: v }),
-            Value::UI4(v) => Variant::new(VT_UI4, imp::VARIANT_0_0_0 { ulVal: v }),
-            Value::UI8(v) => Variant::new(VT_UI8, imp::VARIANT_0_0_0 { ullVal: v }),
-            Value::UINT(v) => Variant::new(VT_UINT, imp::VARIANT_0_0_0 { uintVal: v }),
-            Value::R4(v) => Variant::new(VT_R4, imp::VARIANT_0_0_0 { fltVal: v }),
-            Value::R8(v) => Variant::new(VT_R8, imp::VARIANT_0_0_0 { dblVal: v }),
+            Value::I1(v) => val_to_variant!(v), // Variant::new(VT_I1, imp::VARIANT_0_0_0 { bVal: v as u8 }),
+            Value::I2(v) => val_to_variant!(v), // Variant::new(VT_I2, imp::VARIANT_0_0_0 { iVal: v }),
+            Value::I4(v) => val_to_variant!(v), // Variant::new(VT_I4, imp::VARIANT_0_0_0 { lVal: v }),
+            Value::I8(v) => val_to_variant!(v), // Variant::new(VT_I8, imp::VARIANT_0_0_0 { llVal: v }),
+            Value::INT(v) => val_to_variant!(v), // Variant::new(VT_INT, imp::VARIANT_0_0_0 { lVal: v }),
+            Value::UI1(v) => val_to_variant!(v), // Variant::new(VT_UI1, imp::VARIANT_0_0_0 { bVal: v }),
+            Value::UI2(v) => val_to_variant!(v), // Variant::new(VT_UI2, imp::VARIANT_0_0_0 { uiVal: v }),
+            Value::UI4(v) => val_to_variant!(v), // Variant::new(VT_UI4, imp::VARIANT_0_0_0 { ulVal: v }),
+            Value::UI8(v) => val_to_variant!(v), // Variant::new(VT_UI8, imp::VARIANT_0_0_0 { ullVal: v }),
+            Value::UINT(v) => val_to_variant!(v), // Variant::new(VT_UINT, imp::VARIANT_0_0_0 { uintVal: v }),
+            Value::R4(v) => val_to_variant!(v), // Variant::new(VT_R4, imp::VARIANT_0_0_0 { fltVal: v }),
+            Value::R8(v) => val_to_variant!(v), // Variant::new(VT_R8, imp::VARIANT_0_0_0 { dblVal: v }),
             Value::CURRENCY(v) => Variant::new(VT_CY, imp::VARIANT_0_0_0 { cyVal: imp::CY { int64: v} }),
             Value::DATE(v) => Variant::new(VT_DATE, imp::VARIANT_0_0_0 { date: v }),
-            Value::STRING(v) => { let s = BSTR::from(v); let v = VARIANT::from(s); v.into() }, //Variant::new(VT_BSTR, imp::VARIANT_0_0_0 { bstrVal: v.as_str() as _ }),
-            Value::UNKNOWN(v) => { let var = VARIANT::from(v); var.into() } //Variant::new(VT_UNKNOWN, imp::VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
-            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, imp::VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
+            Value::STRING(v) => val_to_variant!(BSTR::from(v)), // { let s = BSTR::from(v); let v = VARIANT::from(s); v.into() }, //Variant::new(VT_BSTR, imp::VARIANT_0_0_0 { bstrVal: v.as_str() as _ }),
+            Value::UNKNOWN(v) => val_to_variant!(v), // Variant::new(VT_UNKNOWN, imp::VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
+            Value::DISPATCH(v) => val_to_variant!(v), // Variant::new(VT_DISPATCH, imp::VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
             Value::ERROR(v) => Variant::new(VT_ERROR, imp::VARIANT_0_0_0 { intVal: v.0 }),
             Value::HRESULT(v) => Variant::new(VT_HRESULT, imp::VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, imp::VARIANT_0_0_0 { boolVal: v.into() }),
-            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, imp::VARIANT_0_0_0 { pvarVal: &mut v.value }),
-            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut v }),
-            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, imp::VARIANT_0_0_0 { parray: v.array }),
+            Value::BOOL(v) => val_to_variant!(v), // Variant::new(VT_BOOL, imp::VARIANT_0_0_0 { boolVal: v.into() }),
+            Value::VARIANT(mut v) => {
+                let mut val = imp::VARIANT {
+                    Anonymous: v.value.as_raw().Anonymous
+                };
+
+                Variant::new(VT_VARIANT, imp::VARIANT_0_0_0 { pvarVal: &mut val as *mut imp::VARIANT }) 
+            },
+            Value::DECIMAL(v) => {
+                let mut decimal = imp::DECIMAL {
+                    wReserved: v.wReserved,
+                    Anonymous1: imp::DECIMAL_0 { signscale: v.Anonymous1.signscale },
+                    Hi32: v.Hi32,
+                    Anonymous2: imp::DECIMAL_1 { Lo64: v.Anonymous2.Lo64 }
+                };
+                Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut decimal as _ })
+            },
+            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, imp::VARIANT_0_0_0 { parray: v.into() }),
             Value::ArrayBool(v) => vec_to_variant!(v, VT_BOOL), //Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
             Value::ArrayR8(v) => vec_to_variant!(v, VT_R8),
             Value::ArrayI2(v) => vec_to_variant!(v, VT_I2),
@@ -541,16 +565,20 @@ impl TryInto<Value> for &Variant {
             };
             Ok(Value::DATE(val))
         } else if vt == VT_BSTR || vt == VT_LPSTR {
+            // let val = unsafe {
+            //     self.get_data().bstrVal.to_string()
+            // };
+            // Ok(Value::STRING(val))
             let val = unsafe {
-                self.get_data().bstrVal.to_string()
+                BSTR::from_raw(self.get_data().bstrVal)
             };
-            Ok(Value::STRING(val))
+            Ok(Value::STRING(val.to_string()))
         } else if vt == VT_LPSTR {
             let val = unsafe {
                 if self.get_data().pcVal.is_null() {
                     String::from("")
                 } else {
-                    let lpstr = self.get_data().pcVal.0;
+                    let lpstr = self.get_data().pcVal;
                     let mut end = lpstr;
                     while *end != 0 {
                         end = end.add(1);
@@ -561,21 +589,32 @@ impl TryInto<Value> for &Variant {
 
             Ok(Value::STRING(val))
         } else if vt == VT_DISPATCH {
-            let val = unsafe {
-                if let Some(ref disp) = *self.get_data().ppdispVal {
-                    Value::DISPATCH(disp.clone())
-                } else {
-                    Value::NULL
-                }
+            // let val = unsafe {
+            //     if let Some(ref disp) = *self.get_data().ppdispVal {
+            //         Value::DISPATCH(disp.clone())
+            //     } else {
+            //         Value::NULL
+            //     }
+            // };
+            let val = if self.get_data().ppdispVal.is_null() {
+                Value::NULL
+            } else {
+                Value::DISPATCH(IDispatch::try_from(&self.value)?)
             };
             Ok(val)
         } else if vt == VT_UNKNOWN {
-            let val = unsafe {
-                if let Some(ref unkown) = *self.get_data().ppunkVal {
-                    Value::UNKNOWN(unkown.clone())
-                } else {
-                    Value::NULL
-                }
+            // let val = unsafe {
+            //     if let Some(ref unkown) = *self.get_data().ppunkVal {
+            //         Value::UNKNOWN(unkown.clone())
+            //     } else {
+            //         Value::NULL
+            //     }
+            // };
+            // Ok(val)
+            let val = if self.get_data().ppunkVal.is_null() {
+                Value::NULL
+            } else {
+                Value::UNKNOWN(IUnknown::try_from(&self.value)?)
             };
             Ok(val)
         } else if vt == VT_ERROR {
@@ -590,24 +629,39 @@ impl TryInto<Value> for &Variant {
             Ok(Value::HRESULT(HRESULT(val)))
         } else if vt == VT_BOOL {
             let val = unsafe {
-                self.get_data().__OBSOLETE__VARIANT_BOOL.into() // != 0
+                self.get_data().__OBSOLETE__VARIANT_BOOL != 0
             };
             Ok(Value::BOOL(val))
         } else if vt == VT_VARIANT {
-            let val = unsafe {
-                (*self.get_data().pvarVal).clone()
-            };
+            // let val = unsafe {
+            //     (*self.get_data().pvarVal).clone()
+            // };
+            let val = VARIANT::default();
+            unsafe {
+                val.as_raw().Anonymous = (*self.get_data().pvarVal).Anonymous;
+            }
+            
             Ok(Value::VARIANT(val.into()))
         } else if vt == VT_DECIMAL {
+            // let val = unsafe {
+            //     (*self.get_data().pdecVal).clone()
+            // };
+            let d = self.get_data().pdecVal;
             let val = unsafe {
-                (*self.get_data().pdecVal).clone()
+                DECIMAL { 
+                    wReserved: (*d).wReserved, 
+                    Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: (*d).Anonymous1.signscale }, 
+                    Hi32: (*d).Hi32, 
+                    Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: (*d).Anonymous2.Lo64 }
+                }
             };
+
             Ok(Value::DECIMAL(val))
         } else if vt == VT_SAFEARRAY {
             let arr = unsafe {
                 self.get_data().parray.clone()
             };
-            Ok(Value::SAFEARRAY(SafeArray::new(arr, false)))
+            Ok(Value::SAFEARRAY(SafeArray::from(arr)))
         } else {
             Err(Error::new(ERR_TYPE, "unknown variant type"))
         }
@@ -635,7 +689,7 @@ impl TryInto<bool> for &Variant {
         // let vt = self.vt();
         let val = unsafe {
             match self.get_type() {
-                VT_BOOL => self.get_data().boolVal,
+                VT_BOOL => VARIANT_BOOL(self.get_data().boolVal),
                 VT_CY => VarBoolFromCy(self.get_data().cyVal)?,
                 VT_DATE => VarBoolFromDate(self.get_data().date)?,
                 VT_DECIMAL => VarBoolFromDec(self.get_data().pdecVal)?,
@@ -1441,6 +1495,50 @@ impl SafeArray {
     pub fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
         let bstrs: Vec<BSTR> = src.iter().map(|s| s.as_ref().into()).collect();
         Self::from_vector(VT_BSTR, &bstrs)
+    }
+}
+
+impl From<*mut imp::SAFEARRAY> for SafeArray {
+    fn from(value: *mut imp::SAFEARRAY) -> Self {
+        let mut array = unsafe {
+            SAFEARRAY {
+                cDims: (*value).cDims,
+                fFeatures: ADVANCED_FEATURE_FLAGS((*value).fFeatures),
+                cbElements: (*value).cbElements,
+                cLocks: (*value).cLocks,
+                pvData: (*value).pvData,
+                rgsabound: [SAFEARRAYBOUND {
+                    cElements: (*value).rgsabound[0].cElements,
+                    lLbound: (*value).rgsabound[0].lLbound
+                }]
+            }
+        };
+
+        Self {
+            array: &mut array as *mut SAFEARRAY,
+            owned: true
+        }
+    }
+}
+
+impl Into<*mut imp::SAFEARRAY> for SafeArray {
+    fn into(mut self) -> *mut imp::SAFEARRAY {
+        let value = self.array;
+        let mut array = unsafe {
+            imp::SAFEARRAY {
+                cDims: (*value).cDims,
+                fFeatures: (*value).fFeatures.0,
+                cbElements: (*value).cbElements,
+                cLocks: (*value).cLocks,
+                pvData: (*value).pvData,
+                rgsabound: [imp::SAFEARRAYBOUND {
+                    cElements: (*value).rgsabound[0].cElements,
+                    lLbound: (*value).rgsabound[0].lLbound
+                }]
+            }
+        };
+        self.owned = false;
+        &mut array as *mut imp::SAFEARRAY
     }
 }
 
