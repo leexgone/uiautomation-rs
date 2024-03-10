@@ -392,6 +392,42 @@ macro_rules! vec_to_variant {
     };
 }
 
+macro_rules! to_cy_imp {
+    ($cy: expr) => {
+        imp::CY { int64: $cy.int64 }
+    };
+}
+
+macro_rules! from_cy_imp {
+    ($cy: expr) => {
+        CY { int64: $cy.int64 }
+    };
+}
+
+macro_rules! from_decimal_imp {
+    ($d: expr) => {
+        unsafe {
+            DECIMAL { 
+                wReserved: $d.wReserved, 
+                Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: $d.Anonymous1.signscale }, 
+                Hi32: $d.Hi32, 
+                Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: $d.Anonymous2.Lo64 }
+            }
+        }
+    };
+}
+
+macro_rules! to_decimal_imp {
+    ($d: expr) => {
+        imp::DECIMAL { 
+            wReserved: $d.wReserved, 
+            Anonymous1: imp::DECIMAL_0 { signscale: $d.Anonymous1.signscale }, 
+            Hi32: $d.Hi32, 
+            Anonymous2: imp::DECIMAL_1 { Lo64: $d.Anonymous2.Lo64 }
+        }        
+    };
+}
+
 impl From<Value> for Variant {
     fn from(value: Value) -> Self {
         match value {
@@ -426,12 +462,13 @@ impl From<Value> for Variant {
                 Variant::new(VT_VARIANT, imp::VARIANT_0_0_0 { pvarVal: &mut val as *mut imp::VARIANT }) 
             },
             Value::DECIMAL(v) => {
-                let mut decimal = imp::DECIMAL {
-                    wReserved: v.wReserved,
-                    Anonymous1: imp::DECIMAL_0 { signscale: v.Anonymous1.signscale },
-                    Hi32: v.Hi32,
-                    Anonymous2: imp::DECIMAL_1 { Lo64: v.Anonymous2.Lo64 }
-                };
+                // let mut decimal = imp::DECIMAL {
+                //     wReserved: v.wReserved,
+                //     Anonymous1: imp::DECIMAL_0 { signscale: v.Anonymous1.signscale },
+                //     Hi32: v.Hi32,
+                //     Anonymous2: imp::DECIMAL_1 { Lo64: v.Anonymous2.Lo64 }
+                // };
+                let mut decimal = to_decimal_imp!(v);
                 Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut decimal as _ })
             },
             Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, imp::VARIANT_0_0_0 { parray: v.into() }),
@@ -647,14 +684,15 @@ impl TryInto<Value> for &Variant {
             //     (*self.get_data().pdecVal).clone()
             // };
             let d = self.get_data().pdecVal;
-            let val = unsafe {
-                DECIMAL { 
-                    wReserved: (*d).wReserved, 
-                    Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: (*d).Anonymous1.signscale }, 
-                    Hi32: (*d).Hi32, 
-                    Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: (*d).Anonymous2.Lo64 }
-                }
-            };
+            // let val = unsafe {
+            //     DECIMAL { 
+            //         wReserved: (*d).wReserved, 
+            //         Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: (*d).Anonymous1.signscale }, 
+            //         Hi32: (*d).Hi32, 
+            //         Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: (*d).Anonymous2.Lo64 }
+            //     }
+            // };
+            let val = from_decimal_imp!(*d);
 
             Ok(Value::DECIMAL(val))
         } else if vt == VT_SAFEARRAY {
@@ -690,9 +728,13 @@ impl TryInto<bool> for &Variant {
         let val = unsafe {
             match self.get_type() {
                 VT_BOOL => VARIANT_BOOL(self.get_data().boolVal),
-                VT_CY => VarBoolFromCy(self.get_data().cyVal)?,
+                VT_CY => VarBoolFromCy(from_cy_imp!(self.get_data().cyVal))?,
                 VT_DATE => VarBoolFromDate(self.get_data().date)?,
-                VT_DECIMAL => VarBoolFromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL => { // VarBoolFromDec(self.get_data().pdecVal)?,
+                    let d = self.get_data().pdecVal;
+                    let d = from_decimal_imp!(*d);
+                    VarBoolFromDec(&d)?
+                },
                 VT_I1 => VarBoolFromI1(self.get_data().cVal)?,
                 VT_I2 => VarBoolFromI2(self.get_data().iVal)?,
                 VT_I4 | VT_INT => VarBoolFromI4(self.get_data().lVal)?,
@@ -708,7 +750,7 @@ impl TryInto<bool> for &Variant {
                 VT_UI2 => VarBoolFromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT => VarBoolFromUI4(self.get_data().ulVal)?,
                 VT_UI8 => VarBoolFromUI8(self.get_data().ullVal)?,
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { //if let Some(ref disp) = *self.get_data().pdispVal {
                     VarBoolFromDisp(disp, 0)?
                 } else {
                     false.into()
@@ -756,8 +798,8 @@ impl TryInto<String> for &Variant {
             // let vt = self.get_type();
             let str: BSTR = unsafe {
                 match self.get_type() {
-                    VT_BOOL => VarBstrFromBool(self.get_data().boolVal, 0, 0)?,
-                    VT_CY => VarBstrFromCy(self.get_data().cyVal, 0, 0)?,
+                    VT_BOOL => VarBstrFromBool(VARIANT_BOOL(self.get_data().boolVal), 0, 0)?,
+                    VT_CY => VarBstrFromCy(from_cy_imp!(self.get_data().cyVal), 0, 0)?,
                     VT_DATE => VarBstrFromDate(self.get_data().date, 0, 0)?,
                     VT_DECIMAL => VarBstrFromDec(self.get_data().pdecVal, 0, 0)?,
                     VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
