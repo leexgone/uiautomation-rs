@@ -1,6 +1,7 @@
 use uiautomation_derive::EnumConvert;
+use uiautomation_derive::map_as;
+use windows::core::Interface;
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::System::Variant::VARIANT;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
@@ -39,10 +40,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::core::BSTR;
-use windows::core::ComInterface;
 use windows::core::IUnknown;
 
-use crate::errors::ERR_NOTFOUND;
 use crate::errors::Error;
 use crate::Result;
 use crate::UIElement;
@@ -69,90 +68,91 @@ use crate::variants::Variant;
 /// `UIPatternType` is an enum wrapper for `windows::Win32::UI::Accessibility::UIA_PATTERN_ID`.
 /// 
 /// Describes the named constants that identify Microsoft UI Automation control patterns.
-#[repr(u32)]
+#[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_PATTERN_ID)]
 pub enum UIPatternType {
     /// Identifies the Invoke control pattern.
-    Invoke = 10000u32,
+    Invoke = 10000i32,
     /// Identifies the Selection control pattern.
-    Selection = 10001u32,
+    Selection = 10001i32,
     /// Identifies the Value control pattern.
-    Value = 10002u32,
+    Value = 10002i32,
     /// Identifies the RangeValue control pattern.
-    RangeValue = 10003u32,
+    RangeValue = 10003i32,
     /// Identifies the Scroll control pattern.
-    Scroll = 10004u32,
+    Scroll = 10004i32,
     /// Identifies the ExpandCollapse control pattern.
-    ExpandCollapse = 10005u32,
+    ExpandCollapse = 10005i32,
     /// Identifies the Grid control pattern.
-    Grid = 10006u32,
+    Grid = 10006i32,
     /// Identifies the GridItem control pattern.
-    GridItem = 10007u32,
+    GridItem = 10007i32,
     /// Identifies the MultipleView control pattern.
-    MultipleView = 10008u32,
+    MultipleView = 10008i32,
     /// Identifies the Window control pattern.
-    Window = 10009u32,
+    Window = 10009i32,
     /// Identifies the SelectionItem control pattern.
-    SelectionItem = 10010u32,
+    SelectionItem = 10010i32,
     /// Identifies the Dock control pattern.
-    Dock = 10011u32,
+    Dock = 10011i32,
     /// Identifies the Table control pattern.
-    Table = 10012u32,
+    Table = 10012i32,
     /// Identifies the TableItem control pattern.
-    TableItem = 10013u32,
+    TableItem = 10013i32,
     /// Identifies the Text control pattern.
-    Text = 10014u32,
+    Text = 10014i32,
     /// Identifies the Toggle control pattern.
-    Toggle = 10015u32,
+    Toggle = 10015i32,
     /// Identifies the Transform control pattern.
-    Transform = 10016u32,
+    Transform = 10016i32,
     /// Identifies the ScrollItem control pattern.
-    ScrollItem = 10017u32,
+    ScrollItem = 10017i32,
     /// Identifies the LegacyIAccessible control pattern.
-    LegacyIAccessible = 10018u32,
+    LegacyIAccessible = 10018i32,
     /// Identifies the ItemContainer control pattern.
-    ItemContainer = 10019u32,
+    ItemContainer = 10019i32,
     /// Identifies the VirtualizedItem control pattern.
-    VirtualizedItem = 10020u32,
+    VirtualizedItem = 10020i32,
     /// Identifies the SynchronizedInput control pattern.
-    SynchronizedInput = 10021u32,
+    SynchronizedInput = 10021i32,
     /// Identifies the ObjectModel control pattern. Supported starting with Windows 8.
-    ObjectModel = 10022u32,
+    ObjectModel = 10022i32,
     /// Identifies the Annotation control pattern. Supported starting with Windows 8.
-    Annotation = 10023u32,
+    Annotation = 10023i32,
     /// Identifies the second version of the Text control pattern. Supported starting with Windows 8.
-    TextP = 10024u32,
+    TextP = 10024i32,
     /// Identifies the Styles control pattern. Supported starting with Windows 8.
-    Styles = 10025u32,
+    Styles = 10025i32,
     /// Identifies the Spreadsheet control pattern. Supported starting with Windows 8.
-    Spreadsheet = 10026u32,
+    Spreadsheet = 10026i32,
     /// Identifies the SpreadsheetItem control pattern. Supported starting with Windows 8.
-    SpreadsheetItem = 10027u32,
+    SpreadsheetItem = 10027i32,
     /// Identifies the second version of the Transform control pattern. Supported starting with Windows 8.
-    TransformP = 10028u32,
+    TransformP = 10028i32,
     /// Identifies the TextChild control pattern. Supported starting with Windows 8.
-    TextChild = 10029u32,
+    TextChild = 10029i32,
     /// Identifies the Drag control pattern. Supported starting with Windows 8.
-    Drag = 10030u32,
+    Drag = 10030i32,
     /// Identifies the DropTarget control pattern. Supported starting with Windows 8.
-    DropTarget = 10031u32,
+    DropTarget = 10031i32,
     /// Identifies the TextEdit control pattern. Supported starting with Windows 8.1.
-    TextEdit = 10032u32,
+    TextEdit = 10032i32,
     /// Identifies the CustomNavigation control pattern. Supported starting with Windows 10.
-    CustomNavigation = 10033u32    
+    CustomNavigation = 10033i32    
 }
 
-impl From<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
-    fn from(value: windows::Win32::UI::Accessibility::UIA_PATTERN_ID) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
+// impl From<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
+//     fn from(value: windows::Win32::UI::Accessibility::UIA_PATTERN_ID) -> Self {
+//         value.0.try_into().unwrap()
+//     }
+// }
 
-impl Into<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
-    fn into(self) -> windows::Win32::UI::Accessibility::UIA_PATTERN_ID {
-        windows::Win32::UI::Accessibility::UIA_PATTERN_ID(self as _)
-    }
-}
+// impl Into<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
+//     fn into(self) -> windows::Win32::UI::Accessibility::UIA_PATTERN_ID {
+//         windows::Win32::UI::Accessibility::UIA_PATTERN_ID(self as _)
+//     }
+// }
 
 /// `UIPattern` is the wrapper trait for patterns.
 pub trait UIPattern {
@@ -738,9 +738,9 @@ pub struct UIItemContainerPattern {
 
 impl UIItemContainerPattern {
     pub fn find_item_by_property(&self, start_after: UIElement, property: UIProperty, value: Variant) -> Result<UIElement> {
-        let val: VARIANT = value.into();
+        // let val: VARIANT = value.into();
         let element = unsafe {
-            self.pattern.FindItemByProperty(start_after.as_ref(), property.into(), val)?
+            self.pattern.FindItemByProperty(start_after.as_ref(), property.into(), value)?
         };
 
         Ok(element.into())
@@ -1745,17 +1745,16 @@ impl UITextPattern {
     pub fn get_caret_range(&self) -> Result<(bool, UITextRange)> {
         let pattern2: IUIAutomationTextPattern2 = self.pattern.cast()?;
         let mut active = BOOL::default();
-        let mut range = Option::None;
-        unsafe {
-            pattern2.GetCaretRange(&mut active, &mut range)?
+        let range = unsafe {
+            pattern2.GetCaretRange(&mut active)?
         };
-
-        if range.is_some() {
-            let range = range.unwrap();
-            Ok((active.as_bool(), range.into()))
-        } else {
-            Err(Error::new(ERR_NOTFOUND, "Range Not Found"))
-        }
+        Ok((active.as_bool(), range.into()))
+        // if range.is_some() {
+        //     let range = range.unwrap();
+        //     Ok((active.as_bool(), range.into()))
+        // } else {
+        //     Err(Error::new(ERR_NOTFOUND, "Range Not Found"))
+        // }
     }
 }
 
@@ -1892,7 +1891,7 @@ impl UITextRange {
 
     pub fn find_attribute(&self, attr: TextAttribute, value: Variant, backward: bool) -> Result<UITextRange> {
         let range = unsafe {
-            self.range.FindAttribute(attr.into(), value.into(), backward)?
+            self.range.FindAttribute(attr.into(), value, backward)?
         };
         Ok(range.into())
     }
@@ -2414,5 +2413,16 @@ impl Into<IUIAutomationWindowPattern> for UIWindowPattern {
 impl AsRef<IUIAutomationWindowPattern> for UIWindowPattern {
     fn as_ref(&self) -> &IUIAutomationWindowPattern {
         &self.pattern
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UIPatternType;
+
+    #[test]
+    fn test_uipatterntypes() {
+        let t = UIPatternType::try_from(10000i32).unwrap();
+        assert_eq!(t, UIPatternType::Invoke);
     }
 }

@@ -162,7 +162,7 @@ impl Variant {
     /// Retrieve the variant type.
     fn vt(&self) -> VARENUM {
         let val = self.value.as_raw();
-        VARENUM(val.Anonymous.Anonymous.vt)
+        unsafe { VARENUM(val.Anonymous.Anonymous.vt) }
         // unsafe {
         //     self.value.Anonymous.Anonymous.vt //as i32
         // }
@@ -389,6 +389,12 @@ impl Display for Variant {
         } else {
             Err(std::fmt::Error {})
         }
+    }
+}
+
+impl windows::core::IntoParam<VARIANT> for Variant {
+    unsafe fn into_param(self) -> windows::core::Param<VARIANT> {
+        windows::core::Param::Owned(self.value)
     }
 }
 

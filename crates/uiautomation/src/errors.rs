@@ -45,11 +45,13 @@ impl Error {
         // };
 
         // HRESULT(code).into()
-        if let Err(e) = error {
-            e.into()
-        } else {
-            HRESULT(0).into()
-        }
+        // if let Err(e) = error {
+        //     e.into()
+        // } else {
+        //     HRESULT(0).into()
+        // }
+        let result = HRESULT::from_win32(error.0);
+        result.into()
     }
 
     pub fn code(&self) -> i32 {
