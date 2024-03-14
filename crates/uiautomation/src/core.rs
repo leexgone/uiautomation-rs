@@ -4,12 +4,10 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use chrono::Local;
-use windows::Win32::Foundation::BOOL;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::CoInitializeEx;
-use windows::Win32::System::Variant::VARIANT;
 use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationAndCondition;
@@ -22,7 +20,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
-use windows::core::ComInterface;
 use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::IntoParam;
@@ -64,11 +61,15 @@ impl UIAutomation {
     /// 
     /// This method initializes the COM library each time, sets the thread's concurrency model as `COINIT_MULTITHREADED`.
     pub fn new() -> Result<UIAutomation> {
-        unsafe {
-            CoInitializeEx(None, COINIT_MULTITHREADED)?;
+        let result = unsafe {
+            CoInitializeEx(None, COINIT_MULTITHREADED)
         };
 
-        UIAutomation::new_direct()
+        if result.is_ok() {
+            UIAutomation::new_direct()
+        } else {
+            Err(result.into())
+        }
     }
 
     /// Creates a uiautomation client instance without initializing the COM library.
@@ -265,12 +266,12 @@ impl UIAutomation {
 
     /// Creates a condition that selects elements that have a property with the specified value, using optional flags.
     pub fn create_property_condition(&self, property: UIProperty, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
-        let val: VARIANT = value.into();
+        // let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property.into(), val, flags.into())?
+                self.automation.CreatePropertyConditionEx(property.into(), value, flags.into())?
             } else {
-                self.automation.CreatePropertyCondition(property.into(), val)?
+                self.automation.CreatePropertyCondition(property.into(), value)?
             }
         };
         Ok(condition.into())
@@ -629,10 +630,9 @@ impl UIElement {
     /// Retrieves a point on the element that can be clicked.
     pub fn get_clickable_point(&self) -> Result<Option<Point>> {
         let mut point = Point::default();
-        let mut got = BOOL::default();
-        unsafe {
-            self.element.GetClickablePoint(point.as_mut(), &mut got)?;
-        }
+        let got = unsafe {
+            self.element.GetClickablePoint(point.as_mut())?
+        };
 
         Ok(if got.as_bool() {
             Some(point)
@@ -789,7 +789,7 @@ impl Into<IUIAutomationElement> for UIElement {
 // }
 
 impl IntoParam<IUIAutomationElement> for UIElement {
-    fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
+    unsafe fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
         windows::core::Param::Owned(self.element)
     }
 }
@@ -1285,7 +1285,7 @@ impl AsRef<IUIAutomationCondition> for UICondition {
 }
 
 impl IntoParam<IUIAutomationCondition> for UICondition {
-    fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
+    unsafe fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
         windows::core::Param::Owned(self.0)
     }
 }

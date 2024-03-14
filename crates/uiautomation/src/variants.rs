@@ -1,17 +1,19 @@
 use std::fmt::Display;
-use std::mem::ManuallyDrop;
 use std::ptr::null_mut;
 
-use windows::Win32::Foundation::DECIMAL;
-use windows::Win32::System::Com::*;
-use windows::Win32::System::Ole::*;
-use windows::Win32::System::Variant::*;
+use windows::core::VARIANT;
 use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
 use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::PSTR;
+use windows::core::imp;
+use windows::Win32::Foundation::DECIMAL;
+use windows::Win32::Foundation::VARIANT_BOOL;
+use windows::Win32::System::Com::*;
+use windows::Win32::System::Ole::*;
+use windows::Win32::System::Variant::*;
 
 use super::Error;
 use super::Result;
@@ -121,40 +123,56 @@ pub struct Variant {
 impl Variant {
     /// Create a null variant.
     fn new_null(vt: VARENUM) -> Variant {
-        let mut val = VARIANT_0_0::default();
-        val.vt = vt; // vt.0 as u16;
+        let mut var: imp::VARIANT = unsafe { std::mem::zeroed() };
+        var.Anonymous.Anonymous.vt = vt.0;
+        
+        let variant = unsafe { VARIANT::from_raw(var) };
 
-        let variant = VARIANT {
-            Anonymous: VARIANT_0 {
-                Anonymous: ManuallyDrop::new(val)
-            }
-        };
+        // let mut val = VARIANT_0_0::default();
+        // val.vt = vt; // vt.0 as u16;
+
+        // let variant = VARIANT {
+        //     Anonymous: VARIANT_0 {
+        //         Anonymous: ManuallyDrop::new(val)
+        //     }
+        // };
+        // let variant = VARIANT::default();
+        // let val = variant.as_raw();
+        // val.Anonymous.Anonymous.vt = vt.0;
 
         variant.into()
     }
 
     /// Create a `Variant` from `vt` and `value`.
-    fn new(vt: VARENUM, value: VARIANT_0_0_0) -> Variant {
-        let variant = VARIANT {
-            Anonymous: VARIANT_0 {
-                Anonymous: ManuallyDrop::new(VARIANT_0_0 {
-                    vt: vt, //vt.0 as u16,
-                    wReserved1: 0,
-                    wReserved2: 0,
-                    wReserved3: 0,
-                    Anonymous: value
-                })
-            }
-        };
+    fn new(vt: VARENUM, value: imp::VARIANT_0_0_0) -> Variant {
+        // let variant = VARIANT {
+        //     Anonymous: VARIANT_0 {
+        //         Anonymous: ManuallyDrop::new(VARIANT_0_0 {
+        //             vt: vt, //vt.0 as u16,
+        //             wReserved1: 0,
+        //             wReserved2: 0,
+        //             wReserved3: 0,
+        //             Anonymous: value
+        //         })
+        //     }
+        // };
+        // let variant = VARIANT::default();
+        let mut val: imp::VARIANT = unsafe { std::mem::zeroed() };
+        val.Anonymous.Anonymous.vt = vt.0;
+        val.Anonymous.Anonymous.Anonymous = value;
+
+        let variant = unsafe { VARIANT::from_raw(val) };
 
         variant.into()
     }
 
     /// Retrieve the variant type.
     fn vt(&self) -> VARENUM {
-        unsafe {
-            self.value.Anonymous.Anonymous.vt //as i32
-        }
+        let val = self.value.as_raw();
+        unsafe { VARENUM(val.Anonymous.Anonymous.vt) }
+        // unsafe {
+        //     self.value.Anonymous.Anonymous.vt //as i32
+        // }
     }
 
     /// Retrieve the variant type as `VARENUM`.
@@ -164,8 +182,33 @@ impl Variant {
     }
 
     /// Retrieve the data of the variant.
-    pub(crate) unsafe fn get_data(&self) -> &VARIANT_0_0_0 {
-        &self.value.Anonymous.Anonymous.Anonymous
+    pub(crate) fn get_data(&self) -> &imp::VARIANT_0_0_0 {
+        // &self.value.Anonymous.Anonymous.Anonymous
+        let var = self.value.as_raw();
+        unsafe { &var.Anonymous.Anonymous.Anonymous }
+    }
+
+    fn as_bool(&self) -> VARIANT_BOOL {
+        unsafe { VARIANT_BOOL(self.get_data().boolVal) }
+    }
+
+    fn as_decimal(&self) -> DECIMAL {
+        unsafe {
+            let d = self.get_data().pdecVal;
+
+            DECIMAL { 
+                wReserved: (*d).wReserved, 
+                Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: (*d).Anonymous1.signscale }, 
+                Hi32: (*d).Hi32, 
+                Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: (*d).Anonymous2.Lo64 }
+            }
+        }
+    }
+
+    fn as_currency(&self) -> CY {
+        CY { 
+            int64: unsafe { self.get_data().cyVal.int64 } 
+        }
     }
 
     /// Try to get value.
@@ -358,53 +401,119 @@ impl Display for Variant {
     }
 }
 
+impl windows::core::IntoParam<VARIANT> for Variant {
+    unsafe fn into_param(self) -> windows::core::Param<VARIANT> {
+        windows::core::Param::Owned(self.value)
+    }
+}
+
+macro_rules! val_to_variant {
+    ($v: expr) => {
+        {
+            let variant = VARIANT::from($v);
+            variant.into()
+        }
+    };
+}
+
 macro_rules! vec_to_variant {
     ($v: expr, $t: expr) => {
         {
             let vt = VARENUM(VT_ARRAY.0 | $t.0);
             let arr: SafeArray = $v.try_into().unwrap();
-            Variant::new(vt, VARIANT_0_0_0 { parray: arr.array })
+            Variant::new(vt, imp::VARIANT_0_0_0 { parray: arr.into() })
         }
+    };
+}
+
+// macro_rules! to_cy_imp {
+//     ($cy: expr) => {
+//         imp::CY { int64: $cy.int64 }
+//     };
+// }
+
+// macro_rules! from_cy_imp {
+//     ($cy: expr) => {
+//         CY { int64: $cy.int64 }
+//     };
+// }
+
+// macro_rules! from_decimal_imp {
+//     ($d: expr) => {
+//         unsafe {
+//             DECIMAL { 
+//                 wReserved: $d.wReserved, 
+//                 Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: $d.Anonymous1.signscale }, 
+//                 Hi32: $d.Hi32, 
+//                 Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: $d.Anonymous2.Lo64 }
+//             }
+//         }
+//     };
+// }
+
+macro_rules! to_decimal_imp {
+    ($d: expr) => {
+        imp::DECIMAL { 
+            wReserved: $d.wReserved, 
+            Anonymous1: imp::DECIMAL_0 { signscale: unsafe { $d.Anonymous1.signscale } }, 
+            Hi32: $d.Hi32, 
+            Anonymous2: imp::DECIMAL_1 { Lo64: unsafe { $d.Anonymous2.Lo64 } }
+        }        
     };
 }
 
 impl From<Value> for Variant {
     fn from(value: Value) -> Self {
         match value {
-            Value::EMPTY => Variant::new_null(VT_EMPTY),
-            Value::NULL => Variant::new_null(VT_NULL),
-            Value::VOID => Variant::new_null(VT_VOID),
-            Value::I1(v) => Variant::new(VT_I1, VARIANT_0_0_0 { bVal: v as u8 }),
-            Value::I2(v) => Variant::new(VT_I2, VARIANT_0_0_0 { iVal: v }),
-            Value::I4(v) => Variant::new(VT_I4, VARIANT_0_0_0 { lVal: v }),
-            Value::I8(v) => Variant::new(VT_I8, VARIANT_0_0_0 { llVal: v }),
-            Value::INT(v) => Variant::new(VT_INT, VARIANT_0_0_0 { lVal: v }),
-            Value::UI1(v) => Variant::new(VT_UI1, VARIANT_0_0_0 { bVal: v }),
-            Value::UI2(v) => Variant::new(VT_UI2, VARIANT_0_0_0 { uiVal: v }),
-            Value::UI4(v) => Variant::new(VT_UI4, VARIANT_0_0_0 { ulVal: v }),
-            Value::UI8(v) => Variant::new(VT_UI8, VARIANT_0_0_0 { ullVal: v }),
-            Value::UINT(v) => Variant::new(VT_UINT, VARIANT_0_0_0 { uintVal: v }),
-            Value::R4(v) => Variant::new(VT_R4, VARIANT_0_0_0 { fltVal: v }),
-            Value::R8(v) => Variant::new(VT_R8, VARIANT_0_0_0 { dblVal: v }),
-            Value::CURRENCY(v) => Variant::new(VT_CY, VARIANT_0_0_0 { cyVal: CY { int64: v} }),
-            Value::DATE(v) => Variant::new(VT_DATE, VARIANT_0_0_0 { date: v }),
-            Value::STRING(v) => Variant::new(VT_BSTR, VARIANT_0_0_0 { bstrVal: ManuallyDrop::new(BSTR::from(v)) }),
-            Value::UNKNOWN(v) => Variant::new(VT_UNKNOWN, VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
-            Value::DISPATCH(v) => Variant::new(VT_DISPATCH, VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
-            Value::ERROR(v) => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::HRESULT(v) => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
-            Value::BOOL(v) => Variant::new(VT_BOOL, VARIANT_0_0_0 { boolVal: v.into() }),
-            Value::VARIANT(mut v) => Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut v.value }),
-            Value::DECIMAL(mut v) => Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut v }),
-            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
+            Value::EMPTY    => Variant::new_null(VT_EMPTY),
+            Value::NULL     => Variant::new_null(VT_NULL),
+            Value::VOID     => Variant::new_null(VT_VOID),
+            Value::I1(v)    => val_to_variant!(v), // Variant::new(VT_I1, imp::VARIANT_0_0_0 { bVal: v as u8 }),
+            Value::I2(v)    => val_to_variant!(v), // Variant::new(VT_I2, imp::VARIANT_0_0_0 { iVal: v }),
+            Value::I4(v)    => val_to_variant!(v), // Variant::new(VT_I4, imp::VARIANT_0_0_0 { lVal: v }),
+            Value::I8(v)    => val_to_variant!(v), // Variant::new(VT_I8, imp::VARIANT_0_0_0 { llVal: v }),
+            Value::INT(v)   => val_to_variant!(v), // Variant::new(VT_INT, imp::VARIANT_0_0_0 { lVal: v }),
+            Value::UI1(v)   => val_to_variant!(v), // Variant::new(VT_UI1, imp::VARIANT_0_0_0 { bVal: v }),
+            Value::UI2(v)   => val_to_variant!(v), // Variant::new(VT_UI2, imp::VARIANT_0_0_0 { uiVal: v }),
+            Value::UI4(v)   => val_to_variant!(v), // Variant::new(VT_UI4, imp::VARIANT_0_0_0 { ulVal: v }),
+            Value::UI8(v)   => val_to_variant!(v), // Variant::new(VT_UI8, imp::VARIANT_0_0_0 { ullVal: v }),
+            Value::UINT(v)  => val_to_variant!(v), // Variant::new(VT_UINT, imp::VARIANT_0_0_0 { uintVal: v }),
+            Value::R4(v)    => val_to_variant!(v), // Variant::new(VT_R4, imp::VARIANT_0_0_0 { fltVal: v }),
+            Value::R8(v)    => val_to_variant!(v), // Variant::new(VT_R8, imp::VARIANT_0_0_0 { dblVal: v }),
+            Value::CURRENCY(v)  => Variant::new(VT_CY, imp::VARIANT_0_0_0 { cyVal: imp::CY { int64: v} }),
+            Value::DATE(v)      => Variant::new(VT_DATE, imp::VARIANT_0_0_0 { date: v }),
+            Value::STRING(v)    => val_to_variant!(BSTR::from(v)), // { let s = BSTR::from(v); let v = VARIANT::from(s); v.into() }, //Variant::new(VT_BSTR, imp::VARIANT_0_0_0 { bstrVal: v.as_str() as _ }),
+            Value::UNKNOWN(v)   => val_to_variant!(v), // Variant::new(VT_UNKNOWN, imp::VARIANT_0_0_0 { punkVal: ManuallyDrop::new(Some(v)) }),
+            Value::DISPATCH(v)  => val_to_variant!(v), // Variant::new(VT_DISPATCH, imp::VARIANT_0_0_0 { pdispVal: ManuallyDrop::new(Some(v)) }),
+            Value::ERROR(v)     => Variant::new(VT_ERROR, imp::VARIANT_0_0_0 { intVal: v.0 }),
+            Value::HRESULT(v)   => Variant::new(VT_HRESULT, imp::VARIANT_0_0_0 { intVal: v.0 }),
+            Value::BOOL(v)      => val_to_variant!(v), // Variant::new(VT_BOOL, imp::VARIANT_0_0_0 { boolVal: v.into() }),
+            Value::VARIANT(v) => {
+                let mut val = imp::VARIANT {
+                    Anonymous: v.value.as_raw().Anonymous
+                };
+
+                Variant::new(VT_VARIANT, imp::VARIANT_0_0_0 { pvarVal: &mut val as *mut imp::VARIANT }) 
+            },
+            Value::DECIMAL(v) => {
+                // let mut decimal = imp::DECIMAL {
+                //     wReserved: v.wReserved,
+                //     Anonymous1: imp::DECIMAL_0 { signscale: v.Anonymous1.signscale },
+                //     Hi32: v.Hi32,
+                //     Anonymous2: imp::DECIMAL_1 { Lo64: v.Anonymous2.Lo64 }
+                // };
+                let mut decimal = to_decimal_imp!(v);
+                Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut decimal as _ })
+            },
+            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, imp::VARIANT_0_0_0 { parray: v.into() }),
             Value::ArrayBool(v) => vec_to_variant!(v, VT_BOOL), //Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.array }),
-            Value::ArrayR8(v) => vec_to_variant!(v, VT_R8),
-            Value::ArrayI2(v) => vec_to_variant!(v, VT_I2),
-            Value::ArrayI4(v) => vec_to_variant!(v, VT_I4),
-            Value::ArrayI8(v) => vec_to_variant!(v, VT_I8),
-            Value::ArrayUI2(v) => vec_to_variant!(v, VT_UI2),
-            Value::ArrayUI4(v) => vec_to_variant!(v, VT_UI4),
-            Value::ArrayUI8(v) => vec_to_variant!(v, VT_UI8),
+            Value::ArrayR8(v)   => vec_to_variant!(v, VT_R8),
+            Value::ArrayI2(v)   => vec_to_variant!(v, VT_I2),
+            Value::ArrayI4(v)   => vec_to_variant!(v, VT_I4),
+            Value::ArrayI8(v)   => vec_to_variant!(v, VT_I8),
+            Value::ArrayUI2(v)  => vec_to_variant!(v, VT_UI2),
+            Value::ArrayUI4(v)  => vec_to_variant!(v, VT_UI4),
+            Value::ArrayUI8(v)  => vec_to_variant!(v, VT_UI8),
             Value::ArrayString(v) => vec_to_variant!(v, VT_BSTR),
         }
     }
@@ -527,16 +636,20 @@ impl TryInto<Value> for &Variant {
             };
             Ok(Value::DATE(val))
         } else if vt == VT_BSTR || vt == VT_LPSTR {
+            // let val = unsafe {
+            //     self.get_data().bstrVal.to_string()
+            // };
+            // Ok(Value::STRING(val))
             let val = unsafe {
-                self.get_data().bstrVal.to_string()
+                BSTR::from_raw(self.get_data().bstrVal)
             };
-            Ok(Value::STRING(val))
+            Ok(Value::STRING(val.to_string()))
         } else if vt == VT_LPSTR {
             let val = unsafe {
                 if self.get_data().pcVal.is_null() {
                     String::from("")
                 } else {
-                    let lpstr = self.get_data().pcVal.0;
+                    let lpstr = self.get_data().pcVal;
                     let mut end = lpstr;
                     while *end != 0 {
                         end = end.add(1);
@@ -547,21 +660,32 @@ impl TryInto<Value> for &Variant {
 
             Ok(Value::STRING(val))
         } else if vt == VT_DISPATCH {
-            let val = unsafe {
-                if let Some(ref disp) = *self.get_data().ppdispVal {
-                    Value::DISPATCH(disp.clone())
-                } else {
-                    Value::NULL
-                }
+            // let val = unsafe {
+            //     if let Some(ref disp) = *self.get_data().ppdispVal {
+            //         Value::DISPATCH(disp.clone())
+            //     } else {
+            //         Value::NULL
+            //     }
+            // };
+            let val = if let Ok(disp) = IDispatch::try_from(&self.value) {
+                Value::DISPATCH(disp)
+            } else {
+                Value::NULL
             };
             Ok(val)
         } else if vt == VT_UNKNOWN {
-            let val = unsafe {
-                if let Some(ref unkown) = *self.get_data().ppunkVal {
-                    Value::UNKNOWN(unkown.clone())
-                } else {
-                    Value::NULL
-                }
+            // let val = unsafe {
+            //     if let Some(ref unkown) = *self.get_data().ppunkVal {
+            //         Value::UNKNOWN(unkown.clone())
+            //     } else {
+            //         Value::NULL
+            //     }
+            // };
+            // Ok(val)
+            let val = if let Ok(unk) = IUnknown::try_from(&self.value) {
+                Value::UNKNOWN(unk)
+            } else {
+                Value::NULL
             };
             Ok(val)
         } else if vt == VT_ERROR {
@@ -576,24 +700,37 @@ impl TryInto<Value> for &Variant {
             Ok(Value::HRESULT(HRESULT(val)))
         } else if vt == VT_BOOL {
             let val = unsafe {
-                self.get_data().__OBSOLETE__VARIANT_BOOL.into() // != 0
+                self.get_data().__OBSOLETE__VARIANT_BOOL != 0
             };
             Ok(Value::BOOL(val))
         } else if vt == VT_VARIANT {
             let val = unsafe {
-                (*self.get_data().pvarVal).clone()
+                let v = (*self.get_data().pvarVal).clone();
+                VARIANT::from_raw(v)
             };
+            
             Ok(Value::VARIANT(val.into()))
         } else if vt == VT_DECIMAL {
-            let val = unsafe {
-                (*self.get_data().pdecVal).clone()
-            };
+            // let val = unsafe {
+            //     (*self.get_data().pdecVal).clone()
+            // };
+            // let d = self.get_data().pdecVal;
+            // let val = unsafe {
+            //     DECIMAL { 
+            //         wReserved: (*d).wReserved, 
+            //         Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: (*d).Anonymous1.signscale }, 
+            //         Hi32: (*d).Hi32, 
+            //         Anonymous2: windows::Win32::Foundation::DECIMAL_1 { Lo64: (*d).Anonymous2.Lo64 }
+            //     }
+            // };
+            let val = self.as_decimal(); //from_decimal_imp!(*d);
+
             Ok(Value::DECIMAL(val))
         } else if vt == VT_SAFEARRAY {
             let arr = unsafe {
                 self.get_data().parray.clone()
             };
-            Ok(Value::SAFEARRAY(SafeArray::new(arr, false)))
+            Ok(Value::SAFEARRAY(SafeArray::from(arr)))
         } else {
             Err(Error::new(ERR_TYPE, "unknown variant type"))
         }
@@ -621,10 +758,10 @@ impl TryInto<bool> for &Variant {
         // let vt = self.vt();
         let val = unsafe {
             match self.get_type() {
-                VT_BOOL => self.get_data().boolVal,
-                VT_CY => VarBoolFromCy(self.get_data().cyVal)?,
+                VT_BOOL => self.as_bool(), //VARIANT_BOOL(self.get_data().boolVal),
+                VT_CY => VarBoolFromCy(self.as_currency())?, //(from_cy_imp!(self.get_data().cyVal))?,
                 VT_DATE => VarBoolFromDate(self.get_data().date)?,
-                VT_DECIMAL => VarBoolFromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL => VarBoolFromDec(&self.as_decimal())?, // VarBoolFromDec(self.get_data().pdecVal)?,
                 VT_I1 => VarBoolFromI1(self.get_data().cVal)?,
                 VT_I2 => VarBoolFromI2(self.get_data().iVal)?,
                 VT_I4 | VT_INT => VarBoolFromI4(self.get_data().lVal)?,
@@ -640,7 +777,7 @@ impl TryInto<bool> for &Variant {
                 VT_UI2 => VarBoolFromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT => VarBoolFromUI4(self.get_data().ulVal)?,
                 VT_UI8 => VarBoolFromUI8(self.get_data().ullVal)?,
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { //if let Some(ref disp) = *self.get_data().pdispVal {
                     VarBoolFromDisp(disp, 0)?
                 } else {
                     false.into()
@@ -688,11 +825,11 @@ impl TryInto<String> for &Variant {
             // let vt = self.get_type();
             let str: BSTR = unsafe {
                 match self.get_type() {
-                    VT_BOOL => VarBstrFromBool(self.get_data().boolVal, 0, 0)?,
-                    VT_CY => VarBstrFromCy(self.get_data().cyVal, 0, 0)?,
+                    VT_BOOL => VarBstrFromBool(self.as_bool(), 0, 0)?, //(VARIANT_BOOL(self.get_data().boolVal), 0, 0)?,
+                    VT_CY => VarBstrFromCy(self.as_currency(), 0, 0)?, //(from_cy_imp!(self.get_data().cyVal), 0, 0)?,
                     VT_DATE => VarBstrFromDate(self.get_data().date, 0, 0)?,
-                    VT_DECIMAL => VarBstrFromDec(self.get_data().pdecVal, 0, 0)?,
-                    VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                    VT_DECIMAL => VarBstrFromDec(&self.as_decimal(), 0, 0)?, //(&from_decimal_imp!(*self.get_data().pdecVal), 0, 0)?,
+                    VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { //if let Some(ref disp) = *self.get_data().pdispVal {
                         VarBstrFromDisp(disp, 0, 0)?
                     } else {
                         BSTR::default()
@@ -762,7 +899,8 @@ macro_rules! variant_as_type {
 macro_rules! dispatch_as_type {
     ($self:ident, $f:ident) => {
         {
-            if let Some(ref disp) = *$self.get_data().pdispVal {
+            //if let Some(ref disp) = *$self.get_data().pdispVal {
+            if let Ok(ref disp) = IDispatch::try_from(&$self.value) {
                 $f(disp, 0)?
             } else {
                 0 as _
@@ -782,11 +920,11 @@ impl TryInto<i8> for &Variant {
                 //     VarI1FromBool(self.get_data().iVal, pc)?;
                 //     (*pc.0) as i8
                 // }
-                VT_BOOL     => variant_as_i1!(VarI1FromBool, self.get_data().boolVal),
-                VT_CY       => variant_as_i1!(VarI1FromCy, self.get_data().cyVal),
+                VT_BOOL     => variant_as_i1!(VarI1FromBool, self.as_bool()), //self.get_data().boolVal),
+                VT_CY       => variant_as_i1!(VarI1FromCy, self.as_currency()), //self.get_data().cyVal),
                 VT_DATE     => variant_as_i1!(VarI1FromDate, self.get_data().date),
-                VT_DECIMAL  => variant_as_i1!(VarI1FromDec, self.get_data().pdecVal),
-                VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
+                VT_DECIMAL  => variant_as_i1!(VarI1FromDec, &self.as_decimal()), // self.get_data().pdecVal),
+                VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { // if let Some(ref disp) = *self.get_data().pdispVal {
                     let pc = PSTR::null();
                     VarI1FromDisp(disp, 0, pc)?;
                     *pc.0 as i8
@@ -838,15 +976,15 @@ impl TryInto<i16> for &Variant {
     fn try_into(self) -> Result<i16> {
         let val: i16 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarI2FromBool(self.get_data().boolVal)?,
-                VT_CY       => variant_as_type!(VarI2FromCy, i16, self.get_data().cyVal),
+                VT_BOOL     => VarI2FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => variant_as_type!(VarI2FromCy, i16, self.as_currency()), // self.get_data().cyVal),
                 // VT_CY       => {
                 //     let mut v: [i16; 1] = [0];
                 //     VarI2FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
                 //     v[0]
                 // },
                 VT_DATE     => VarI2FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarI2FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarI2FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarI2FromDisp),
                 // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                 //     VarI2FromDisp(disp, 0)?
@@ -892,10 +1030,10 @@ impl TryInto<i32> for &Variant {
     fn try_into(self) -> Result<i32> {
         let val: i32 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarI4FromBool(self.get_data().boolVal)?,
-                VT_CY       => VarI4FromCy(self.get_data().cyVal)?,
+                VT_BOOL     => VarI4FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => VarI4FromCy(self.as_currency())?, //(self.get_data().cyVal)?,
                 VT_DATE     => VarI4FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarI4FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarI4FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarI4FromDisp),
                 // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                 //     VarI4FromDisp(disp, 0)?
@@ -941,10 +1079,10 @@ impl TryInto<i64> for &Variant {
     fn try_into(self) -> Result<i64> {
         let val: i64 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarI8FromBool(self.get_data().boolVal)?,
-                VT_CY       => VarI8FromCy(self.get_data().cyVal)?,
+                VT_BOOL     => VarI8FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => VarI8FromCy(self.as_currency())?, //(self.get_data().cyVal)?,
                 VT_DATE     => VarI8FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarI8FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarI8FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarI8FromDisp),
                 // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                 //     VarI8FromDisp(disp, 0)?
@@ -990,15 +1128,15 @@ impl TryInto<f32> for &Variant {
     fn try_into(self) -> Result<f32> {
         let val: f32 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarR4FromBool(self.get_data().boolVal)?,
-                VT_CY       => variant_as_type!(VarR4FromCy, f32, self.get_data().cyVal),
+                VT_BOOL     => VarR4FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => variant_as_type!(VarR4FromCy, f32, self.as_currency()), //self.get_data().cyVal),
                 // VT_CY       => {
                 //     let mut v: [f32; 1] = [f32::default()];
                 //     VarR4FromCy(self.get_data().cyVal, v.as_mut_ptr())?;
                 //     v[0]
                 // },
                 VT_DATE     => VarR4FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarR4FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarR4FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarR4FromDisp),
                 // VT_DISPATCH => if let Some(ref disp) = *self.get_data().pdispVal {
                 //     VarR4FromDisp(disp, 0)?
@@ -1044,10 +1182,10 @@ impl TryInto<f64> for &Variant {
     fn try_into(self) -> Result<f64> {
         let val: f64 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarR8FromBool(self.get_data().boolVal)?,
-                VT_CY       => variant_as_type!(VarR8FromCy, f64, self.get_data().cyVal),
+                VT_BOOL     => VarR8FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => variant_as_type!(VarR8FromCy, f64, self.as_currency()), //self.get_data().cyVal),
                 VT_DATE     => VarR8FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarR8FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarR8FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarR8FromDisp),
                 VT_I1       => variant_as_type!(VarR8FromI1, f64, self.get_data().cVal),
                 VT_I2       => VarR8FromI2(self.get_data().iVal)?,
@@ -1088,10 +1226,10 @@ impl TryInto<u8> for &Variant {
     fn try_into(self) -> Result<u8> {
         let val: u8 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarUI1FromBool(self.get_data().boolVal)?,
-                VT_CY       => VarUI1FromCy(self.get_data().cyVal)?,
+                VT_BOOL     => VarUI1FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => VarUI1FromCy(self.as_currency())?, //(self.get_data().cyVal)?,
                 VT_DATE     => VarUI1FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarUI1FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarUI1FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarUI1FromDisp),
                 VT_I1       => VarUI1FromI1(self.get_data().cVal)?,
                 VT_I2       => VarUI1FromI2(self.get_data().iVal)?,
@@ -1132,10 +1270,10 @@ impl TryInto<u16> for &Variant {
     fn try_into(self) -> Result<u16> {
         let val: u16 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarUI2FromBool(self.get_data().boolVal)?,
-                VT_CY       => VarUI2FromCy(self.get_data().cyVal)?,
+                VT_BOOL     => VarUI2FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => VarUI2FromCy(self.as_currency())?, //(self.get_data().cyVal)?,
                 VT_DATE     => VarUI2FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarUI2FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarUI2FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarUI2FromDisp),
                 VT_I1       => VarUI2FromI1(self.get_data().cVal)?,
                 VT_I2       => VarUI2FromI2(self.get_data().iVal)?,
@@ -1176,10 +1314,10 @@ impl TryInto<u32> for &Variant {
     fn try_into(self) -> Result<u32> {
         let val: u32 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarUI4FromBool(self.get_data().boolVal)?,
-                VT_CY       => VarUI4FromCy(self.get_data().cyVal)?,
+                VT_BOOL     => VarUI4FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => VarUI4FromCy(self.as_currency())?, //(self.get_data().cyVal)?,
                 VT_DATE     => VarUI4FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarUI4FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarUI4FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarUI4FromDisp),
                 VT_I1       => VarUI4FromI1(self.get_data().cVal)?,
                 VT_I2       => VarUI4FromI2(self.get_data().iVal)?,
@@ -1220,10 +1358,10 @@ impl TryInto<u64> for &Variant {
     fn try_into(self) -> Result<u64> {
         let val: u64 = unsafe {
             match self.get_type() {
-                VT_BOOL     => VarUI8FromBool(self.get_data().boolVal)?,
-                VT_CY       => VarUI8FromCy(self.get_data().cyVal)?,
+                VT_BOOL     => VarUI8FromBool(self.as_bool())?, //(self.get_data().boolVal)?,
+                VT_CY       => VarUI8FromCy(self.as_currency())?, //(self.get_data().cyVal)?,
                 VT_DATE     => VarUI8FromDate(self.get_data().date)?,
-                VT_DECIMAL  => VarUI8FromDec(self.get_data().pdecVal)?,
+                VT_DECIMAL  => VarUI8FromDec(&self.as_decimal())?, //(self.get_data().pdecVal)?,
                 VT_DISPATCH => dispatch_as_type!(self, VarUI8FromDisp),
                 VT_I1       => VarUI8FromI1(self.get_data().cVal)?,
                 VT_I2       => VarUI8FromI2(self.get_data().iVal)?,
@@ -1427,6 +1565,50 @@ impl SafeArray {
     pub fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
         let bstrs: Vec<BSTR> = src.iter().map(|s| s.as_ref().into()).collect();
         Self::from_vector(VT_BSTR, &bstrs)
+    }
+}
+
+impl From<*mut imp::SAFEARRAY> for SafeArray {
+    fn from(value: *mut imp::SAFEARRAY) -> Self {
+        let mut array = unsafe {
+            SAFEARRAY {
+                cDims: (*value).cDims,
+                fFeatures: ADVANCED_FEATURE_FLAGS((*value).fFeatures),
+                cbElements: (*value).cbElements,
+                cLocks: (*value).cLocks,
+                pvData: (*value).pvData,
+                rgsabound: [SAFEARRAYBOUND {
+                    cElements: (*value).rgsabound[0].cElements,
+                    lLbound: (*value).rgsabound[0].lLbound
+                }]
+            }
+        };
+
+        Self {
+            array: &mut array as *mut SAFEARRAY,
+            owned: true
+        }
+    }
+}
+
+impl Into<*mut imp::SAFEARRAY> for SafeArray {
+    fn into(mut self) -> *mut imp::SAFEARRAY {
+        let value = self.array;
+        let mut array = unsafe {
+            imp::SAFEARRAY {
+                cDims: (*value).cDims,
+                fFeatures: (*value).fFeatures.0,
+                cbElements: (*value).cbElements,
+                cLocks: (*value).cLocks,
+                pvData: (*value).pvData,
+                rgsabound: [imp::SAFEARRAYBOUND {
+                    cElements: (*value).rgsabound[0].cElements,
+                    lLbound: (*value).rgsabound[0].lLbound
+                }]
+            }
+        };
+        self.owned = false;
+        &mut array as *mut imp::SAFEARRAY
     }
 }
 
