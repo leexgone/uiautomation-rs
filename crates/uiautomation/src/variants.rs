@@ -123,6 +123,11 @@ pub struct Variant {
 impl Variant {
     /// Create a null variant.
     fn new_null(vt: VARENUM) -> Variant {
+        let mut var: imp::VARIANT = unsafe { std::mem::zeroed() };
+        var.Anonymous.Anonymous.vt = vt.0;
+        
+        let variant = unsafe { VARIANT::from_raw(var) };
+
         // let mut val = VARIANT_0_0::default();
         // val.vt = vt; // vt.0 as u16;
 
@@ -131,9 +136,9 @@ impl Variant {
         //         Anonymous: ManuallyDrop::new(val)
         //     }
         // };
-        let variant = VARIANT::default();
-        let val = variant.as_raw();
-        val.Anonymous.Anonymous.vt = vt.0;
+        // let variant = VARIANT::default();
+        // let val = variant.as_raw();
+        // val.Anonymous.Anonymous.vt = vt.0;
 
         variant.into()
     }
@@ -151,10 +156,12 @@ impl Variant {
         //         })
         //     }
         // };
-        let variant = VARIANT::default();
-        let val = variant.as_raw();
+        // let variant = VARIANT::default();
+        let mut val: imp::VARIANT = unsafe { std::mem::zeroed() };
         val.Anonymous.Anonymous.vt = vt.0;
         val.Anonymous.Anonymous.Anonymous = value;
+
+        let variant = unsafe { VARIANT::from_raw(val) };
 
         variant.into()
     }
@@ -178,17 +185,17 @@ impl Variant {
     pub(crate) fn get_data(&self) -> &imp::VARIANT_0_0_0 {
         // &self.value.Anonymous.Anonymous.Anonymous
         let var = self.value.as_raw();
-        &var.Anonymous.Anonymous.Anonymous
+        unsafe { &var.Anonymous.Anonymous.Anonymous }
     }
 
     fn as_bool(&self) -> VARIANT_BOOL {
-        VARIANT_BOOL(self.get_data().boolVal)
+        unsafe { VARIANT_BOOL(self.get_data().boolVal) }
     }
 
     fn as_decimal(&self) -> DECIMAL {
-        let d = self.get_data().pdecVal;
-
         unsafe {
+            let d = self.get_data().pdecVal;
+
             DECIMAL { 
                 wReserved: (*d).wReserved, 
                 Anonymous1: windows::Win32::Foundation::DECIMAL_0 { signscale: (*d).Anonymous1.signscale }, 
@@ -199,7 +206,9 @@ impl Variant {
     }
 
     fn as_currency(&self) -> CY {
-        CY { int64: self.get_data().cyVal.int64 }
+        CY { 
+            int64: unsafe { self.get_data().cyVal.int64 } 
+        }
     }
 
     /// Try to get value.
@@ -446,9 +455,9 @@ macro_rules! to_decimal_imp {
     ($d: expr) => {
         imp::DECIMAL { 
             wReserved: $d.wReserved, 
-            Anonymous1: imp::DECIMAL_0 { signscale: $d.Anonymous1.signscale }, 
+            Anonymous1: imp::DECIMAL_0 { signscale: unsafe { $d.Anonymous1.signscale } }, 
             Hi32: $d.Hi32, 
-            Anonymous2: imp::DECIMAL_1 { Lo64: $d.Anonymous2.Lo64 }
+            Anonymous2: imp::DECIMAL_1 { Lo64: unsafe { $d.Anonymous2.Lo64 } }
         }        
     };
 }
@@ -479,7 +488,7 @@ impl From<Value> for Variant {
             Value::ERROR(v)     => Variant::new(VT_ERROR, imp::VARIANT_0_0_0 { intVal: v.0 }),
             Value::HRESULT(v)   => Variant::new(VT_HRESULT, imp::VARIANT_0_0_0 { intVal: v.0 }),
             Value::BOOL(v)      => val_to_variant!(v), // Variant::new(VT_BOOL, imp::VARIANT_0_0_0 { boolVal: v.into() }),
-            Value::VARIANT(mut v) => {
+            Value::VARIANT(v) => {
                 let mut val = imp::VARIANT {
                     Anonymous: v.value.as_raw().Anonymous
                 };
@@ -658,10 +667,10 @@ impl TryInto<Value> for &Variant {
             //         Value::NULL
             //     }
             // };
-            let val = if self.get_data().ppdispVal.is_null() {
-                Value::NULL
+            let val = if let Ok(disp) = IDispatch::try_from(&self.value) {
+                Value::DISPATCH(disp)
             } else {
-                Value::DISPATCH(IDispatch::try_from(&self.value)?)
+                Value::NULL
             };
             Ok(val)
         } else if vt == VT_UNKNOWN {
@@ -673,10 +682,10 @@ impl TryInto<Value> for &Variant {
             //     }
             // };
             // Ok(val)
-            let val = if self.get_data().ppunkVal.is_null() {
-                Value::NULL
+            let val = if let Ok(unk) = IUnknown::try_from(&self.value) {
+                Value::UNKNOWN(unk)
             } else {
-                Value::UNKNOWN(IUnknown::try_from(&self.value)?)
+                Value::NULL
             };
             Ok(val)
         } else if vt == VT_ERROR {
@@ -695,20 +704,17 @@ impl TryInto<Value> for &Variant {
             };
             Ok(Value::BOOL(val))
         } else if vt == VT_VARIANT {
-            // let val = unsafe {
-            //     (*self.get_data().pvarVal).clone()
-            // };
-            let val = VARIANT::default();
-            unsafe {
-                val.as_raw().Anonymous = (*self.get_data().pvarVal).Anonymous;
-            }
+            let val = unsafe {
+                let v = (*self.get_data().pvarVal).clone();
+                VARIANT::from_raw(v)
+            };
             
             Ok(Value::VARIANT(val.into()))
         } else if vt == VT_DECIMAL {
             // let val = unsafe {
             //     (*self.get_data().pdecVal).clone()
             // };
-            let d = self.get_data().pdecVal;
+            // let d = self.get_data().pdecVal;
             // let val = unsafe {
             //     DECIMAL { 
             //         wReserved: (*d).wReserved, 

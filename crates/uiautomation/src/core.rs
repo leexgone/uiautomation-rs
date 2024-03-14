@@ -630,7 +630,7 @@ impl UIElement {
     /// Retrieves a point on the element that can be clicked.
     pub fn get_clickable_point(&self) -> Result<Option<Point>> {
         let mut point = Point::default();
-        let mut got = unsafe {
+        let got = unsafe {
             self.element.GetClickablePoint(point.as_mut())?
         };
 
