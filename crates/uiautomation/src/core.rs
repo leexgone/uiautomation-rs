@@ -155,7 +155,6 @@ impl UIAutomation {
 
     /// Retrieves a filtered tree walker object that can be used to traverse the Microsoft UI Automation tree.
     pub fn filter_tree_walker(&self, condition: UICondition) -> Result<UITreeWalker> {
-        // let condition: IUIAutomationCondition = condition.into();
         let tree_walker = unsafe {
             self.automation.CreateTreeWalker(condition)?
         };
@@ -246,8 +245,6 @@ impl UIAutomation {
 
     /// Creates a condition that selects elements that match both of two conditions.
     pub fn create_and_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        // let c1: IUIAutomationCondition = condition1.into();
-        // let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
             self.automation.CreateAndCondition(condition1, condition2)?
         };
@@ -256,8 +253,6 @@ impl UIAutomation {
 
     /// Creates a combination of two conditions where a match exists if either of the conditions is true.
     pub fn create_or_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        // let c1: IUIAutomationCondition = condition1.into();
-        // let c2: IUIAutomationCondition = condition2.into();
         let result = unsafe {
             self.automation.CreateOrCondition(condition1, condition2)?
         };
@@ -266,7 +261,6 @@ impl UIAutomation {
 
     /// Creates a condition that selects elements that have a property with the specified value, using optional flags.
     pub fn create_property_condition(&self, property: UIProperty, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
-        // let val: VARIANT = value.into();
         let condition = unsafe {
             if let Some(flags) = flags {
                 self.automation.CreatePropertyConditionEx(property.into(), value, flags.into())?
@@ -623,7 +617,6 @@ impl UIElement {
             self.element.GetCurrentPattern(T::TYPE.into())?
         };
 
-        // T::new(pattern)
         T::try_from(pattern)
     }
 
@@ -781,12 +774,6 @@ impl Into<IUIAutomationElement> for UIElement {
         self.element
     }
 }
-
-// impl<'a> Into<InParam<IUIAutomationElement>> for UIElement {
-//     fn into(self) -> InParam<IUIAutomationElement> {
-//         InParam::owned(self.element)
-//     }
-// }
 
 impl IntoParam<IUIAutomationElement> for UIElement {
     unsafe fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
