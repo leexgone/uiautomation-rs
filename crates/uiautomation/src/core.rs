@@ -335,6 +335,14 @@ pub struct UIElement {
 }
 
 impl UIElement {
+    /// Retrieves a new UI Automation element with an updated cache.
+    pub fn build_updated_cache(&self, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let element = unsafe {
+            self.element.BuildUpdatedCache(cache_request)?
+        };
+        Ok(element.into())
+    }
+
     /// Retrieves the first child or descendant element that matches the specified condition.
     pub fn find_first(&self, scope: TreeScope, condition: &UICondition) -> Result<UIElement> {
         let result = unsafe {
@@ -343,10 +351,26 @@ impl UIElement {
         Ok(result.into())
     }
 
+    /// Retrieves the first child or descendant element that matches the specified condition, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn find_first_build_cache(&self, scope: TreeScope, condition: &UICondition, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let element = unsafe {
+            self.element.FindFirstBuildCache(scope.into(), condition, cache_request)?
+        };
+        Ok(element.into())
+    }
+
     /// Returns all UI Automation elements that satisfy the specified condition.
     pub fn find_all(&self, scope: TreeScope, condition: &UICondition) -> Result<Vec<UIElement>> {
         let elements = unsafe {
             self.element.FindAll(scope.into(), condition.as_ref())?
+        };
+        Self::to_elements(elements)
+    }
+
+    /// Returns all UI Automation elements that satisfy the specified condition, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn find_all_build_cache(&self, scope: TreeScope, condition: &UICondition, cache_request: &UICacheRequest) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.FindAllBuildCache(scope.into(), condition, cache_request)?
         };
         Self::to_elements(elements)
     }
@@ -370,12 +394,28 @@ impl UIElement {
         Ok(name.to_string())
     }
 
+    /// Retrieves the cached name of the element.
+    pub fn get_cached_name(&self) -> Result<String> {
+        let name = unsafe {
+            self.element.CachedName()?
+        };
+        Ok(name.to_string())
+    }
+
     /// Retrieves the Microsoft UI Automation identifier of the element.
     pub fn get_automation_id(&self) -> Result<String> {
         let automation_id = unsafe {
             self.element.CurrentAutomationId()?
         };
 
+        Ok(automation_id.to_string())
+    }
+
+    /// Retrieves the cached Microsoft UI Automation identifier of the element.
+    pub fn get_cached_automation_id(&self) -> Result<String> {
+        let automation_id = unsafe {
+            self.element.CachedAutomationId()?
+        };
         Ok(automation_id.to_string())
     }
 
@@ -388,12 +428,28 @@ impl UIElement {
         Ok(id)
     }
 
+    /// Retrieves the cached ID of the process that hosts the element.
+    pub fn get_cached_process_id(&self) -> Result<i32> {
+        let id = unsafe {
+            self.element.CachedProcessId()?
+        };
+        Ok(id)
+    }
+
     /// Retrieves the class name of the element.
    pub fn get_classname(&self) -> Result<String> {
         let classname = unsafe {
             self.element.CurrentClassName()?
         };
 
+        Ok(classname.to_string())
+    }
+
+    /// Retrieves the cached class name of the element.
+    pub fn get_cached_classname(&self) -> Result<String> {
+        let classname = unsafe {
+            self.element.CachedClassName()?
+        };
         Ok(classname.to_string())
     }
 
@@ -406,6 +462,14 @@ impl UIElement {
         Ok(ControlType::from(control_type))
     }
 
+    /// Retrieves the cached control type of the element.
+    pub fn get_cached_control_type(&self) -> Result<ControlType> {
+        let control_type = unsafe {
+            self.element.CachedControlType()?
+        };
+        Ok(control_type.into())
+    }
+
     /// Retrieves a localized description of the control type of the element.
     pub fn get_localized_control_type(&self) -> Result<String> {
         let control_type = unsafe {
@@ -415,10 +479,27 @@ impl UIElement {
         Ok(control_type.to_string())
     }
 
+    /// Retrieves cached localized description of the control type of the element.
+    pub fn get_cached_localized_control_type(&self) -> Result<String> {
+        let control_type = unsafe {
+            self.element.CachedLocalizedControlType()?
+        };
+        Ok(control_type.to_string())
+    }
+
     /// Retrieves the accelerator key for the element.
     pub fn get_accelerator_key(&self) -> Result<String> {
         let accelerator_key = unsafe {
             self.element.CurrentAcceleratorKey()?
+        };
+
+        Ok(accelerator_key.to_string())
+    }
+
+    /// Retrieves the cached accelerator key for the element.
+    pub fn get_cached_accelerator_key(&self) -> Result<String> {
+        let accelerator_key = unsafe {
+            self.element.CachedAcceleratorKey()?
         };
 
         Ok(accelerator_key.to_string())
@@ -433,10 +514,28 @@ impl UIElement {
         Ok(access_key.to_string())
     }
 
+    /// Retrieves the cached access key character for the element.
+    pub fn get_cached_access_key(&self) -> Result<String> {
+        let access_key = unsafe {
+            self.element.CachedAccessKey()?
+        };
+
+        Ok(access_key.to_string())
+    }
+
     /// Indicates whether the element has keyboard focus.
     pub fn has_keyboard_focus(&self) -> Result<bool> {
         let has_focus = unsafe {
             self.element.CurrentHasKeyboardFocus()?
+        };
+
+        Ok(has_focus.as_bool())
+    }
+
+    /// A cached value that indicates whether the element has keyboard focus.
+    pub fn has_cached_keyboard_focus(&self) -> Result<bool> {
+        let has_focus = unsafe {
+            self.element.CachedHasKeyboardFocus()?
         };
 
         Ok(has_focus.as_bool())
@@ -451,10 +550,28 @@ impl UIElement {
         Ok(focusable.as_bool())
     }
 
+    /// A cached value that indicates whether the element can accept keyboard focus.
+    pub fn is_cached_keyboard_focusable(&self) -> Result<bool> {
+        let focusable = unsafe {
+            self.element.CachedIsKeyboardFocusable()?
+        };
+
+        Ok(focusable.as_bool())
+    }
+
     /// Indicates whether the element is enabled.
     pub fn is_enabled(&self) -> Result<bool> {
         let enabled = unsafe {
             self.element.CurrentIsEnabled()?
+        };
+
+        Ok(enabled.as_bool())
+    }
+
+    /// A cached value that indicates whether the element is enabled.
+    pub fn is_cached_enabled(&self) -> Result<bool> {
+        let enabled = unsafe {
+            self.element.CachedIsEnabled()?
         };
 
         Ok(enabled.as_bool())
@@ -469,10 +586,28 @@ impl UIElement {
         Ok(text.to_string())
     }
 
+    /// Retrieves the cached help text for the element.
+    pub fn get_cached_help_text(&self) -> Result<String> {
+        let text = unsafe {
+            self.element.CachedHelpText()?
+        };
+
+        Ok(text.to_string())
+    }
+
     /// Retrieves the culture identifier for the element.
     pub fn get_culture(&self) -> Result<i32> {
         let culture = unsafe {
             self.element.CurrentCulture()?
+        };
+
+        Ok(culture)
+    }
+
+    /// Retrieves the cached culture identifier for the element.
+    pub fn get_cached_culture(&self) -> Result<i32> {
+        let culture = unsafe {
+            self.element.CachedCulture()?
         };
 
         Ok(culture)
@@ -487,10 +622,28 @@ impl UIElement {
         Ok(is_control.as_bool())
     }
 
+    /// A cached value that indicates whether the element is a control element.
+    pub fn is_cached_control_element(&self) -> Result<bool> {
+        let is_control = unsafe {
+            self.element.CachedIsControlElement()?
+        };
+
+        Ok(is_control.as_bool())
+    }
+
     /// Indicates whether the element is a content element.
     pub fn is_content_element(&self) -> Result<bool> {
         let is_content = unsafe {
             self.element.CurrentIsContentElement()?
+        };
+
+        Ok(is_content.as_bool())
+    }
+
+    /// A cached value that indicates whether the element is a content element.
+    pub fn is_cached_content_element(&self) -> Result<bool> {
+        let is_content = unsafe {
+            self.element.CachedIsContentElement()?
         };
 
         Ok(is_content.as_bool())
@@ -505,10 +658,28 @@ impl UIElement {
         Ok(is_password.as_bool())
     }
 
+    /// A cached value that indicates whether the element contains a disguised password.
+    pub fn is_cached_password(&self) -> Result<bool> {
+        let is_password = unsafe {
+            self.element.CachedIsPassword()?
+        };
+
+        Ok(is_password.as_bool())
+    }
+
     /// Retrieves the window handle of the element.
     pub fn get_native_window_handle(&self) -> Result<Handle> {
         let handle = unsafe {
             self.element.CurrentNativeWindowHandle()?
+        };
+
+        Ok(handle.into())
+    }
+
+    /// Retrieves the cached window handle of the element.
+    pub fn get_cached_native_window_handle(&self) -> Result<Handle> {
+        let handle = unsafe {
+            self.element.CachedNativeWindowHandle()?
         };
 
         Ok(handle.into())
@@ -523,10 +694,28 @@ impl UIElement {
         Ok(item_type.to_string())
     }
 
+    /// Retrieves a cached description of the type of UI item represented by the element.
+    pub fn get_cached_item_type(&self) -> Result<String> {
+        let item_type = unsafe {
+            self.element.CachedItemType()?
+        };
+
+        Ok(item_type.to_string())
+    }
+
     /// Indicates whether the element is off-screen.
     pub fn is_offscreen(&self) -> Result<bool> {
         let off_screen = unsafe {
             self.element.CurrentIsOffscreen()?
+        };
+
+        Ok(off_screen.as_bool())
+    }
+
+    /// A cached value that indicates whether the element is off-screen.
+    pub fn is_cached_offscreen(&self) -> Result<bool> {
+        let off_screen = unsafe {
+            self.element.CachedIsOffscreen()?
         };
 
         Ok(off_screen.as_bool())
@@ -541,10 +730,28 @@ impl UIElement {
         Ok(orientation.into())
     }
 
+    /// Retrieves a cached value that indicates the orientation of the element.
+    pub fn get_cached_orientation(&self) -> Result<OrientationType> {
+        let orientation = unsafe {
+            self.element.CachedOrientation()?
+        };
+
+        Ok(orientation.into())
+    }
+
     /// Retrieves the name of the underlying UI framework.
     pub fn get_framework_id(&self) -> Result<String> {
         let id = unsafe {
             self.element.CurrentFrameworkId()?
+        };
+
+        Ok(id.to_string())
+    }
+
+    /// Retrieves the cached name of the underlying UI framework.
+    pub fn get_cached_framework_id(&self) -> Result<String> {
+        let id = unsafe {
+            self.element.CachedFrameworkId()?
         };
 
         Ok(id.to_string())
@@ -559,10 +766,28 @@ impl UIElement {
         Ok(required.as_bool())
     }
 
+    /// A cached value that indicates whether the element is required to be filled out on a form.
+    pub fn is_cached_required_for_form(&self) -> Result<bool> {
+        let required = unsafe {
+            self.element.CachedIsRequiredForForm()?
+        };
+
+        Ok(required.as_bool())
+    }
+
     /// Indicates whether the element contains valid data for a form.
     pub fn is_data_valid_for_form(&self) -> Result<bool> {
         let valid = unsafe {
             self.element.CurrentIsDataValidForForm()?
+        };
+
+        Ok(valid.as_bool())
+    }
+
+    /// A cached value that indicates whether the element contains valid data for a form.
+    pub fn is_cached_data_valid_for_form(&self) -> Result<bool> {
+        let valid = unsafe {
+            self.element.CachedIsDataValidForForm()?
         };
 
         Ok(valid.as_bool())
@@ -577,10 +802,28 @@ impl UIElement {
         Ok(status.to_string())
     }
 
+    /// Retrieves the cached description of the status of an item in an element.
+    pub fn get_cached_item_status(&self) -> Result<String> {
+        let status = unsafe {
+            self.element.CachedItemStatus()?
+        };
+
+        Ok(status.to_string())
+    }
+
     /// Retrieves the coordinates of the rectangle that completely encloses the element.
     pub fn get_bounding_rectangle(&self) -> Result<Rect> {
         let rect = unsafe {
             self.element.CurrentBoundingRectangle()?
+        };
+
+        Ok(rect.into())
+    }
+
+    /// Retrieves the cached coordinates of the rectangle that completely encloses the element.
+    pub fn get_cached_bounding_rectangle(&self) -> Result<Rect> {
+        let rect = unsafe {
+            self.element.CachedBoundingRectangle()?
         };
 
         Ok(rect.into())
@@ -595,10 +838,28 @@ impl UIElement {
         Ok(UIElement::from(labeled_by))
     }
 
+    /// Retrieves the cached element that contains the text label for this element.
+    pub fn get_cached_labeled_by(&self) -> Result<UIElement> {
+        let labeled_by = unsafe {
+            self.element.CachedLabeledBy()?
+        };
+
+        Ok(UIElement::from(labeled_by))
+    }
+
     /// Retrieves an array of elements for which this element serves as the controller.
     pub fn get_controller_for(&self) -> Result<Vec<UIElement>> {
         let elements = unsafe {
             self.element.CurrentControllerFor()?
+        };
+
+        Self::to_elements(elements)
+    }
+
+    /// Retrieves a cached array of elements for which this element serves as the controller.
+    pub fn get_cached_controller_for(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.CachedControllerFor()?
         };
 
         Self::to_elements(elements)
@@ -613,6 +874,15 @@ impl UIElement {
         Self::to_elements(elements)
     }
 
+    /// Retrieves a cached array of elements that describe this element.
+    pub fn get_cached_described_by(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.CachedDescribedBy()?
+        };
+
+        Self::to_elements(elements)
+    }
+
     /// Retrieves an array of elements that indicates the reading order after the current element.
     pub fn get_flows_to(&self) -> Result<Vec<UIElement>> {
         let elements = unsafe {
@@ -622,10 +892,28 @@ impl UIElement {
         Self::to_elements(elements)
     }
 
+    /// Retrieves a cached array of elements that indicates the reading order after the current element.
+    pub fn get_cached_flows_to(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.CachedFlowsTo()?
+        };
+
+        Self::to_elements(elements)
+    }
+
     /// Retrieves a description of the provider for this element.
     pub fn get_provider_description(&self) -> Result<String> {
         let descr = unsafe {
             self.element.CurrentProviderDescription()?
+        };
+
+        Ok(descr.to_string())
+    }
+
+    /// Retrieves a cached description of the provider for this element.
+    pub fn get_cached_provider_description(&self) -> Result<String> {
+        let descr = unsafe {
+            self.element.CachedProviderDescription()?
         };
 
         Ok(descr.to_string())
@@ -654,6 +942,15 @@ impl UIElement {
         T::try_from(pattern)
     }
 
+    /// Retrieves the cached control pattern interface of the specified pattern `<T>` from this UI Automation element.
+    pub fn get_cached_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
+        let pattern = unsafe {
+            self.element.GetCachedPattern(T::TYPE.into())?
+        };
+
+        T::try_from(pattern)
+    }
+
     /// Retrieves a point on the element that can be clicked.
     pub fn get_clickable_point(&self) -> Result<Option<Point>> {
         let mut point = Point::default();
@@ -672,6 +969,15 @@ impl UIElement {
     pub fn get_property_value(&self, property: UIProperty) -> Result<Variant> {
         let value = unsafe {
             self.element.GetCurrentPropertyValue(property.into())?
+        };
+
+        Ok(value.into())
+    }
+
+    /// Retrieves the cached value of a property for this UI Automation element.
+    pub fn get_cached_property_value(&self, property: UIProperty) -> Result<Variant> {
+        let value = unsafe {
+            self.element.GetCachedPropertyValue(property.into())?
         };
 
         Ok(value.into())
@@ -1471,15 +1777,15 @@ impl AsRef<IUIAutomationCondition> for UICondition {
     }
 }
 
-// impl IntoParam<IUIAutomationCondition> for UICondition {
-//     unsafe fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
-//         windows::core::Param::Owned(self.0)
-//     }
-// }
-
 impl Param<IUIAutomationCondition> for UICondition {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationCondition> {
         windows::core::ParamValue::Owned(self.0)
+    }
+}
+
+impl Param<IUIAutomationCondition> for &UICondition {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationCondition> {
+        windows::core::ParamValue::Borrowed(self.0.as_raw())
     }
 }
 
