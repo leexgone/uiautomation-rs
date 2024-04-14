@@ -118,3 +118,11 @@
 ## v0.8.0
 
 + update to `windows v0.54.0`
+
+## v0.8.3
+
++ update to `windows v0.56.0`
+
+## v0.9.0
+
++ support cache request.

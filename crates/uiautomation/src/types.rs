@@ -3,10 +3,10 @@ use std::fmt::Display;
 
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
+use windows::core::Param;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
-use windows::core::IntoParam;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -224,9 +224,15 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-impl IntoParam<HWND> for Handle {
-    unsafe fn into_param(self) -> windows::core::Param<HWND> {
-        windows::core::Param::Owned(self.0)
+// impl IntoParam<HWND> for Handle {
+//     unsafe fn into_param(self) -> windows::core::Param<HWND> {
+//         windows::core::Param::Owned(self.0)
+//     }
+// }
+
+impl Param<HWND> for Handle {
+    unsafe fn param(self) -> windows::core::ParamValue<HWND> {
+        windows::core::ParamValue::Owned(self.0)
     }
 }
 
@@ -1073,6 +1079,19 @@ pub enum TextAttribute {
     BeforeParagraphSpacing = 40041i32,
     /// Identifies the AfterParagraphSpacing text attribute, which specifies the size of spacing after the paragraph.
     AfterParagraphSpacing = 40042i32,
+}
+
+/// Defines enum for `windows::Win32::UI::Accessibility::AutomationElementMode`.
+/// 
+/// Contains values that specify the type of reference to use when returning UI Automation elements.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::AutomationElementMode)]
+pub enum ElementMode {
+    /// Specifies that returned elements have no reference to the underlying UI and contain only cached information.
+    None = 0i32,
+    /// Specifies that returned elements have a full reference to the underlying UI.
+    Full = 1i32
 }
 
 #[cfg(test)]
