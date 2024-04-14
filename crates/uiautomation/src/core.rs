@@ -984,6 +984,14 @@ impl UITreeWalker {
         Ok(UIElement::from(parent))
     }
 
+    /// Retrieves the parent element of the specified UI Automation element, and caches properties and control patterns.
+    pub fn get_parent_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let parent = unsafe {
+            self.tree_walker.GetParentElementBuildCache(element, cache_request)?
+        };
+        Ok(parent.into())
+    }
+
     /// Retrieves the first child element of the specified UI Automation element.
     pub fn get_first_child(&self, element: &UIElement) -> Result<UIElement> {
         let child: IUIAutomationElement;
@@ -992,6 +1000,14 @@ impl UITreeWalker {
         }
 
         Ok(UIElement::from(child))
+    }
+
+    /// Retrieves the first child element of the specified UI Automation element, and caches properties and control patterns.
+    pub fn get_first_child_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let child = unsafe {
+            self.tree_walker.GetFirstChildElementBuildCache(element, cache_request)?
+        };
+        Ok(child.into())        
     }
 
     /// Retrieves the last child element of the specified UI Automation element.
@@ -1004,6 +1020,14 @@ impl UITreeWalker {
         Ok(UIElement::from(child))
     }
 
+    /// Retrieves the last child element of the specified UI Automation element, and caches properties and control patterns.
+    pub fn get_last_child_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let child = unsafe {
+            self.tree_walker.GetLastChildElementBuildCache(element, cache_request)?
+        };
+        Ok(child.into())
+    }
+
     /// Retrieves the next sibling element of the specified UI Automation element.
     pub fn get_next_sibling(&self, element: &UIElement) -> Result<UIElement> {
         let sibling: IUIAutomationElement;
@@ -1012,6 +1036,14 @@ impl UITreeWalker {
         }
 
         Ok(UIElement::from(sibling))
+    }
+
+    /// Retrieves the next sibling element of the specified UI Automation element, and caches properties and control patterns.
+    pub fn get_next_sibling_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let sibling = unsafe {
+            self.tree_walker.GetNextSiblingElementBuildCache(element, cache_request)?
+        };
+        Ok(sibling.into())
     }
 
     /// Retrieves the previous sibling element of the specified UI Automation element.
@@ -1024,12 +1056,29 @@ impl UITreeWalker {
         Ok(UIElement::from(sibling))
     }
 
+    /// Retrieves the previous sibling element of the specified UI Automation element, and caches properties and control patterns.
+    pub fn get_previous_sibling_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let sibling = unsafe {
+            self.tree_walker.GetPreviousSiblingElementBuildCache(element, cache_request)?
+        };
+        Ok(sibling.into())
+    }
+
     /// Retrieves the ancestor element nearest to the specified Microsoft UI Automation element in the tree view.
     pub fn normalize(&self, element: &UIElement) -> Result<UIElement> {
         let result = unsafe {
             self.tree_walker.NormalizeElement(element.as_ref())?
         };
         Ok(result.into())
+    }
+
+    /// Retrieves the ancestor element nearest to the specified Microsoft UI Automation element in the tree view, 
+    /// prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn normalize_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let ret = unsafe {
+            self.tree_walker.NormalizeElementBuildCache(element, cache_request)?
+        };
+        Ok(ret.into())
     }
 
     /// Retrieves the condition that defines the view of the UI Automation tree.
