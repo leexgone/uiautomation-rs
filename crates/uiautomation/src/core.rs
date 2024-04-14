@@ -4,6 +4,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use chrono::Local;
+use windows::core::Param;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -22,7 +23,6 @@ use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::core::IUnknown;
 use windows::core::Interface;
-use windows::core::IntoParam;
 
 use crate::controls::ControlType;
 use crate::filters::FnFilter;
@@ -775,9 +775,15 @@ impl Into<IUIAutomationElement> for UIElement {
     }
 }
 
-impl IntoParam<IUIAutomationElement> for UIElement {
-    unsafe fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
-        windows::core::Param::Owned(self.element)
+// impl IntoParam<IUIAutomationElement> for UIElement {
+//     unsafe fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
+//         windows::core::Param::Owned(self.element)
+//     }
+// }
+
+impl Param<IUIAutomationElement> for UIElement {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationElement> {
+        windows::core::ParamValue::Owned(self.element)
     }
 }
 
@@ -1271,9 +1277,15 @@ impl AsRef<IUIAutomationCondition> for UICondition {
     }
 }
 
-impl IntoParam<IUIAutomationCondition> for UICondition {
-    unsafe fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
-        windows::core::Param::Owned(self.0)
+// impl IntoParam<IUIAutomationCondition> for UICondition {
+//     unsafe fn into_param(self) -> windows::core::Param<IUIAutomationCondition> {
+//         windows::core::Param::Owned(self.0)
+//     }
+// }
+
+impl Param<IUIAutomationCondition> for UICondition {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationCondition> {
+        windows::core::ParamValue::Owned(self.0)
     }
 }
 

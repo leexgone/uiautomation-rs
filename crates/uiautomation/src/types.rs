@@ -3,10 +3,10 @@ use std::fmt::Display;
 
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
+use windows::core::Param;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
-use windows::core::IntoParam;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -224,9 +224,15 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-impl IntoParam<HWND> for Handle {
-    unsafe fn into_param(self) -> windows::core::Param<HWND> {
-        windows::core::Param::Owned(self.0)
+// impl IntoParam<HWND> for Handle {
+//     unsafe fn into_param(self) -> windows::core::Param<HWND> {
+//         windows::core::Param::Owned(self.0)
+//     }
+// }
+
+impl Param<HWND> for Handle {
+    unsafe fn param(self) -> windows::core::ParamValue<HWND> {
+        windows::core::ParamValue::Owned(self.0)
     }
 }
 
