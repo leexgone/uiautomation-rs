@@ -13,6 +13,7 @@ use windows::Win32::UI::Accessibility::CUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomation;
 use windows::Win32::UI::Accessibility::IUIAutomationAndCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationBoolCondition;
+use windows::Win32::UI::Accessibility::IUIAutomationCacheRequest;
 use windows::Win32::UI::Accessibility::IUIAutomationCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationElement3;
@@ -27,6 +28,8 @@ use windows::core::Interface;
 use crate::controls::ControlType;
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
+use crate::patterns::UIPatternType;
+use crate::types::ElementMode;
 use crate::types::OrientationType;
 use crate::types::PropertyConditionFlags;
 use crate::types::TreeScope;
@@ -103,6 +106,14 @@ impl UIAutomation {
         Ok(UIElement::from(element))
     }
 
+    /// Retrieves a UI Automation element for the specified window, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn element_from_handle_build_cache(&self, hwnd: Handle, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.ElementFromHandleBuildCache(hwnd, cache_request)?
+        };
+        Ok(element.into())
+    }
+
     /// Retrieves the UI Automation element at the specified point on the desktop.
     pub fn element_from_point(&self, point: Point) -> Result<UIElement> {
         let element = unsafe {
@@ -110,6 +121,14 @@ impl UIAutomation {
         };
 
         Ok(UIElement::from(element))
+    }
+
+    /// Retrieves the UI Automation element at the specified point on the desktop, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn element_from_point_build_cache(&self, point: Point, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.ElementFromPointBuildCache(point.into(), cache_request)?
+        };
+        Ok(element.into())
     }
 
     /// Retrieves the UI Automation element that has the input focus.
@@ -121,14 +140,29 @@ impl UIAutomation {
         Ok(UIElement::from(element))
     }
 
+    /// Retrieves the UI Automation element that has the input focus, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn get_focused_element_build_cache(&self, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.GetFocusedElementBuildCache(cache_request)?
+        };
+        Ok(element.into())
+    }
+
     /// Retrieves the UI Automation element that represents the desktop.
     pub fn get_root_element(&self) -> Result<UIElement> {
-        let element: IUIAutomationElement;
-        unsafe {
-            element = self.automation.GetRootElement()?;
-        }
+        let element = unsafe {
+            self.automation.GetRootElement()?
+        };
 
         Ok(UIElement::from(element))
+    }
+
+    /// Retrieves the UI Automation element that represents the desktop, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
+    pub fn get_root_element_build_cache(&self, cache_request: &UICacheRequest) -> Result<UIElement> {
+        let element = unsafe {
+            self.automation.GetRootElementBuildCache(cache_request)?
+        };
+        Ok(element.into())
     }
 
     /// Retrieves a tree walker object that can be used to traverse the Microsoft UI Automation tree.
@@ -787,6 +821,12 @@ impl Param<IUIAutomationElement> for UIElement {
     }
 }
 
+impl Param<IUIAutomationElement> for &UIElement {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationElement> {
+        windows::core::ParamValue::Borrowed(self.element.as_raw())
+    }
+}
+
 impl AsRef<IUIAutomationElement> for UIElement {
     fn as_ref(&self) -> &IUIAutomationElement {
         &self.element
@@ -817,6 +857,111 @@ impl Debug for UIElement {
         };
 
         d.finish()
+    }
+}
+
+/// Exposes properties and methods of a cache request. 
+/// Client applications use this interface to specify the properties and control patterns to be cached when a Microsoft UI Automation element is obtained.
+#[derive(Debug, Clone)]
+pub struct UICacheRequest {
+    request: IUIAutomationCacheRequest
+}
+
+impl UICacheRequest {
+    /// Adds a control pattern to the cache request.
+    pub fn add_pattern(&self, pattern: UIPatternType) -> Result<()> {
+        unsafe {
+            self.request.AddPattern(pattern.into())?
+        };
+        Ok(())
+    }
+
+    /// Adds a property to the cache request.
+    pub fn add_property(&self, property: UIProperty) -> Result<()> {
+        unsafe {
+            self.request.AddProperty(property.into())?
+        };
+        Ok(())
+    }
+
+    /// Retrieves whether returned elements contain full references to the underlying UI, or only cached information.
+    pub fn get_element_mode(&self) -> Result<ElementMode> {
+        let mode = unsafe {
+            self.request.AutomationElementMode()?
+        };
+        Ok(mode.into())
+    }
+
+    /// Sets whether returned elements contain full references to the underlying UI, or only cached information.
+    pub fn set_element_mode(&self, mode: ElementMode) -> Result<()> {
+        unsafe {
+            self.request.SetAutomationElementMode(mode.into())?
+        };
+        Ok(())
+    }
+
+    /// Retrieves the view of the UI Automation element tree that is used when caching.
+    pub fn get_tree_filter(&self) -> Result<UICondition> {
+        let condition = unsafe {
+            self.request.TreeFilter()?
+        };
+        Ok(condition.into())
+    }
+
+    /// Sets the view of the UI Automation element tree that is used when caching.
+    pub fn set_tree_filter(&self, filter: UICondition) -> Result<()> {
+        unsafe {
+            self.request.SetTreeFilter(filter)?
+        };
+        Ok(())
+    }
+
+    /// Retrieves the scope of caching.
+    pub fn get_tree_scope(&self) -> Result<TreeScope> {
+        let scope = unsafe {
+            self.request.TreeScope()?
+        };
+        Ok(scope.into())
+    }
+
+    /// Sets the scope of caching.
+    pub fn set_tree_scope(&self, scope: TreeScope) -> Result<()> {
+        unsafe {
+            self.request.SetTreeScope(scope.into())?
+        };
+        Ok(())
+    }
+}
+
+impl From<IUIAutomationCacheRequest> for UICacheRequest {
+    fn from(value: IUIAutomationCacheRequest) -> Self {
+        Self { 
+            request: value
+        }
+    }
+}
+
+impl Into<IUIAutomationCacheRequest> for UICacheRequest {
+    fn into(self) -> IUIAutomationCacheRequest {
+        self.request
+    }
+}
+
+impl AsRef<IUIAutomationCacheRequest> for UICacheRequest {
+    fn as_ref(&self) -> &IUIAutomationCacheRequest {
+        &self.request
+    }
+}
+
+impl Param<IUIAutomationCacheRequest> for UICacheRequest {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationCacheRequest> {
+        windows::core::ParamValue::Owned(self.request)
+    }
+}
+
+impl Param<IUIAutomationCacheRequest> for &UICacheRequest {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationCacheRequest> {
+        windows::core::ParamValue::Borrowed(self.request.as_raw())
     }
 }
 

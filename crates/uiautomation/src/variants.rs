@@ -373,12 +373,6 @@ impl Display for Variant {
     }
 }
 
-// impl windows::core::IntoParam<VARIANT> for Variant {
-//     unsafe fn into_param(self) -> windows::core::Param<VARIANT> {
-//         windows::core::Param::Owned(self.value)
-//     }
-// }
-
 impl Param<VARIANT> for Variant {
     unsafe fn param(self) -> windows::core::ParamValue<VARIANT> {
         windows::core::ParamValue::Owned(self.value)

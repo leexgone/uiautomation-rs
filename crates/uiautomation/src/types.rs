@@ -1081,6 +1081,19 @@ pub enum TextAttribute {
     AfterParagraphSpacing = 40042i32,
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::AutomationElementMode`.
+/// 
+/// Contains values that specify the type of reference to use when returning UI Automation elements.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::AutomationElementMode)]
+pub enum ElementMode {
+    /// Specifies that returned elements have no reference to the underlying UI and contain only cached information.
+    None = 0i32,
+    /// Specifies that returned elements have a full reference to the underlying UI.
+    Full = 1i32
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::Foundation::HWND;
