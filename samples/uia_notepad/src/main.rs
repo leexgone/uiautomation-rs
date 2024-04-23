@@ -8,7 +8,7 @@ fn main() {
 
     let automation = UIAutomation::new().unwrap();
     let root = automation.get_root_element().unwrap();
-    let matcher = automation.create_matcher().from(root).timeout(10000).classname("Notepad");
+    let matcher = automation.create_matcher().from(&root).timeout(10000).classname("Notepad");
     if let Ok(notepad) = matcher.find_first() {
         println!("Found: {} - {}", notepad.get_name().unwrap(), notepad.get_classname().unwrap());
 

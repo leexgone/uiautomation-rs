@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::thread::sleep;
@@ -1430,11 +1431,11 @@ pub enum UIMatcherMode {
 /// Defines filter conditions to match specific UI Element.
 /// 
 /// `UIMatcher` can find first element or find all elements.
-pub struct UIMatcher {
+pub struct UIMatcher<'a> {
     automation: UIAutomation,
     mode: UIMatcherMode,
     depth: u32,
-    from: Option<UIElement>,
+    from: Option<&'a UIElement>,
     // condition: Option<Box<dyn Condition>>,
     filters: Vec<Box<dyn MatcherFilter>>,
     timeout: u64,
@@ -1442,7 +1443,7 @@ pub struct UIMatcher {
     debug: bool
 }
 
-impl UIMatcher {
+impl<'a> UIMatcher<'a> {
     /// Creates a matcher with `automation`.
     pub fn new(automation: UIAutomation) -> Self {
         UIMatcher {
@@ -1466,7 +1467,7 @@ impl UIMatcher {
     /// Sets the root element of the UIAutomation tree whitch should be searched from.
     /// 
     /// The root element is desktop by default.
-    pub fn from(mut self, element: UIElement) -> Self {
+    pub fn from(mut self, element: &'a UIElement) -> Self {
         self.from = Some(element);
         self
     }
@@ -1616,7 +1617,11 @@ impl UIMatcher {
             }
             
             let (root, walker) = self.prepare()?;
-            self.search(&walker, &root, &mut elements, 1, first_only)?;
+            let search_root: Cow<'_, UIElement> = match root {
+                Some(root_ref) => Cow::Borrowed(root_ref),
+                None => Cow::Owned(self.automation.get_root_element().unwrap()),
+            };
+            self.search(&walker, &search_root, &mut elements, 1, first_only)?;
 
             if !elements.is_empty() || self.timeout <= 0 {
                 break;
@@ -1633,19 +1638,14 @@ impl UIMatcher {
         Ok(elements)
     }
 
-    fn prepare(&self) -> Result<(UIElement, UITreeWalker)> {
-        let root = if let Some(ref from) = self.from {
-            from.clone()
-        } else {
-            self.automation.get_root_element()?
-        };
+    fn prepare(&self) -> Result<(Option<&UIElement>, UITreeWalker)> {
         let walker = match self.mode {
             UIMatcherMode::Raw => self.automation.create_tree_walker()?,
             UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,
             UIMatcherMode::Content => self.automation.filter_tree_walker(self.automation.get_content_view_condition()?)?,
         };
         
-        Ok((root, walker))
+        Ok((self.from, walker))
     }
 
     fn search(&self, walker: &UITreeWalker, element: &UIElement, elements: &mut Vec<UIElement>, depth: u32, first_only: bool) -> Result<()> {
@@ -1701,7 +1701,7 @@ impl UIMatcher {
     }
 }
 
-impl Debug for UIMatcher {
+impl Debug for UIMatcher<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("UIMatcher")
             .field("automation", &self.automation)
@@ -2221,7 +2221,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
-            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from(notepad.clone()).name("文件").depth(5).timeout(1000);
+            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from(&notepad).name("文件").depth(5).timeout(1000);
             if let Ok(menu_item) = matcher.find_first() {
                 menu_item.click().unwrap();
             }
@@ -2245,7 +2245,7 @@ mod tests {
             println!("{}", window.get_name().unwrap());
 
             let menubar = automation.create_matcher() //.debug(true)
-                .from(window.clone())
+                .from(&window)
                 .control_type(ControlType::Pane)
                 .timeout(0)
                 .find_first().unwrap();
@@ -2258,7 +2258,7 @@ mod tests {
     fn test_search_from() {
         let automation = UIAutomation::new().unwrap();
         if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
-            let nothing = automation.create_matcher().from(window.clone()).control_type(ControlType::Window).find_first();
+            let nothing = automation.create_matcher().from(&window).control_type(ControlType::Window).find_first();
             assert!(nothing.is_err());
         }
     }
@@ -2293,7 +2293,7 @@ mod tests {
     fn test_automation_id() {
         let automation = UIAutomation::new().unwrap();
         if let Ok(notepad) = automation.create_matcher().timeout(0).classname("Notepad").find_first() {
-            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(ControlType::TitleBar).find_first().unwrap();
+            let title_bar = automation.create_matcher().from(&notepad).timeout(0).control_type(ControlType::TitleBar).find_first().unwrap();
             let element: &IUIAutomationElement = title_bar.as_ref();
             let automation_id = unsafe {
                 element.CurrentAutomationId().unwrap()

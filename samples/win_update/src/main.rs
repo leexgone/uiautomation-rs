@@ -50,7 +50,7 @@ fn auto_update() -> Result<()> {
     window.set_foregrand()?;
     settings.set_focus()?;
 
-    let matcher = automation.create_matcher().from(settings.clone()).contains_name("Windows 更新").control_type(ListItemControl::TYPE).timeout(10000);
+    let matcher = automation.create_matcher().from(&settings).contains_name("Windows 更新").control_type(ListItemControl::TYPE).timeout(10000);
     let update = matcher.find_first()?;
     // println!("{}", update.get_control_type()?);
     let update_item: ListItemControl = update.try_into()?;
@@ -60,7 +60,7 @@ fn auto_update() -> Result<()> {
         left: Box::new(NameFilter { value: String::from("检查更新"), casesensitive: false, partial: true }),
         right: Box::new(NameFilter { value: String::from("下载并安装"), casesensitive: false, partial: true }),
     };
-    let matcher = automation.create_matcher().from(settings.clone()).timeout(5000) //.debug(true)
+    let matcher = automation.create_matcher().from(&settings).timeout(5000) //.debug(true)
         .filter(Box::new(filter))
         // .match_name("检查更新")
         .control_type(ButtonControl::TYPE)
@@ -76,12 +76,12 @@ fn auto_update() -> Result<()> {
     }
 
     if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).find_first() { // Win10
-        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
+        let matcher = automation.create_matcher().from(&taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
     } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(PaneControl::TYPE).find_first() {       // Win11
-        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
+        let matcher = automation.create_matcher().from(&taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
