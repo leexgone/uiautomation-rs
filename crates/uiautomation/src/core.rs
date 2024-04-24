@@ -304,6 +304,12 @@ impl UIAutomation {
         };
         Ok(condition.into())
     }
+
+    /// Creates a UICacheRequest object that specifies the properties and control patterns to be cached for an element.
+    pub fn create_cache_request(&self) -> Result<UICacheRequest> {
+        let request = unsafe { self.automation.CreateCacheRequest()? };
+        Ok(request.into())
+    }
 }
 
 impl From<IUIAutomation> for UIAutomation {
