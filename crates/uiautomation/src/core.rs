@@ -1477,6 +1477,14 @@ impl UIMatcher {
         self
     }
 
+    /// Sets the root element of the UIAutomation tree whitch should be searched from. The `element` is cloned internally.
+    /// 
+    /// The root element is desktop by default.
+    pub fn from_ref(mut self, element: &UIElement) -> Self {
+        self.from = Some(element.clone());
+        self
+    }
+
     /// Sets the depth of the search path. The default depth is `7`.
     pub fn depth(mut self, depth: u32) -> Self {
         self.depth = depth;
@@ -2227,7 +2235,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
-            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from(notepad.clone()).name("文件").depth(5).timeout(1000);
+            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from_ref(&notepad).name("文件").depth(5).timeout(1000);
             if let Ok(menu_item) = matcher.find_first() {
                 menu_item.click().unwrap();
             }

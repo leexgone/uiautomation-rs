@@ -126,3 +126,7 @@
 ## v0.9.0
 
 + support cache request.
+
+## v0.9.2
+
++ addd `UIMatcher::from_ref()`
