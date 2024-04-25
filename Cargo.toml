@@ -4,9 +4,10 @@ members = [
     "crates/uiautomation",
     "crates/uiautomation_derive",
     "samples/uia_print",
+    "samples/uia_cached_print",
     "samples/uia_notepad",
     "samples/uia_varaint",
-    "samples/win_update"
+    "samples/win_update",
 ]
 
 resolver = "2"
