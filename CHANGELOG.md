@@ -130,3 +130,7 @@
 ## v0.9.2
 
 + addd `UIMatcher::from_ref()`
+
+## v0.9.3
+
++ fix [issues-52](https://github.com/leexgone/uiautomation-rs/issues/52)

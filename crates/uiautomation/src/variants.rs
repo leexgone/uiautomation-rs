@@ -1437,45 +1437,56 @@ impl SafeArray {
 
 impl From<*mut imp::SAFEARRAY> for SafeArray {
     fn from(value: *mut imp::SAFEARRAY) -> Self {
-        let mut array = unsafe {
-            SAFEARRAY {
-                cDims: (*value).cDims,
-                fFeatures: ADVANCED_FEATURE_FLAGS((*value).fFeatures),
-                cbElements: (*value).cbElements,
-                cLocks: (*value).cLocks,
-                pvData: (*value).pvData,
-                rgsabound: [SAFEARRAYBOUND {
-                    cElements: (*value).rgsabound[0].cElements,
-                    lLbound: (*value).rgsabound[0].lLbound
-                }]
-            }
-        };
+        // let mut array = unsafe {
+        //     SAFEARRAY {
+        //         cDims: (*value).cDims,
+        //         fFeatures: ADVANCED_FEATURE_FLAGS((*value).fFeatures),
+        //         cbElements: (*value).cbElements,
+        //         cLocks: (*value).cLocks,
+        //         pvData: (*value).pvData,
+        //         rgsabound: [SAFEARRAYBOUND {
+        //             cElements: (*value).rgsabound[0].cElements,
+        //             lLbound: (*value).rgsabound[0].lLbound
+        //         }]
+        //     }
+        // };
 
-        Self {
-            array: &mut array as *mut SAFEARRAY,
-            owned: true
+        // Self {
+        //     array: &mut array as *mut SAFEARRAY,
+        //     owned: true
+        // }
+        let array: *mut SAFEARRAY = unsafe {
+            std::mem::transmute(value)
+        };
+        Self { 
+            array, 
+            owned: true 
         }
     }
 }
 
 impl Into<*mut imp::SAFEARRAY> for SafeArray {
     fn into(mut self) -> *mut imp::SAFEARRAY {
-        let value = self.array;
-        let mut array = unsafe {
-            imp::SAFEARRAY {
-                cDims: (*value).cDims,
-                fFeatures: (*value).fFeatures.0,
-                cbElements: (*value).cbElements,
-                cLocks: (*value).cLocks,
-                pvData: (*value).pvData,
-                rgsabound: [imp::SAFEARRAYBOUND {
-                    cElements: (*value).rgsabound[0].cElements,
-                    lLbound: (*value).rgsabound[0].lLbound
-                }]
-            }
-        };
+        // let value = self.array;
+        // let mut array = unsafe {
+        //     imp::SAFEARRAY {
+        //         cDims: (*value).cDims,
+        //         fFeatures: (*value).fFeatures.0,
+        //         cbElements: (*value).cbElements,
+        //         cLocks: (*value).cLocks,
+        //         pvData: (*value).pvData,
+        //         rgsabound: [imp::SAFEARRAYBOUND {
+        //             cElements: (*value).rgsabound[0].cElements,
+        //             lLbound: (*value).rgsabound[0].lLbound
+        //         }]
+        //     }
+        // };
+        // self.owned = false;
+        // &mut array as *mut imp::SAFEARRAY
         self.owned = false;
-        &mut array as *mut imp::SAFEARRAY
+        unsafe {
+            std::mem::transmute(self.array)
+        }
     }
 }
 
