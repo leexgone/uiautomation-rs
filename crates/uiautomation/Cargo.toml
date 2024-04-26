@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation"
-version = "0.9.2"
+version = "0.9.3"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
