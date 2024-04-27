@@ -293,7 +293,7 @@ pub trait TableItem {
 /// Define a Text action for uielement.
 pub trait Text {
     /// Retrieves the degenerate (empty) text range nearest to the specified screen coordinates.
-    fn get_ragne_from_point(&self, pt: Point) -> Result<UITextRange>;
+    fn get_range_from_point(&self, pt: Point) -> Result<UITextRange>;
 
     /// Retrieves a text range enclosing a child element such as an image, hyperlink, Microsoft Excel spreadsheet, or other embedded object.
     fn get_range_from_child(&self, child: &UIElement) -> Result<UITextRange>;
