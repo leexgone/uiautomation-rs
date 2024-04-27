@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation_derive"
-version = "0.2.24"
+version = "0.3.0"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
