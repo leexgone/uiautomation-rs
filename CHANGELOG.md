@@ -134,3 +134,7 @@
 ## v0.9.3
 
 + fix [issues-52](https://github.com/leexgone/uiautomation-rs/issues/52)
+
+## v0.10.0
+
++ Fix typo in method names (ragne -> range) [#57](https://github.com/leexgone/uiautomation-rs/pull/57)

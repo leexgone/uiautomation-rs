@@ -1687,7 +1687,7 @@ pub struct UITextPattern {
 }
 
 impl UITextPattern {
-    pub fn get_ragne_from_point(&self, pt: Point) -> Result<UITextRange> {
+    pub fn get_range_from_point(&self, pt: Point) -> Result<UITextRange> {
         let range = unsafe {
             self.pattern.RangeFromPoint(pt.into())?
         };
