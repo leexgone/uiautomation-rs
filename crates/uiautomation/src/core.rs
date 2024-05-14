@@ -2169,8 +2169,7 @@ mod tests {
     use std::thread::sleep;
     use std::time::Duration;
 
-    use windows::core::*;
-    use windows::Win32::UI::Accessibility::IUIAutomationElement;
+    use windows::Win32::UI::Accessibility::*;
     use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
     use crate::UIAutomation;
@@ -2354,11 +2353,4 @@ mod tests {
         let auto = UIAutomation::new().unwrap();
         let _ = auto.element_from_handle(Handle::from(0x2006C6));
     }
-
-    // #[implement(
-    //     windows::Win32::UI::Accessibility::IUIAutomationEventHandler,
-    // )]
-    // struct MyEventHandler(usize);
-    
-    // impl MyEventHandler {}
 }

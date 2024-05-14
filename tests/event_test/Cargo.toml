@@ -7,4 +7,12 @@ edition = "2021"
 
 [dependencies]
 
-uiautomation = { path = "../../crates/uiautomation" }
+# uiautomation = { path = "../../crates/uiautomation" }
+
+[dependencies.windows]
+version = "0.56.0"
+features = [
+    "implement",
+    "UI_UIAutomation",
+    "Win32_UI_Accessibility",
+]
