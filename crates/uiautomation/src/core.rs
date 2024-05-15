@@ -1127,12 +1127,6 @@ impl Into<IUIAutomationElement> for UIElement {
     }
 }
 
-// impl IntoParam<IUIAutomationElement> for UIElement {
-//     unsafe fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
-//         windows::core::Param::Owned(self.element)
-//     }
-// }
-
 impl Param<IUIAutomationElement> for UIElement {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationElement> {
         windows::core::ParamValue::Owned(self.element)

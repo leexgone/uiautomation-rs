@@ -18,3 +18,10 @@ impl IUIAutomationEventHandler_Impl for MyEventHandler {
         Ok(())
     }
 }
+
+// impl windows::core::Param<IUIAutomationEventHandler> for MyEventHandler {
+//     unsafe fn param(self) -> ParamValue<IUIAutomationEventHandler> {
+//         let handler: IUIAutomationEventHandler = self.into();
+//         ParamValue::Owned(handler)
+//     }
+// }
