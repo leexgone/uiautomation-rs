@@ -1115,6 +1115,12 @@ impl From<IUIAutomationElement> for UIElement {
     }
 }
 
+impl From<&IUIAutomationElement> for UIElement {
+    fn from(value: &IUIAutomationElement) -> Self {
+        value.clone().into()
+    }
+}
+
 impl Into<IUIAutomationElement> for UIElement {
     fn into(self) -> IUIAutomationElement {
         self.element
