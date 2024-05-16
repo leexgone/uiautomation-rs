@@ -7,6 +7,7 @@ pub mod filters;
 pub mod controls;
 pub mod actions;
 pub mod inputs;
+pub mod events;
 pub mod processes;
 pub mod dialogs;
 

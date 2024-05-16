@@ -21,6 +21,9 @@ chrono = "0.4.38"
 phf = { version = "0.11.2", features = ["macros"] }
 uiautomation_derive = { version = "0.3.1", path = "../uiautomation_derive" }
 
+[dependencies.windows-core]
+version = "0.56.0"
+
 [dependencies.windows]
 version = "0.56.0"
 features = [

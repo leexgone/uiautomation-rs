@@ -121,7 +121,7 @@ pub enum UIPatternType {
     /// Identifies the Annotation control pattern. Supported starting with Windows 8.
     Annotation = 10023i32,
     /// Identifies the second version of the Text control pattern. Supported starting with Windows 8.
-    TextP = 10024i32,
+    Text2 = 10024i32,
     /// Identifies the Styles control pattern. Supported starting with Windows 8.
     Styles = 10025i32,
     /// Identifies the Spreadsheet control pattern. Supported starting with Windows 8.
@@ -129,7 +129,7 @@ pub enum UIPatternType {
     /// Identifies the SpreadsheetItem control pattern. Supported starting with Windows 8.
     SpreadsheetItem = 10027i32,
     /// Identifies the second version of the Transform control pattern. Supported starting with Windows 8.
-    TransformP = 10028i32,
+    Transform2 = 10028i32,
     /// Identifies the TextChild control pattern. Supported starting with Windows 8.
     TextChild = 10029i32,
     /// Identifies the Drag control pattern. Supported starting with Windows 8.
@@ -141,18 +141,6 @@ pub enum UIPatternType {
     /// Identifies the CustomNavigation control pattern. Supported starting with Windows 10.
     CustomNavigation = 10033i32    
 }
-
-// impl From<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
-//     fn from(value: windows::Win32::UI::Accessibility::UIA_PATTERN_ID) -> Self {
-//         value.0.try_into().unwrap()
-//     }
-// }
-
-// impl Into<windows::Win32::UI::Accessibility::UIA_PATTERN_ID> for UIPatternType {
-//     fn into(self) -> windows::Win32::UI::Accessibility::UIA_PATTERN_ID {
-//         windows::Win32::UI::Accessibility::UIA_PATTERN_ID(self as _)
-//     }
-// }
 
 /// `UIPattern` is the wrapper trait for patterns.
 pub trait UIPattern {
