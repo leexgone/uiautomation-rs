@@ -55,33 +55,55 @@ pub enum UIEventType {
     InputReachedOtherElement = 20021i32,
     /// Identifies the event that is raised when the specified input was discarded or otherwise failed to reach any element.
     InputDiscarded = 20022i32,
-    /// Identifies the event that is raised when a provider issues a system alert. Supported starting with Windows 8.
+    /// Identifies the event that is raised when a provider issues a system alert. 
+    /// 
+    /// Supported starting with Windows 8.
     SystemAlert = 20023i32,
-    /// Identifies the event that is raised when the content of a live region has changed. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the content of a live region has changed. 
+    /// 
+    /// Supported starting with Windows 8.
     LiveRegionChanged = 20024i32,
-    /// Identifies the event that is raised when a change is made to the root node of a UI Automation fragment that is hosted in another element. Supported starting with Windows 8.
+    /// Identifies the event that is raised when a change is made to the root node of a UI Automation fragment that is hosted in another element. 
+    /// 
+    /// Supported starting with Windows 8.
     HostedFragmentRootsInvalidated = 20025i32,
-    /// Identifies the event that is raised when the user starts to drag an element. This event is raised by the element being dragged. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the user starts to drag an element. This event is raised by the element being dragged. 
+    /// 
+    /// Supported starting with Windows 8.
     Drag_DragStart = 20026i32,
-    /// Identifies the event that is raised when the user ends a drag operation before dropping an element on a drop target. This event is raised by the element being dragged. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the user ends a drag operation before dropping an element on a drop target. This event is raised by the element being dragged. 
+    /// 
+    /// Supported starting with Windows 8.
     Drag_DragCancel = 20027i32,
-    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the element being dragged. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the element being dragged. 
+    /// Supported starting with Windows 8.
     Drag_DragComplete = 20028i32,
-    /// Identifies the event that is raised when the user drags an element into a drop target's boundary. This event is raised by the drop target element. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the user drags an element into a drop target's boundary. This event is raised by the drop target element. 
+    /// 
+    /// Supported starting with Windows 8.
     DropTarget_DragEnter = 20029i32,
-    /// Identifies the event that is raised when the user drags an element out of a drop target's boundary. This event is raised by the drop target element. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the user drags an element out of a drop target's boundary. This event is raised by the drop target element. 
+    /// 
+    /// Supported starting with Windows 8.
     DropTarget_DragLeave = 20030i32,
-    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the drop target element. Supported starting with Windows 8.
+    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the drop target element. 
+    /// 
+    /// Supported starting with Windows 8.
     DropTarget_Dropped = 20031i32,
-    /// Identifies the event that is raised whenever text auto-correction is performed by a control. Supported starting with Windows 8.1.
+    /// Identifies the event that is raised whenever text auto-correction is performed by a control. 
+    /// 
+    /// Supported starting with Windows 8.1.
     TextEdit_TextChanged = 20032i32,
-    /// Identifies the event that is raised whenever a composition replacement is performed by a control. Supported starting with Windows 8.1.
+    /// Identifies the event that is raised whenever a composition replacement is performed by a control. 
+    /// 
+    /// Supported starting with Windows 8.1.
     TextEdit_ConversionTargetChanged = 20033i32,
     /// Identifies the event that is raised when a provider calls the UiaRaiseChangesEvent function.
     Changes = 20034i32,
     /// Identifies the event that is raised when a provider calls the UiaRaiseNotificationEvent method.
     Notification = 20035i32,
-    /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements (such as web browsers, PDF documents, or EPUB documents) using bookmarks (fragment identifiers that refer to a location within a resource).
+    /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements 
+    /// (such as web browsers, PDF documents, or EPUB documents) using bookmarks (fragment identifiers that refer to a location within a resource).
     ActiveTextPositionChanged = 20036i32,
 }
 
