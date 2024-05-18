@@ -1,5 +1,13 @@
 use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
+use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
+use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
+use windows_core::Param;
+
+use crate::types::UIProperty;
+use crate::variants::Variant;
+use crate::Result;
+use crate::UIElement;
 
 /// `UIEventType` is an enum wrapper for `windows::Win32::UI::Accessibility::UIA_EVENT_ID`.
 /// 
@@ -105,6 +113,120 @@ pub enum UIEventType {
     /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements 
     /// (such as web browsers, PDF documents, or EPUB documents) using bookmarks (fragment identifiers that refer to a location within a resource).
     ActiveTextPositionChanged = 20036i32,
+}
+
+/// A wrapper for windows `IUIAutomationEventHandler` interface. 
+/// 
+/// Exposes a method to handle Microsoft UI Automation events.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UIEventHandler {
+    handler: IUIAutomationEventHandler
+}
+
+impl UIEventHandler {
+    /// Handles a Microsoft UI Automation event.
+    pub fn handle_automation_event(&self, sender: &UIElement, event: UIEventType) -> Result<()> {
+        unsafe {
+            self.handler.HandleAutomationEvent(sender, event.into())?;
+        }
+        Ok(())
+    }
+}
+
+impl From<IUIAutomationEventHandler> for UIEventHandler {
+    fn from(handler: IUIAutomationEventHandler) -> Self {
+        Self{
+            handler
+        }
+    }
+}
+
+impl From<&IUIAutomationEventHandler> for UIEventHandler {
+    fn from(value: &IUIAutomationEventHandler) -> Self {
+        value.clone().into()
+    }
+}
+
+impl Into<IUIAutomationEventHandler> for UIEventHandler {
+    fn into(self) -> IUIAutomationEventHandler {
+        self.handler
+    }
+}
+
+impl AsRef<IUIAutomationEventHandler> for UIEventHandler {
+    fn as_ref(&self) -> &IUIAutomationEventHandler {
+        &self.handler
+    }
+}
+
+impl Param<IUIAutomationEventHandler> for UIEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> {
+        // windows::core::ParamValue::Owned(self.handler)
+        self.handler.param()
+    }
+}
+
+impl Param<IUIAutomationEventHandler> for &UIEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> {
+        // windows::core::ParamValue::Borrowed(self.handler.as_raw())
+        (&self.handler).param()
+    }
+}
+
+/// A wrapper for windows `IUIAutomationPropertyChangedEventHandler` interface. 
+/// 
+/// Exposes a method to handle Microsoft UI Automation events that occur when a property is changed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UIPropertyChangedEventHandler {
+    handler: IUIAutomationPropertyChangedEventHandler
+}
+
+impl UIPropertyChangedEventHandler {
+    /// Handles a Microsoft UI Automation property-changed event.
+    pub fn handle_property_changed_event(&self, sender: &UIElement, property_id: UIProperty, new_value: Variant) -> Result<()> {
+        unsafe {
+            self.handler.HandlePropertyChangedEvent(sender, property_id.into(), new_value)?
+        };
+        Ok(())
+    }
+}
+
+impl From<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
+    fn from(handler: IUIAutomationPropertyChangedEventHandler) -> Self {
+        Self { 
+            handler
+        }
+    }
+}
+
+impl From<&IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
+    fn from(value: &IUIAutomationPropertyChangedEventHandler) -> Self {
+        value.clone().into()
+    }
+}
+
+impl Into<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
+    fn into(self) -> IUIAutomationPropertyChangedEventHandler {
+        self.handler
+    }
+}
+
+impl AsRef<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
+    fn as_ref(&self) -> &IUIAutomationPropertyChangedEventHandler {
+        &self.handler
+    }
+}
+
+impl Param<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+        self.handler.param()
+    }
+}
+
+impl Param<IUIAutomationPropertyChangedEventHandler> for &UIPropertyChangedEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+        (&self.handler).param()
+    }
 }
 
 #[cfg(test)]
