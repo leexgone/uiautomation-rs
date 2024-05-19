@@ -30,6 +30,7 @@ use crate::controls::ControlType;
 use crate::events::UIEventHandler;
 use crate::events::UIEventType;
 use crate::events::UIPropertyChangedEventHandler;
+use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::patterns::UIPatternType;
@@ -346,6 +347,15 @@ impl UIAutomation {
     pub fn remove_property_changed_event_handler(&self, element: &UIElement, handler: &UIPropertyChangedEventHandler) -> Result<()> {
         unsafe {
             self.automation.RemovePropertyChangedEventHandler(element, handler)?
+        };
+        Ok(())
+    }
+
+    /// Registers a method that handles structure-changed events.
+    pub fn add_structure_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIStructureChangeEventHandler) -> Result<()> {
+        let cache_request = cache_request.map(|r| r.as_ref());
+        unsafe {
+            self.automation.AddStructureChangedEventHandler(element, scope.into(), cache_request, handler)?
         };
         Ok(())
     }

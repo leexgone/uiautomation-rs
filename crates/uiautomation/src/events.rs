@@ -2,9 +2,11 @@ use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
+use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
 use windows_core::Param;
 
 use crate::types::UIProperty;
+use crate::variants::SafeArray;
 use crate::variants::Variant;
 use crate::Result;
 use crate::UIElement;
@@ -113,6 +115,31 @@ pub enum UIEventType {
     /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements 
     /// (such as web browsers, PDF documents, or EPUB documents) using bookmarks (fragment identifiers that refer to a location within a resource).
     ActiveTextPositionChanged = 20036i32,
+}
+
+/// `StructureChangeType` is an enum wrapper for `windows::Win32::UI::Accessibility::StructureChangeType`.
+/// 
+/// Contains values that specify the type of change in the Microsoft UI Automation tree structure.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::StructureChangeType)]
+pub enum StructureChangeType {
+    /// A child element was added to the UI Automation element tree.
+    ChildAdded = 0i32,
+    /// A child element was removed from the UI Automation element tree.
+    ChildRemoved = 1i32,
+    /// Child elements were invalidated in the UI Automation element tree. 
+    /// This might mean that one or more child elements were added or removed, or a combination of both. 
+    /// This value can also indicate that one subtree in the UI was substituted for another. 
+    /// For example, the entire contents of a dialog box changed at once, or the view of a list changed because an Explorer-type application navigated to another location. 
+    /// The exact meaning depends on the UI Automation provider implementation.
+    ChildrenInvalidated = 2i32,
+    /// Child elements were added in bulk to the UI Automation element tree.
+    ChildrenBulkAdded = 3i32,
+    /// Child elements were removed in bulk from the UI Automation element tree.
+    ChildrenBulkRemoved = 4i32,
+    /// The order of child elements has changed in the UI Automation element tree. Child elements may or may not have been added or removed.
+    ChildrenReordered = 5i32
 }
 
 /// A wrapper for windows `IUIAutomationEventHandler` interface. 
@@ -225,6 +252,69 @@ impl Param<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventH
 
 impl Param<IUIAutomationPropertyChangedEventHandler> for &UIPropertyChangedEventHandler {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+        (&self.handler).param()
+    }
+}
+
+/// A wrapper for windows `IUIAutomationStructureChangedEventHandler` interface. 
+/// 
+/// Handles an event that is raised when the Microsoft UI Automation tree structure has changed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UIStructureChangeEventHandler {
+    handler: IUIAutomationStructureChangedEventHandler
+}
+
+impl UIStructureChangeEventHandler {
+    /// Handles an event that is raised when the Microsoft UI Automation tree structure has changed.
+    pub fn handle_structure_changed_event(&self, sender: &UIElement, change_type: StructureChangeType, runtime_id: Option<&[i32]>) -> Result<()> {
+        let runtime_id = if let Some(arr) = runtime_id {
+            arr.try_into()?
+        } else {
+            SafeArray::default()
+        };
+
+        unsafe {
+            self.handler.HandleStructureChangedEvent(sender, change_type.into(), runtime_id.get_array())?
+        }
+
+        Ok(())
+    }
+}
+
+impl From<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
+    fn from(handler: IUIAutomationStructureChangedEventHandler) -> Self {
+        Self { 
+            handler 
+        }
+    }
+}
+
+impl From<&IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
+    fn from(value: &IUIAutomationStructureChangedEventHandler) -> Self {
+        value.clone().into()
+    }
+}
+
+impl Into<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
+    fn into(self) -> IUIAutomationStructureChangedEventHandler {
+        self.handler
+    }
+}
+
+impl AsRef<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
+    fn as_ref(&self) -> &IUIAutomationStructureChangedEventHandler {
+        &self.handler
+    }
+}
+
+impl Param<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
+        self.handler.param()
+    }
+}
+
+impl Param<IUIAutomationStructureChangedEventHandler> for &UIStructureChangeEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
         (&self.handler).param()
     }
 }
