@@ -29,6 +29,7 @@ use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 use crate::controls::ControlType;
 use crate::events::UIEventHandler;
 use crate::events::UIEventType;
+use crate::events::UIFocusChangedEventHandler;
 use crate::events::UIPropertyChangedEventHandler;
 use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
@@ -356,6 +357,39 @@ impl UIAutomation {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
             self.automation.AddStructureChangedEventHandler(element, scope.into(), cache_request, handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes a structure-changed event handler.
+    pub fn remove_structure_changed_event_handler(&self, element: &UIElement, handler: &UIStructureChangeEventHandler) -> Result<()> {
+        unsafe {
+            self.automation.RemoveStructureChangedEventHandler(element, handler)?
+        };
+        Ok(())
+    }
+
+    /// Registers a method that handles focus-changed events.
+    pub fn add_focus_changed_event_handler(&self, cache_request: Option<&UICacheRequest>, handler: &UIFocusChangedEventHandler) -> Result<()> {
+        let cache_request = cache_request.map(|r| r.as_ref());
+        unsafe {
+            self.automation.AddFocusChangedEventHandler(cache_request, handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes a focus-changed event handler.
+    pub fn remove_focus_changed_event_handler(&self, handler: &UIFocusChangedEventHandler) -> Result<()> {
+        unsafe {
+            self.automation.RemoveFocusChangedEventHandler(handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes all registered Microsoft UI Automation event handlers.
+    pub fn remove_all_event_handlers(&self) -> Result<()> {
+        unsafe {
+            self.automation.RemoveAllEventHandlers()?
         };
         Ok(())
     }

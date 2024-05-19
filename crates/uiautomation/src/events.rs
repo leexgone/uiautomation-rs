@@ -1,6 +1,7 @@
 use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
+use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
 use windows_core::Param;
@@ -315,6 +316,62 @@ impl Param<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEvent
 
 impl Param<IUIAutomationStructureChangedEventHandler> for &UIStructureChangeEventHandler {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
+        (&self.handler).param()
+    }
+}
+
+/// A wrapper for windows `IUIAutomationFocusChangedEventHandler` interface. 
+/// 
+/// Exposes a method to handle events that are raised when the keyboard focus moves to another UI Automation element.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UIFocusChangedEventHandler {
+    handler: IUIAutomationFocusChangedEventHandler
+}
+
+impl UIFocusChangedEventHandler {
+    /// Handles the event raised when the keyboard focus moves to a different UI Automation element.
+    pub fn handle_focus_changed_event(&self, sender: &UIElement) -> Result<()> {
+        unsafe {
+            self.handler.HandleFocusChangedEvent(sender)?
+        };
+        Ok(())
+    }
+}
+
+impl From<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
+    fn from(handler: IUIAutomationFocusChangedEventHandler) -> Self {
+        Self {
+            handler
+        }
+    }
+}
+
+impl From<&IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
+    fn from(value: &IUIAutomationFocusChangedEventHandler) -> Self {
+        value.clone().into()
+    }
+}
+
+impl Into<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
+    fn into(self) -> IUIAutomationFocusChangedEventHandler {
+        self.handler
+    }
+}
+
+impl AsRef<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
+    fn as_ref(&self) -> &IUIAutomationFocusChangedEventHandler {
+        &self.handler
+    }
+}
+
+impl Param<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> {
+        self.handler.param()
+    }
+}
+
+impl Param<IUIAutomationFocusChangedEventHandler> for &UIFocusChangedEventHandler {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> {
         (&self.handler).param()
     }
 }
