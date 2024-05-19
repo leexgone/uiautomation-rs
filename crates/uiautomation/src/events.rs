@@ -1,9 +1,13 @@
 use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
+use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
+use windows::Win32::UI::Accessibility::IUIAutomationEventHandler_Impl;
 use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
+use windows::Win32::UI::Accessibility::UIA_EVENT_ID;
+use windows_core::implement;
 use windows_core::Param;
 
 use crate::types::UIProperty;
@@ -376,15 +380,76 @@ impl Param<IUIAutomationFocusChangedEventHandler> for &UIFocusChangedEventHandle
     }
 }
 
+/// Defines a custom handler for `IUIAutomationEventHandler`.
+pub trait CustomEventHandler {
+    fn handle(&self, sender: &UIElement, event_type: UIEventType) -> Result<()>;
+}
+
+#[implement(IUIAutomationEventHandler)]
+pub struct AutomationEventHandler {
+    handler: Box<dyn CustomEventHandler>
+}
+
+impl IUIAutomationEventHandler_Impl for AutomationEventHandler {
+    fn HandleAutomationEvent(&self, sender: Option<&IUIAutomationElement>, eventid: UIA_EVENT_ID) -> windows::core::Result<()> {
+        if let Some(e) = sender {
+            let element = UIElement::from(e);
+            self.handler.handle(&element, eventid.into()).map_err(|e| e.into())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl <T> From<T> for AutomationEventHandler where T: CustomEventHandler + 'static {
+    fn from(value: T) -> Self {
+        Self {
+            handler: Box::new(value)
+        }
+    }
+}
+
+impl <T> From<T> for UIEventHandler where T: CustomEventHandler + 'static {
+    fn from(value: T) -> Self {
+        let handler = AutomationEventHandler::from(value);
+        let handler: IUIAutomationEventHandler = handler.into();
+        handler.into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::UIA_DropTarget_DroppedEventId;
 
+    use crate::UIAutomation;
+
+    use super::CustomEventHandler;
+    use super::UIEventHandler;
     use super::UIEventType;
 
     #[test]
     fn test_uievent_types() {
         let t = UIEventType::try_from(UIA_DropTarget_DroppedEventId.0).unwrap();
         assert_eq!(t, UIEventType::DropTarget_Dropped);
+    }
+
+    struct MyEventHandler {
+    }
+
+    impl CustomEventHandler for MyEventHandler {
+        fn handle(&self, sender: &crate::UIElement, event_type: UIEventType) -> crate::Result<()> {
+            println!("event: {:?}, element: {}", event_type, sender);
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_event_handler_trait() {
+        let automation = UIAutomation::new().unwrap();
+
+        let root = automation.get_root_element().unwrap();
+        let handler = UIEventHandler::from(MyEventHandler {});
+        automation.add_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, crate::types::TreeScope::Subtree, None, &handler).unwrap();
+        automation.remove_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, &handler).unwrap();
     }
 }
