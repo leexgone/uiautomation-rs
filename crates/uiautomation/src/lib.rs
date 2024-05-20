@@ -7,9 +7,9 @@ pub mod filters;
 pub mod controls;
 pub mod actions;
 pub mod inputs;
-pub mod events;
 pub mod processes;
 pub mod dialogs;
+pub mod events;
 
 pub use self::errors::Error;
 pub use self::errors::Result;

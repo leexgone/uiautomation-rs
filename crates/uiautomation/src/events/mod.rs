@@ -1,15 +1,15 @@
+mod handlers;
+mod functions;
+
 use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
-use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
-use windows::Win32::UI::Accessibility::IUIAutomationEventHandler_Impl;
 use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
-use windows::Win32::UI::Accessibility::UIA_EVENT_ID;
-use windows_core::implement;
 use windows_core::Param;
 
+use crate::types::StructureChangeType;
 use crate::types::UIProperty;
 use crate::variants::SafeArray;
 use crate::variants::Variant;
@@ -120,31 +120,6 @@ pub enum UIEventType {
     /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements 
     /// (such as web browsers, PDF documents, or EPUB documents) using bookmarks (fragment identifiers that refer to a location within a resource).
     ActiveTextPositionChanged = 20036i32,
-}
-
-/// `StructureChangeType` is an enum wrapper for `windows::Win32::UI::Accessibility::StructureChangeType`.
-/// 
-/// Contains values that specify the type of change in the Microsoft UI Automation tree structure.
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-#[map_as(windows::Win32::UI::Accessibility::StructureChangeType)]
-pub enum StructureChangeType {
-    /// A child element was added to the UI Automation element tree.
-    ChildAdded = 0i32,
-    /// A child element was removed from the UI Automation element tree.
-    ChildRemoved = 1i32,
-    /// Child elements were invalidated in the UI Automation element tree. 
-    /// This might mean that one or more child elements were added or removed, or a combination of both. 
-    /// This value can also indicate that one subtree in the UI was substituted for another. 
-    /// For example, the entire contents of a dialog box changed at once, or the view of a list changed because an Explorer-type application navigated to another location. 
-    /// The exact meaning depends on the UI Automation provider implementation.
-    ChildrenInvalidated = 2i32,
-    /// Child elements were added in bulk to the UI Automation element tree.
-    ChildrenBulkAdded = 3i32,
-    /// Child elements were removed in bulk from the UI Automation element tree.
-    ChildrenBulkRemoved = 4i32,
-    /// The order of child elements has changed in the UI Automation element tree. Child elements may or may not have been added or removed.
-    ChildrenReordered = 5i32
 }
 
 /// A wrapper for windows `IUIAutomationEventHandler` interface. 
@@ -385,33 +360,20 @@ pub trait CustomEventHandler {
     fn handle(&self, sender: &UIElement, event_type: UIEventType) -> Result<()>;
 }
 
-#[implement(IUIAutomationEventHandler)]
-pub struct AutomationEventHandler {
-    handler: Box<dyn CustomEventHandler>
-}
-
-impl IUIAutomationEventHandler_Impl for AutomationEventHandler {
-    fn HandleAutomationEvent(&self, sender: Option<&IUIAutomationElement>, eventid: UIA_EVENT_ID) -> windows::core::Result<()> {
-        if let Some(e) = sender {
-            let element = UIElement::from(e);
-            self.handler.handle(&element, eventid.into()).map_err(|e| e.into())
-        } else {
-            Ok(())
-        }
-    }
-}
-
-impl <T> From<T> for AutomationEventHandler where T: CustomEventHandler + 'static {
-    fn from(value: T) -> Self {
-        Self {
-            handler: Box::new(value)
-        }
-    }
-}
-
 impl <T> From<T> for UIEventHandler where T: CustomEventHandler + 'static {
     fn from(value: T) -> Self {
-        let handler = AutomationEventHandler::from(value);
+        let handler = handlers::AutomationEventHandler::from(value);
+        let handler: IUIAutomationEventHandler = handler.into();
+        handler.into()
+    }
+}
+
+/// Defines a custom handler function for `IUIAutomationEventHandler`.
+pub type CustomEventHandlerFn = dyn Fn(&UIElement, UIEventType) -> Result<()>;
+
+impl From<Box<CustomEventHandlerFn>> for UIEventHandler {
+    fn from(value: Box<CustomEventHandlerFn>) -> Self {
+        let handler = functions::AutomationEventHandler::from(value);
         let handler: IUIAutomationEventHandler = handler.into();
         handler.into()
     }
@@ -421,9 +383,11 @@ impl <T> From<T> for UIEventHandler where T: CustomEventHandler + 'static {
 mod tests {
     use windows::Win32::UI::Accessibility::UIA_DropTarget_DroppedEventId;
 
+    use crate::types::TreeScope;
     use crate::UIAutomation;
 
     use super::CustomEventHandler;
+    use super::CustomEventHandlerFn;
     use super::UIEventHandler;
     use super::UIEventType;
 
@@ -448,8 +412,18 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
 
         let root = automation.get_root_element().unwrap();
+
         let handler = UIEventHandler::from(MyEventHandler {});
-        automation.add_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, crate::types::TreeScope::Subtree, None, &handler).unwrap();
+        automation.add_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, TreeScope::Subtree, None, &handler).unwrap();
         automation.remove_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, &handler).unwrap();
+
+        let handle_fn: Box<CustomEventHandlerFn> = Box::new(|sender, event_type| {
+            println!("event: {:?}, element: {}", event_type, sender);
+            Ok(())
+        });
+
+        let handler = UIEventHandler::from(handle_fn);
+        automation.add_automation_event_handler(UIEventType::Text_TextChanged, &root, TreeScope::Subtree, None, &handler).unwrap();
+        automation.remove_automation_event_handler(UIEventType::Text_TextChanged, &root, &handler).unwrap();
     }
 }
