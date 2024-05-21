@@ -379,6 +379,19 @@ impl From<Box<CustomEventHandlerFn>> for UIEventHandler {
     }
 }
 
+/// Defines a custom handler for `IUIAutomationPropertyChangedEventHandler`.
+pub trait CustomPropertyChangedEventHandler {
+    fn handle(&self, sender: &UIElement, property: UIProperty, new_value: Variant) -> Result<()>;
+}
+
+impl <T> From<T> for UIPropertyChangedEventHandler where T: CustomPropertyChangedEventHandler + 'static {
+    fn from(value: T) -> Self {
+        let handler = handlers::AutomationPropertyChangedHandler::from(value);
+        let handler: IUIAutomationPropertyChangedEventHandler = handler.into();
+        handler.into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::UIA_DropTarget_DroppedEventId;

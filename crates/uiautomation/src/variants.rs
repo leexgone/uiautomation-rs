@@ -351,6 +351,12 @@ impl From<VARIANT> for Variant {
     }
 }
 
+impl From<&VARIANT> for Variant {
+    fn from(value: &VARIANT) -> Self {
+        value.clone().into()
+    }
+}
+
 impl Into<VARIANT> for Variant {
     fn into(self) -> VARIANT {
         self.value
