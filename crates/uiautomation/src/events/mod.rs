@@ -392,6 +392,17 @@ impl <T> From<T> for UIPropertyChangedEventHandler where T: CustomPropertyChange
     }
 }
 
+/// Defines a custom handler function for `IUIAutomationPropertyChangedEventHandler`.
+pub type CustomPropertyChangedEventHandlerFn = dyn Fn(&UIElement, UIProperty, Variant) -> Result<()>;
+
+impl From<Box<CustomPropertyChangedEventHandlerFn>> for UIPropertyChangedEventHandler {
+    fn from(value: Box<CustomPropertyChangedEventHandlerFn>) -> Self {
+        let handler = functions::AutomationPropertyChangedEventHandler::from(value);
+        let handler: IUIAutomationPropertyChangedEventHandler = handler.into();
+        handler.into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::UIA_DropTarget_DroppedEventId;
