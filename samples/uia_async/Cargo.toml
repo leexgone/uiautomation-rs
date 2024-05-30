@@ -1,0 +1,10 @@
+[package]
+name = "uia_async"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+
+tokio = { version = "1.37.0", features = ["full"] }
+
+uiautomation = { path = "../../crates/uiautomation" }

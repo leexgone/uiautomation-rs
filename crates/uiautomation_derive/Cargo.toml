@@ -18,6 +18,6 @@ default-target = "x86_64-pc-windows-msvc"
 targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
 [dependencies]
-syn = { version = "2.0.65", features = ["full"] }
+syn = { version = "2.0.66", features = ["full"] }
 quote = "1.0.36"
-proc-macro2 = "1.0.83"
+proc-macro2 = "1.0.84"
