@@ -1281,6 +1281,11 @@ impl SafeArray {
         }
     }
 
+    /// Determines whether the array is null.
+    pub fn is_null(&self) -> bool {
+        self.array.is_null()
+    }
+
     /// Creates a vector array.
     pub fn new_vector(var_type: VARENUM, len: u32) -> Result<Self> {
         unsafe {
@@ -1476,6 +1481,18 @@ impl From<*mut imp::SAFEARRAY> for SafeArray {
     }
 }
 
+impl From<*const imp::SAFEARRAY> for SafeArray {
+    fn from(value: *const imp::SAFEARRAY) -> Self {
+        let array: *mut SAFEARRAY = unsafe {
+            std::mem::transmute(value)
+        };
+        Self {
+            array,
+            owned: false
+        }
+    }
+}
+
 impl Into<*mut imp::SAFEARRAY> for SafeArray {
     fn into(mut self) -> *mut imp::SAFEARRAY {
         self.owned = false;
@@ -1491,6 +1508,18 @@ impl From<*mut SAFEARRAY> for SafeArray {
         Self {
             array,
             owned: true
+        }
+    }
+}
+
+impl From<*const SAFEARRAY> for SafeArray {
+    fn from(value: *const SAFEARRAY) -> Self {
+        let array: *mut SAFEARRAY = unsafe {
+            std::mem::transmute(value)
+        };
+        Self {
+            array,
+            owned: false
         }
     }
 }

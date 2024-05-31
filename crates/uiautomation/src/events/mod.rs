@@ -403,6 +403,30 @@ impl From<Box<CustomPropertyChangedEventHandlerFn>> for UIPropertyChangedEventHa
     }
 }
 
+/// Defines a custom handler for `IUIAutomationStructureChangedEventHandler`.
+pub trait CustomStructureChangeEventHandler {
+    fn handle(&self, sender: &UIElement, change_type: StructureChangeType, runtime_id: Option<&[i32]>) -> Result<()>;
+}
+
+impl <T> From<T> for UIStructureChangeEventHandler where T: CustomStructureChangeEventHandler + 'static {
+    fn from(value: T) -> Self {
+        let handler = handlers::AutomationStructureChangeEventHandler::from(value);
+        let handler: IUIAutomationStructureChangedEventHandler = handler.into();
+        handler.into()
+    }
+}
+
+/// Defines a custom handler function for `IUIAutomationStructureChangedEventHandler`.
+pub type CustomStructureChangeEventHandlerFn = dyn Fn(&UIElement, StructureChangeType, Option<&[i32]>) -> Result<()>;
+
+impl From<Box<CustomStructureChangeEventHandlerFn>> for UIStructureChangeEventHandler {
+    fn from(value: Box<CustomStructureChangeEventHandlerFn>) -> Self {
+        let handler = functions::AutomationStructureChangeEventHandler::from(value);
+        let handler: IUIAutomationStructureChangedEventHandler = handler.into();
+        handler.into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::UI::Accessibility::UIA_DropTarget_DroppedEventId;
