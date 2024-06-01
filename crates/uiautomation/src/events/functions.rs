@@ -1,6 +1,8 @@
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler_Impl;
+use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler;
+use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler_Impl;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler_Impl;
 use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
@@ -14,8 +16,9 @@ use crate::variants::Variant;
 use crate::UIElement;
 
 use super::CustomEventHandlerFn;
+use super::CustomFocusChangedEventHandlerFn;
 use super::CustomPropertyChangedEventHandlerFn;
-use super::CustomStructureChangeEventHandlerFn;
+use super::CustomStructureChangedEventHandlerFn;
 
 #[implement(IUIAutomationEventHandler)]
 pub struct AutomationEventHandler {
@@ -69,11 +72,11 @@ impl From<Box<CustomPropertyChangedEventHandlerFn>> for AutomationPropertyChange
 }
 
 #[implement(IUIAutomationStructureChangedEventHandler)]
-pub struct AutomationStructureChangeEventHandler { 
-    handler: Box<CustomStructureChangeEventHandlerFn>
+pub struct AutomationStructureChangedEventHandler { 
+    handler: Box<CustomStructureChangedEventHandlerFn>
 }
 
-impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChangeEventHandler {
+impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChangedEventHandler {
     fn HandleStructureChangedEvent(&self, sender: Option<&IUIAutomationElement>, changetype: windows::Win32::UI::Accessibility::StructureChangeType, runtimeid: *const windows::Win32::System::Com::SAFEARRAY) -> windows_core::Result<()> {
         if let Some(e) = sender {
             let handler = &self.handler;
@@ -95,8 +98,33 @@ impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChang
     }
 }
 
-impl From<Box<CustomStructureChangeEventHandlerFn>> for AutomationStructureChangeEventHandler {
-    fn from(handler: Box<CustomStructureChangeEventHandlerFn>) -> Self {
+impl From<Box<CustomStructureChangedEventHandlerFn>> for AutomationStructureChangedEventHandler {
+    fn from(handler: Box<CustomStructureChangedEventHandlerFn>) -> Self {
+        Self {
+            handler
+        }
+    }
+}
+
+#[implement(IUIAutomationFocusChangedEventHandler)]
+pub struct AutomationFocusChangedEventHandler {
+    handler: Box<CustomFocusChangedEventHandlerFn>
+}
+
+impl IUIAutomationFocusChangedEventHandler_Impl for AutomationFocusChangedEventHandler {
+    fn HandleFocusChangedEvent(&self, sender: Option<&IUIAutomationElement>) -> windows_core::Result<()> {
+        if let Some(e) = sender {
+            let element = UIElement::from(e);
+            let handler = &self.handler;
+            handler(&element).map_err(|e| e.into())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl From<Box<CustomFocusChangedEventHandlerFn>> for AutomationFocusChangedEventHandler {
+    fn from(handler: Box<CustomFocusChangedEventHandlerFn>) -> Self {
         Self {
             handler
         }

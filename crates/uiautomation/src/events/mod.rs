@@ -404,25 +404,49 @@ impl From<Box<CustomPropertyChangedEventHandlerFn>> for UIPropertyChangedEventHa
 }
 
 /// Defines a custom handler for `IUIAutomationStructureChangedEventHandler`.
-pub trait CustomStructureChangeEventHandler {
+pub trait CustomStructureChangedEventHandler {
     fn handle(&self, sender: &UIElement, change_type: StructureChangeType, runtime_id: Option<&[i32]>) -> Result<()>;
 }
 
-impl <T> From<T> for UIStructureChangeEventHandler where T: CustomStructureChangeEventHandler + 'static {
+impl <T> From<T> for UIStructureChangeEventHandler where T: CustomStructureChangedEventHandler + 'static {
     fn from(value: T) -> Self {
-        let handler = handlers::AutomationStructureChangeEventHandler::from(value);
+        let handler = handlers::AutomationStructureChangedEventHandler::from(value);
         let handler: IUIAutomationStructureChangedEventHandler = handler.into();
         handler.into()
     }
 }
 
 /// Defines a custom handler function for `IUIAutomationStructureChangedEventHandler`.
-pub type CustomStructureChangeEventHandlerFn = dyn Fn(&UIElement, StructureChangeType, Option<&[i32]>) -> Result<()>;
+pub type CustomStructureChangedEventHandlerFn = dyn Fn(&UIElement, StructureChangeType, Option<&[i32]>) -> Result<()>;
 
-impl From<Box<CustomStructureChangeEventHandlerFn>> for UIStructureChangeEventHandler {
-    fn from(value: Box<CustomStructureChangeEventHandlerFn>) -> Self {
-        let handler = functions::AutomationStructureChangeEventHandler::from(value);
+impl From<Box<CustomStructureChangedEventHandlerFn>> for UIStructureChangeEventHandler {
+    fn from(value: Box<CustomStructureChangedEventHandlerFn>) -> Self {
+        let handler = functions::AutomationStructureChangedEventHandler::from(value);
         let handler: IUIAutomationStructureChangedEventHandler = handler.into();
+        handler.into()
+    }
+}
+
+/// Defines a custom handler for `IUIAutomationFocusChangedEventHandler`.
+pub trait CustomFocusChangedEventHandler {
+    fn handle(&self, sender: &UIElement) -> Result<()>;
+}
+
+impl <T> From<T> for UIFocusChangedEventHandler where T: CustomFocusChangedEventHandler + 'static {
+    fn from(value: T) -> Self {
+        let handler = handlers::AutomationFocusChangedEventHandler::from(value);
+        let handler: IUIAutomationFocusChangedEventHandler = handler.into();
+        handler.into()
+    }
+}
+
+/// Defines a custom handler function for `IUIAutomationFocusChangedEventHandler`.
+pub type CustomFocusChangedEventHandlerFn = dyn Fn(&UIElement) -> Result<()>;
+
+impl From<Box<CustomFocusChangedEventHandlerFn>> for UIFocusChangedEventHandler {
+    fn from(value: Box<CustomFocusChangedEventHandlerFn>) -> Self {
+        let handler = functions::AutomationFocusChangedEventHandler::from(value);
+        let handler: IUIAutomationFocusChangedEventHandler = handler.into();
         handler.into()
     }
 }
