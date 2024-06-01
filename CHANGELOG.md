@@ -138,3 +138,7 @@
 ## v0.10.0
 
 + Fix typo in method names (ragne -> range) [#57](https://github.com/leexgone/uiautomation-rs/pull/57)
+
+## v0.11.0
+
++ Support event handler. [#59](https://github.com/leexgone/uiautomation-rs/issues/59)

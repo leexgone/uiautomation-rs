@@ -1,0 +1,8 @@
+[package]
+name = "uia_event_handler"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+uiautomation = { path = "../../crates/uiautomation" }
