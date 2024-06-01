@@ -145,14 +145,6 @@ impl Process {
         }
     }
 
-    // /// Exit the process with `exit_code` by force.
-    // pub fn terminate(&self, exit_code: u32) -> Result<()> {
-    //     unsafe {
-    //         TerminateProcess(self.proc_info.hProcess, exit_code)?
-    //     };
-    //     Ok(())
-    // }
-
     /// Wait for the process to exit.
     /// 
     /// `timeout` is the milliseconds to wait for.

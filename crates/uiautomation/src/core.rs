@@ -24,8 +24,14 @@ use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::core::IUnknown;
 use windows::core::Interface;
+use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 
 use crate::controls::ControlType;
+use crate::events::UIEventHandler;
+use crate::events::UIEventType;
+use crate::events::UIFocusChangedEventHandler;
+use crate::events::UIPropertyChangedEventHandler;
+use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::patterns::UIPatternType;
@@ -309,6 +315,83 @@ impl UIAutomation {
     pub fn create_cache_request(&self) -> Result<UICacheRequest> {
         let request = unsafe { self.automation.CreateCacheRequest()? };
         Ok(request.into())
+    }
+
+    /// Registers a method that handles Microsoft UI Automation events.
+    pub fn add_automation_event_handler(&self, event_type: UIEventType, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIEventHandler) -> Result<()> {
+        let cache_request = cache_request.map(|r| r.as_ref());
+        unsafe {
+            self.automation.AddAutomationEventHandler(event_type.into(), element, scope.into(), cache_request, handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes the specified UI Automation event handler.
+    pub fn remove_automation_event_handler(&self, event_type: UIEventType, element: &UIElement, handler: &UIEventHandler) -> Result<()> {
+        unsafe {
+            self.automation.RemoveAutomationEventHandler(event_type.into(), element, handler)?
+        };
+        Ok(())
+    }
+
+    /// Registers a method that handles and array of property-changed events.
+    pub fn add_property_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIPropertyChangedEventHandler, properties: &[UIProperty]) -> Result<()> {
+        let cache_request = cache_request.map(|r| r.as_ref());
+        let prop_arr: Vec<UIA_PROPERTY_ID> = properties.iter().map(|p| (*p).into()).collect();
+        unsafe {
+            self.automation.AddPropertyChangedEventHandlerNativeArray(element, scope.into(), cache_request, handler, &prop_arr)?
+        };
+        Ok(())
+    }
+
+    /// Removes a property-changed event handler.
+    pub fn remove_property_changed_event_handler(&self, element: &UIElement, handler: &UIPropertyChangedEventHandler) -> Result<()> {
+        unsafe {
+            self.automation.RemovePropertyChangedEventHandler(element, handler)?
+        };
+        Ok(())
+    }
+
+    /// Registers a method that handles structure-changed events.
+    pub fn add_structure_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIStructureChangeEventHandler) -> Result<()> {
+        let cache_request = cache_request.map(|r| r.as_ref());
+        unsafe {
+            self.automation.AddStructureChangedEventHandler(element, scope.into(), cache_request, handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes a structure-changed event handler.
+    pub fn remove_structure_changed_event_handler(&self, element: &UIElement, handler: &UIStructureChangeEventHandler) -> Result<()> {
+        unsafe {
+            self.automation.RemoveStructureChangedEventHandler(element, handler)?
+        };
+        Ok(())
+    }
+
+    /// Registers a method that handles focus-changed events.
+    pub fn add_focus_changed_event_handler(&self, cache_request: Option<&UICacheRequest>, handler: &UIFocusChangedEventHandler) -> Result<()> {
+        let cache_request = cache_request.map(|r| r.as_ref());
+        unsafe {
+            self.automation.AddFocusChangedEventHandler(cache_request, handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes a focus-changed event handler.
+    pub fn remove_focus_changed_event_handler(&self, handler: &UIFocusChangedEventHandler) -> Result<()> {
+        unsafe {
+            self.automation.RemoveFocusChangedEventHandler(handler)?
+        };
+        Ok(())
+    }
+
+    /// Removes all registered Microsoft UI Automation event handlers.
+    pub fn remove_all_event_handlers(&self) -> Result<()> {
+        unsafe {
+            self.automation.RemoveAllEventHandlers()?
+        };
+        Ok(())
     }
 }
 
@@ -1115,17 +1198,17 @@ impl From<IUIAutomationElement> for UIElement {
     }
 }
 
+impl From<&IUIAutomationElement> for UIElement {
+    fn from(value: &IUIAutomationElement) -> Self {
+        value.clone().into()
+    }
+}
+
 impl Into<IUIAutomationElement> for UIElement {
     fn into(self) -> IUIAutomationElement {
         self.element
     }
 }
-
-// impl IntoParam<IUIAutomationElement> for UIElement {
-//     unsafe fn into_param(self) -> windows::core::Param<IUIAutomationElement> {
-//         windows::core::Param::Owned(self.element)
-//     }
-// }
 
 impl Param<IUIAutomationElement> for UIElement {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationElement> {
@@ -2169,7 +2252,7 @@ mod tests {
     use std::thread::sleep;
     use std::time::Duration;
 
-    use windows::Win32::UI::Accessibility::IUIAutomationElement;
+    use windows::Win32::UI::Accessibility::*;
     use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
     use crate::UIAutomation;

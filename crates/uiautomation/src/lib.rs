@@ -9,6 +9,7 @@ pub mod actions;
 pub mod inputs;
 pub mod processes;
 pub mod dialogs;
+pub mod events;
 
 pub use self::errors::Error;
 pub use self::errors::Result;

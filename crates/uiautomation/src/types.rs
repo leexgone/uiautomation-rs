@@ -1094,6 +1094,31 @@ pub enum ElementMode {
     Full = 1i32
 }
 
+/// `StructureChangeType` is an enum wrapper for `windows::Win32::UI::Accessibility::StructureChangeType`.
+/// 
+/// Contains values that specify the type of change in the Microsoft UI Automation tree structure.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::StructureChangeType)]
+pub enum StructureChangeType {
+    /// A child element was added to the UI Automation element tree.
+    ChildAdded = 0i32,
+    /// A child element was removed from the UI Automation element tree.
+    ChildRemoved = 1i32,
+    /// Child elements were invalidated in the UI Automation element tree. 
+    /// This might mean that one or more child elements were added or removed, or a combination of both. 
+    /// This value can also indicate that one subtree in the UI was substituted for another. 
+    /// For example, the entire contents of a dialog box changed at once, or the view of a list changed because an Explorer-type application navigated to another location. 
+    /// The exact meaning depends on the UI Automation provider implementation.
+    ChildrenInvalidated = 2i32,
+    /// Child elements were added in bulk to the UI Automation element tree.
+    ChildrenBulkAdded = 3i32,
+    /// Child elements were removed in bulk from the UI Automation element tree.
+    ChildrenBulkRemoved = 4i32,
+    /// The order of child elements has changed in the UI Automation element tree. Child elements may or may not have been added or removed.
+    ChildrenReordered = 5i32
+}
+
 #[cfg(test)]
 mod tests {
     use windows::Win32::Foundation::HWND;

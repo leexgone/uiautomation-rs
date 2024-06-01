@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use windows::Win32::Foundation::GetLastError;
 use windows::core::HRESULT;
+use windows::Win32::Foundation::E_FAIL;
 
 /// Error caused by unknown reason.
 pub const ERR_NONE: i32 = 0;
@@ -85,6 +86,21 @@ impl From<windows::core::Error> for Error {
         Self {
             code: e.code().0,
             message: e.message().to_string()
+        }
+    }
+}
+
+impl Into<windows::core::Error> for Error {
+    fn into(self) -> windows::core::Error {
+        // if self.code < 0 {
+        //     windows::core::Error::new(HRESULT(self.code), self.message)
+        // } else {
+        //     windows::core::Error::new(E_FAIL, self.message)
+        // }
+        if let Some(result) = self.result() {
+            windows::core::Error::from_hresult(result)
+        } else {
+            windows::core::Error::new(E_FAIL, self.message)
         }
     }
 }
