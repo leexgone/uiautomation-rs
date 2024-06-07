@@ -464,6 +464,22 @@ impl UIElement {
         Self::to_elements(elements)
     }
 
+    /// Retrieves from the cache the parent of this UI Automation element.
+    pub fn get_cached_parent(&self) -> Result<UIElement> {
+        let parent = unsafe {
+            self.element.GetCachedParent()?
+        };
+        Ok(parent.into())
+    }
+
+    /// Retrieves the cached child elements of this UI Automation element.
+    pub fn get_cached_children(&self) -> Result<Vec<UIElement>> {
+        let elements = unsafe {
+            self.element.GetCachedChildren()?
+        };
+        Self::to_elements(elements)
+    }
+
     /// Receives the runtime ID as a vec of integers.
     pub fn get_runtime_id(&self) -> Result<Vec<i32>> {
         let id = unsafe {
