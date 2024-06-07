@@ -142,3 +142,7 @@
 ## v0.11.0
 
 + Support event handler. [#59](https://github.com/leexgone/uiautomation-rs/issues/59)
+
+## v0.11.1
+
++ Support `UIElement::get_cached_children()` & `UIElement::get_cached_parent()`. [#63](https://github.com/leexgone/uiautomation-rs/issues/63)
