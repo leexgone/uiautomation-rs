@@ -1,4 +1,5 @@
 use std::mem;
+use std::iter::once;
 
 use windows::Win32::Foundation::CloseHandle;
 use windows::Win32::Foundation::HANDLE;
@@ -33,26 +34,30 @@ pub struct Process {
     proc_info: PROCESS_INFORMATION
 }
 
-macro_rules! to_pcwstr {
-    ($text: expr) => {
-        if let Some(ref val) = $text {
-            let buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
-            PCWSTR::from_raw(buf.as_ptr())
-        } else {
-            PCWSTR::null()
-        }
-    };
+struct WSTR {
+    data: Option<Vec<u16>>,
 }
 
-macro_rules! to_pwstr {
-    ($text: expr) => {
-        if let Some(ref val) = $text {
-            let mut buf: Vec<u16> = val.encode_utf16().chain(std::iter::once(0)).collect();
-            PWSTR::from_raw(buf.as_mut_ptr())
-        } else {
-            PWSTR::null()
+impl WSTR {
+    fn new(s: Option<&str>) -> Self {
+        Self {
+            data: s.map(|s| s.encode_utf16().chain(once(0)).collect()),
         }
-    };
+    }
+
+    fn to_pcwstr(&self) -> PCWSTR {
+        self.data
+            .as_ref()
+            .map(|s| PCWSTR::from_raw(s.as_ptr()))
+            .unwrap_or_else(|| PCWSTR::null())
+    }
+
+    fn to_pwstr(&mut self) -> PWSTR {
+        self.data
+            .as_mut()
+            .map(|s| PWSTR::from_raw(s.as_mut_ptr()))
+            .unwrap_or_else(|| PWSTR::null())
+    }
 }
 
 impl Process {
@@ -120,19 +125,20 @@ impl Process {
         if !self.proc_info.hProcess.is_invalid() {
             Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
         } else {
-            let app = to_pcwstr!(self.application);
-            let cmd = to_pwstr!(self.command);
-            let cur_dir = to_pcwstr!(self.cur_dir);
+            let app = WSTR::new(self.application.as_deref());
+            let mut cmd = WSTR::new(self.command.as_deref());
+            let cur_dir = WSTR::new(self.cur_dir.as_deref());
 
             unsafe {
-                CreateProcessW(app, 
-                    cmd,
-                    None, 
-                    None, 
-                    true, 
-                    PROCESS_CREATION_FLAGS::default(), 
+                CreateProcessW(
+                    app.to_pcwstr(),
+                    cmd.to_pwstr(),
                     None,
-                    cur_dir,
+                    None,
+                    true,
+                    PROCESS_CREATION_FLAGS::default(),
+                    None,
+                    cur_dir.to_pcwstr(),
                     &self.startup_info,
                     &mut self.proc_info)?
             };
