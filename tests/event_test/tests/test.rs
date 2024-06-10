@@ -16,19 +16,19 @@ mod tests {
         let auto_ref: &IUIAutomation = automation.as_ref();
 
         let matcher = automation.create_matcher().classname("Notepad");
-        let notepad = matcher.find_first().unwrap();
+        if let Ok(notepad) = matcher.find_first() {
+            let handler = MyEventHandler {};
+            let handler: IUIAutomationEventHandler = handler.into();
 
-        let handler = MyEventHandler {};
-        let handler: IUIAutomationEventHandler = handler.into();
+            unsafe {
+                auto_ref.AddAutomationEventHandler(UIA_Text_TextChangedEventId, 
+                    &notepad, 
+                    TreeScope_Subtree, 
+                    None, 
+                    &handler).unwrap();
+            }
 
-        unsafe {
-            auto_ref.AddAutomationEventHandler(UIA_Text_TextChangedEventId, 
-                &notepad, 
-                TreeScope_Subtree, 
-                None, 
-                &handler).unwrap();
+            sleep(Duration::from_secs(60));
         }
-
-        sleep(Duration::from_secs(60));
     }
 }

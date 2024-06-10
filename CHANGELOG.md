@@ -146,3 +146,8 @@
 ## v0.11.1
 
 + Support `UIElement::get_cached_children()` & `UIElement::get_cached_parent()`. [#63](https://github.com/leexgone/uiautomation-rs/issues/63)
+
+## v0.11.2
+
++ Cache encoded string buffers so that they outlive PCWSTR and PWSTR pointers. [#65](https://github.com/leexgone/uiautomation-rs/issues/65)
++ Update to `windows v0.57.0`
