@@ -151,3 +151,7 @@
 
 + Cache encoded string buffers so that they outlive PCWSTR and PWSTR pointers. [#65](https://github.com/leexgone/uiautomation-rs/issues/65)
 + Update to `windows v0.57.0`
+
+## v0.11.3
+
++ fixed `click` error between multi-monitors. [#62](https://github.com/leexgone/uiautomation-rs/issues/62)

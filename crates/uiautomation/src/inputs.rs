@@ -631,10 +631,10 @@ impl Mouse {
     /// mouse.move_to(Point::new(1000,800)).unwrap();
     /// ```
     pub fn move_to(&self, target: Point) -> Result<()> {
-        let (width, height) = get_screen_size()?;
-        let x = min(max(0, target.get_x()), width);
-        let y = min(max(0, target.get_y()), height);
-        let target = Point::new(x, y);
+        // let (width, height) = get_screen_size()?;
+        // let x = min(max(0, target.get_x()), width);
+        // let y = min(max(0, target.get_y()), height);
+        // let target = Point::new(x, y);
         
         if self.move_time > 0 {
             let source = Self::get_cursor_pos()?;
