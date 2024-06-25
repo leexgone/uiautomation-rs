@@ -1,5 +1,4 @@
 use std::cmp::max;
-use std::cmp::min;
 use std::mem;
 use std::str::Chars;
 use std::thread::sleep;
