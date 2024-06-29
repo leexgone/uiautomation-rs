@@ -36,7 +36,7 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
         impl std::fmt::Display for #enum_name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match *self {
-                    #( Self::#enum_names => write!(f, "{}", stringify!(#enum_names)), )*
+                    #( Self::#enum_names => write!(f, stringify!(#enum_names)), )*
                 }
             }
         }     
