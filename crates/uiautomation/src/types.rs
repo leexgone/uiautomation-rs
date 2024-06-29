@@ -224,12 +224,6 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-// impl IntoParam<HWND> for Handle {
-//     unsafe fn into_param(self) -> windows::core::Param<HWND> {
-//         windows::core::Param::Owned(self.0)
-//     }
-// }
-
 impl Param<HWND> for Handle {
     unsafe fn param(self) -> windows::core::ParamValue<HWND> {
         windows::core::ParamValue::Owned(self.0)
@@ -631,6 +625,18 @@ pub enum WindowInteractionState {
     /// The window is not responding.
     NotResponding = 4i32
 }
+
+// impl Display for WindowInteractionState {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match *self {
+//             Self::Running => write!(f, "Running"),
+//             Self::Closing => write!(f, "Closing"),
+//             Self::ReadyForUserInteraction => write!(f, "ReadyForUserInteraction"),
+//             Self::BlockedByModalWindow => write!(f, "BlockedByModalWindow"),
+//             Self::NotResponding => write!(f, "NotResponding")
+//         }
+//     }
+// }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::DockPosition`.
 /// 
@@ -1137,6 +1143,9 @@ mod tests {
 
         assert_eq!(Accessibility::WindowInteractionState_ReadyForUserInteraction, WindowInteractionState::ReadyForUserInteraction.into());
         assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.into());
+
+        let running = format!("{}", WindowInteractionState::Running);
+        assert_eq!(running, "Running");
     }
 
     #[test]

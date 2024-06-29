@@ -155,3 +155,7 @@
 ## v0.11.3
 
 + fixed `click` error between multi-monitors. [#62](https://github.com/leexgone/uiautomation-rs/issues/62)
+
+## v0.11.4
+
++ enum types support `Dispaly` trait.
