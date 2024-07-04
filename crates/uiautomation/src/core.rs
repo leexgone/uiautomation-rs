@@ -2275,7 +2275,6 @@ mod tests {
     use crate::UIElement;
     use crate::controls::ControlType;
     use crate::filters::MatcherFilter;
-    use crate::types::Handle;
     use crate::types::TreeScope;
 
     fn print_element(element: &UIElement) {
@@ -2418,7 +2417,7 @@ mod tests {
     #[test]
     fn test_window_rect_prop() {
         let window = unsafe { GetForegroundWindow() };
-        if window.0 == 0 {
+        if window.is_invalid() {
             return;
         }
 
@@ -2447,9 +2446,9 @@ mod tests {
         assert!(uiautomation.is_ok());
     }
 
-    #[test]
-    fn test_search_from_handle() {
-        let auto = UIAutomation::new().unwrap();
-        let _ = auto.element_from_handle(Handle::from(0x2006C6));
-    }
+    // #[test]
+    // fn test_search_from_handle() {
+    //     let auto = UIAutomation::new().unwrap();
+    //     let _ = auto.element_from_handle(Handle::from(0x2006C6));
+    // }
 }

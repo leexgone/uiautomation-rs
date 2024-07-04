@@ -159,3 +159,7 @@
 ## v0.11.4
 
 + enum types support `Dispaly` trait.
+
+## v0.12.0
+
++ update to `windows v0.58.0`.
