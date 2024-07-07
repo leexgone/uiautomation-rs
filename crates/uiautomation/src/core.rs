@@ -57,8 +57,8 @@ use super::types::Rect;
 use super::types::Point;
 use super::variants::Variant;
 
-/// A wrapper for windows `IUIAutomation` interface. 
-/// 
+/// A wrapper for windows `IUIAutomation` interface.
+///
 /// Exposes methods that enable Microsoft UI Automation client applications to discover, access, and filter UI Automation elements.
 #[derive(Debug, Clone)]
 pub struct UIAutomation {
@@ -66,8 +66,8 @@ pub struct UIAutomation {
 }
 
 impl UIAutomation {
-    /// Creates a uiautomation client instance. 
-    /// 
+    /// Creates a uiautomation client instance.
+    ///
     /// This method initializes the COM library each time, sets the thread's concurrency model as `COINIT_MULTITHREADED`.
     pub fn new() -> Result<UIAutomation> {
         let result = unsafe {
@@ -82,7 +82,7 @@ impl UIAutomation {
     }
 
     /// Creates a uiautomation client instance without initializing the COM library.
-    /// 
+    ///
     /// The COM library should be initialized manually before invoking.
     pub fn new_direct() -> Result<UIAutomation> {
         let automation: IUIAutomation = unsafe {
@@ -172,12 +172,12 @@ impl UIAutomation {
     }
 
     /// Retrieves a tree walker object that can be used to traverse the Microsoft UI Automation tree.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use uiautomation::UIAutomation;
-    /// 
+    ///
     /// let automation = UIAutomation::new().unwrap();
     /// let root = automation.get_root_element().unwrap();
     /// let walker = automation.create_tree_walker().unwrap();
@@ -242,12 +242,12 @@ impl UIAutomation {
     }
 
     /// Creates a UIMatcher which helps to find some UIElement.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use uiautomation::UIAutomation;
-    /// 
+    ///
     /// let automation = UIAutomation::new().unwrap();
     /// let matcher = automation.create_matcher().depth(3).timeout(1000).classname("Start");
     /// if let Ok(start_menu) = matcher.find_first() {
@@ -416,7 +416,7 @@ impl AsRef<IUIAutomation> for UIAutomation {
 }
 
 /// A wrapper for windows `IUIAutomationElement` interface.
-/// 
+///
 /// Exposes methods and properties for a UI Automation element, which represents a UI item.
 #[derive(Clone)]
 pub struct UIElement {
@@ -563,7 +563,7 @@ impl UIElement {
         let control_type = unsafe {
             self.element.CurrentControlType()?
         };
-        
+
         Ok(ControlType::from(control_type))
     }
 
@@ -1094,7 +1094,7 @@ impl UIElement {
         unsafe {
             element3.ShowContextMenu()?
         }
-        
+
         Ok(())
     }
 
@@ -1111,40 +1111,40 @@ impl UIElement {
     }
 
     /// Simulates typing `keys` on keyboard.
-    /// 
+    ///
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
-    /// 
+    ///
     /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
-    /// 
+    ///
     /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
-    /// 
+    ///
     /// `interval` is the milliseconds between keys. `0` is the default value.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use uiautomation::core::UIAutomation;
-    /// 
+    ///
     /// let automation = UIAutomation::new().unwrap();
     /// let root = automation.get_root_element().unwrap();
     /// root.send_keys("{Win}D", 0).unwrap();
     /// ```
     pub fn send_keys(&self, keys: &str, interval: u64) -> Result<()> {
         self.set_focus()?;
-        
+
         let kb = Keyboard::new();
         kb.interval(interval).send_keys(keys)
     }
 
     /// Simulates holding `holdkeys` on keyboard, then sending `keys`.
-    /// 
+    ///
     /// The key format is the same with `send_keys()`.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use uiautomation::core::UIAutomation;
-    /// 
+    ///
     /// let automation = UIAutomation::new().unwrap();
     /// let root = automation.get_root_element().unwrap();
     /// root.hold_send_keys("{Win}", "P", 0).unwrap();
@@ -1169,7 +1169,7 @@ impl UIElement {
     }
 
     /// Simulates mouse left click event with holdkeys on the element.
-    /// 
+    ///
     /// The holdkey is quoted by `{}`, for example: `{Ctrl}`, `{Ctrl}{Shift}`.
     pub fn hold_click(&self, holdkeys: &str) -> Result<()> {
         let point = self.get_click_point()?;
@@ -1180,7 +1180,7 @@ impl UIElement {
     /// Simulates mouse double click event on the element.
     pub fn double_click(&self) -> Result<()> {
         self.try_focus();
-        
+
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
         mouse.double_click(point)
@@ -1271,7 +1271,7 @@ impl Debug for UIElement {
     }
 }
 
-/// Exposes properties and methods of a cache request. 
+/// Exposes properties and methods of a cache request.
 /// Client applications use this interface to specify the properties and control patterns to be cached when a Microsoft UI Automation element is obtained.
 #[derive(Debug, Clone)]
 pub struct UICacheRequest {
@@ -1346,7 +1346,7 @@ impl UICacheRequest {
 
 impl From<IUIAutomationCacheRequest> for UICacheRequest {
     fn from(value: IUIAutomationCacheRequest) -> Self {
-        Self { 
+        Self {
             request: value
         }
     }
@@ -1377,7 +1377,7 @@ impl Param<IUIAutomationCacheRequest> for &UICacheRequest {
 }
 
 /// A wrapper for windows `IUIAutomationTreeWalker` interface.
-/// 
+///
 /// Exposes properties and methods that UI Automation client applications use to view and navigate the UI Automation elements on the desktop.
 #[derive(Clone)]
 pub struct UITreeWalker {
@@ -1418,7 +1418,7 @@ impl UITreeWalker {
         let child = unsafe {
             self.tree_walker.GetFirstChildElementBuildCache(element, cache_request)?
         };
-        Ok(child.into())        
+        Ok(child.into())
     }
 
     /// Retrieves the last child element of the specified UI Automation element.
@@ -1483,7 +1483,7 @@ impl UITreeWalker {
         Ok(result.into())
     }
 
-    /// Retrieves the ancestor element nearest to the specified Microsoft UI Automation element in the tree view, 
+    /// Retrieves the ancestor element nearest to the specified Microsoft UI Automation element in the tree view,
     /// prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
     pub fn normalize_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
         let ret = unsafe {
@@ -1533,7 +1533,7 @@ pub enum UIMatcherMode {
 }
 
 /// Defines filter conditions to match specific UI Element.
-/// 
+///
 /// `UIMatcher` can find first element or find all elements.
 pub struct UIMatcher {
     automation: UIAutomation,
@@ -1569,7 +1569,7 @@ impl UIMatcher {
     }
 
     /// Sets the root element of the UIAutomation tree whitch should be searched from.
-    /// 
+    ///
     /// The root element is desktop by default.
     pub fn from(mut self, element: UIElement) -> Self {
         self.from = Some(element);
@@ -1577,7 +1577,7 @@ impl UIMatcher {
     }
 
     /// Sets the root element of the UIAutomation tree whitch should be searched from. The `element` is cloned internally.
-    /// 
+    ///
     /// The root element is desktop by default.
     pub fn from_ref(mut self, element: &UIElement) -> Self {
         self.from = Some(element.clone());
@@ -1591,9 +1591,9 @@ impl UIMatcher {
     }
 
     /// Sets the the time in millionseconds for matching element. The default timeout is 3000 millionseconds(3 seconds).
-    /// 
+    ///
     /// The `UIMatcher` will not retry to find when you set `timeout` to `0`.
-    /// 
+    ///
     /// A timeout error will occur after this time.
     pub fn timeout(mut self, timeout: u64) -> Self {
         self.timeout = timeout;
@@ -1613,18 +1613,18 @@ impl UIMatcher {
     }
 
     /// Appends a filter function which is used as `and` logic.
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// ```
     /// use uiautomation::core::UIAutomation;
     /// use uiautomation::core::UIElement;
-    /// 
+    ///
     /// let automation = UIAutomation::new().unwrap();
     /// let matcher = automation.create_matcher().filter_fn(Box::new(|e: &UIElement| {
     ///     let framework_id = e.get_framework_id()?;
     ///     let class_name = e.get_classname()?;
-    ///     
+    ///
     ///     Ok("Win32" == framework_id && class_name.starts_with("Shell"))
     /// })).timeout(0);
     /// let element = matcher.find_first();
@@ -1674,7 +1674,7 @@ impl UIMatcher {
         let condition = ClassNameFilter {
             classname: classname.into()
         };
-        self.filter(Box::new(condition))        
+        self.filter(Box::new(condition))
     }
 
     /// Filters by control type.
@@ -1724,10 +1724,13 @@ impl UIMatcher {
         let mut elements: Vec<UIElement> = Vec::new();
         let start = Local::now().timestamp_millis();
         loop {
-            if self.debug {
-                println!("Try to match element...")
-            }
-            
+                if self.debug {
+                    #[cfg(feature = "log")]
+                    log::debug!("Try to match element...");
+                    #[cfg(not(feature = "log"))]
+                    println!("Try to match element...")
+                }
+
             let (root, walker) = self.prepare()?;
             self.search(&walker, &root, &mut elements, 1, first_only)?;
 
@@ -1741,7 +1744,7 @@ impl UIMatcher {
             }
 
             sleep(Duration::from_millis(self.interval));
-        } 
+        }
 
         Ok(elements)
     }
@@ -1757,7 +1760,7 @@ impl UIMatcher {
             UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,
             UIMatcherMode::Content => self.automation.filter_tree_walker(self.automation.get_content_view_condition()?)?,
         };
-        
+
         Ok((root, walker))
     }
 
@@ -1799,15 +1802,20 @@ impl UIMatcher {
         // };
 
         let mut ret = true;
-        for condition in &self.filters {
+        let mut failed_filter = 0;
+        for (idx, condition) in self.filters.iter().enumerate() {
             ret = condition.judge(element)?;
             if !ret {
+                failed_filter = idx;
                 break;
             }
         }
 
         if self.debug {
-            println!("{:?} -> {}", element, ret);
+            #[cfg(feature = "log") ]
+            log::debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
+            #[cfg(not(feature = "log"))]
+            println!("{:?} -> {} in filter {}", element, ret, failed_filter);
         }
 
         Ok(ret)
@@ -1833,7 +1841,7 @@ impl Debug for UIMatcher {
 pub trait IUICondition<T: Interface>: Sized + From<T> + Into<T> + AsRef<T> {
 }
 
-/// This is the primary interface for conditions used in filtering when searching for elements in the UI Automation tree. 
+/// This is the primary interface for conditions used in filtering when searching for elements in the UI Automation tree.
 #[derive(Debug, Clone)]
 pub struct UICondition(IUIAutomationCondition);
 
@@ -1869,7 +1877,7 @@ impl UICondition {
     }
 }
 
-impl IUICondition<IUIAutomationCondition> for UICondition {    
+impl IUICondition<IUIAutomationCondition> for UICondition {
 }
 
 impl From<IUIAutomationCondition> for UICondition {
@@ -2128,7 +2136,7 @@ impl UIOrCondition {
         let children: Vec<IUIAutomationCondition> = arr.into_interface_vector()?;
         let conditions: Vec<UICondition> = children.into_iter().map(|c| c.into()).collect();
         Ok(conditions)
-    }    
+    }
 }
 
 impl IUICondition<IUIAutomationOrCondition> for UIOrCondition {
@@ -2191,7 +2199,7 @@ impl UIPropertyCondition {
     /// Retrieves the identifier of the property on which this condition is based.
     pub fn get_property(&self) -> Result<UIProperty> {
         let property_id = unsafe {
-            self.0.PropertyId()?    
+            self.0.PropertyId()?
         };
         Ok(property_id.into())
     }
@@ -2442,7 +2450,7 @@ mod tests {
     #[test]
     fn test_create() {
         let _ = UIAutomation::new();
-        
+
         let uiautomation = UIAutomation::new_direct();
         assert!(uiautomation.is_ok());
     }
