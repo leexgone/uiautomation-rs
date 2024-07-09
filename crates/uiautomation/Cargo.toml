@@ -13,12 +13,20 @@ categories = ["api-bindings", "os::windows-apis", "accessibility"]
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
-targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+targets = [
+    "aarch64-pc-windows-msvc",
+    "i686-pc-windows-msvc",
+    "x86_64-pc-windows-msvc",
+]
+
+[features]
+log = ["dep:log"]
 
 [dependencies]
 
 chrono = "0.4.38"
 phf = { version = "0.11.2", features = ["macros"] }
+log = { version = "0.4.14", optional = true }
 uiautomation_derive = { version = "0.3.4", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
@@ -38,5 +46,5 @@ features = [
     "Win32_Security",
     "Win32_UI_Shell_PropertiesSystem",
     "UI_UIAutomation",
-    "implement"
+    "implement",
 ]

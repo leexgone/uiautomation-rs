@@ -160,6 +160,10 @@
 
 + enum types support `Dispaly` trait.
 
+## v0.11.5
+
++ Add log feature, show failed filter for debugging [#70](https://github.com/leexgone/uiautomation-rs/pull/70)
+
 ## v0.12.0
 
 + update to `windows v0.58.0`.
