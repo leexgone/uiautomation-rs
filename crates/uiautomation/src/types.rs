@@ -191,18 +191,18 @@ impl AsMut<RECT> for Rect {
 }
 
 /// A Wrapper for windows `HWND`.
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct Handle(HWND);
 
-impl Debug for Handle {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Handle(0x{:X})", self.0.0)
-    }
-}
+// impl Debug for Handle {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "Handle(0x{:X})", self.0.0)
+//     }
+// }
 
 impl Display for Handle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "0x{:X}", self.0.0)
+        write!(f, "{:?}", self.0)
     }
 }
 
@@ -224,35 +224,29 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-// impl IntoParam<HWND> for Handle {
-//     unsafe fn into_param(self) -> windows::core::Param<HWND> {
-//         windows::core::Param::Owned(self.0)
-//     }
-// }
-
 impl Param<HWND> for Handle {
     unsafe fn param(self) -> windows::core::ParamValue<HWND> {
         windows::core::ParamValue::Owned(self.0)
     }
 }
 
-impl From<isize> for Handle {
-    fn from(value: isize) -> Self {
-        Self(HWND(value))
-    }
-}
+// impl From<isize> for Handle {
+//     fn from(value: isize) -> Self {
+//         Self(HWND(value))
+//     }
+// }
 
-impl Into<isize> for Handle {
-    fn into(self) -> isize {
-        self.0.0
-    }
-}
+// impl Into<isize> for Handle {
+//     fn into(self) -> isize {
+//         self.0.0
+//     }
+// }
 
-impl AsRef<isize> for Handle {
-    fn as_ref(&self) -> &isize {
-        &self.0.0
-    }
-}
+// impl AsRef<isize> for Handle {
+//     fn as_ref(&self) -> &isize {
+//         &self.0.0
+//     }
+// }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_PROPERTY_ID`.
 /// 
@@ -631,6 +625,18 @@ pub enum WindowInteractionState {
     /// The window is not responding.
     NotResponding = 4i32
 }
+
+// impl Display for WindowInteractionState {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match *self {
+//             Self::Running => write!(f, "Running"),
+//             Self::Closing => write!(f, "Closing"),
+//             Self::ReadyForUserInteraction => write!(f, "ReadyForUserInteraction"),
+//             Self::BlockedByModalWindow => write!(f, "BlockedByModalWindow"),
+//             Self::NotResponding => write!(f, "NotResponding")
+//         }
+//     }
+// }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::DockPosition`.
 /// 
@@ -1121,10 +1127,8 @@ pub enum StructureChangeType {
 
 #[cfg(test)]
 mod tests {
-    use windows::Win32::Foundation::HWND;
     use windows::Win32::UI::Accessibility;
 
-    use super::Handle;
     use super::WindowInteractionState;
 
     #[test]
@@ -1137,11 +1141,14 @@ mod tests {
 
         assert_eq!(Accessibility::WindowInteractionState_ReadyForUserInteraction, WindowInteractionState::ReadyForUserInteraction.into());
         assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.into());
+
+        let running = format!("{}", WindowInteractionState::Running);
+        assert_eq!(running, "Running");
     }
 
-    #[test]
-    fn test_handle() {
-        let handle = Handle::from(0x001);
-        assert_eq!(HWND(0x001), handle.into());
-    }
+    // #[test]
+    // fn test_handle() {
+    //     let handle = Handle::from(0x001);
+    //     assert_eq!(HWND(0x001), handle.into());
+    // }
 }
