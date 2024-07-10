@@ -2283,7 +2283,6 @@ mod tests {
     use crate::UIElement;
     use crate::controls::ControlType;
     use crate::filters::MatcherFilter;
-    use crate::types::Handle;
     use crate::types::TreeScope;
 
     fn print_element(element: &UIElement) {
@@ -2458,6 +2457,6 @@ mod tests {
     #[test]
     fn test_search_from_handle() {
         let auto = UIAutomation::new().unwrap();
-        let _ = auto.element_from_handle(Handle::from(0x2006C6));
+        let _ = auto.element_from_handle(crate::types::Handle::from(0x2006C6));
     }
 }

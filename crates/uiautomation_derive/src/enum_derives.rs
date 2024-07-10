@@ -31,7 +31,15 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
                     _ => Err(crate::errors::Error::new(crate::errors::ERR_NOTFOUND, "Unsupported value"))
                 }
             }
-        }        
+        }
+
+        impl std::fmt::Display for #enum_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match *self {
+                    #( Self::#enum_names => write!(f, stringify!(#enum_names)), )*
+                }
+            }
+        }     
     };
 
     gen.into()

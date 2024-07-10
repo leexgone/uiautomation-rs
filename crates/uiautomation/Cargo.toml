@@ -26,8 +26,8 @@ log = ["dep:log"]
 
 chrono = "0.4.38"
 phf = { version = "0.11.2", features = ["macros"] }
-uiautomation_derive = { version = "0.3.3", path = "../uiautomation_derive" }
-log = { version = "0.4.14", optional = true }
+log = { version = "0.4.22", optional = true }
+uiautomation_derive = { version = "0.3.5", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
 version = "0.57.0"
