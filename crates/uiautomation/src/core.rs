@@ -2425,7 +2425,7 @@ mod tests {
     #[test]
     fn test_window_rect_prop() {
         let window = unsafe { GetForegroundWindow() };
-        if window.is_invalid() {
+        if window.0 == 0 {
             return;
         }
 
@@ -2454,9 +2454,9 @@ mod tests {
         assert!(uiautomation.is_ok());
     }
 
-    // #[test]
-    // fn test_search_from_handle() {
-    //     let auto = UIAutomation::new().unwrap();
-    //     let _ = auto.element_from_handle(Handle::from(0x2006C6));
-    // }
+    #[test]
+    fn test_search_from_handle() {
+        let auto = UIAutomation::new().unwrap();
+        let _ = auto.element_from_handle(crate::types::Handle::from(0x2006C6));
+    }
 }
