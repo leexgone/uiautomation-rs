@@ -25,7 +25,7 @@ pub struct AutomationEventHandler {
     handler: Box<dyn CustomEventHandler>
 }
 
-impl IUIAutomationEventHandler_Impl for AutomationEventHandler {
+impl IUIAutomationEventHandler_Impl for AutomationEventHandler_Impl {
     fn HandleAutomationEvent(&self, sender: Option<&IUIAutomationElement>, eventid: UIA_EVENT_ID) -> windows::core::Result<()> {
         if let Some(e) = sender { 
             let element = UIElement::from(e);
@@ -49,7 +49,7 @@ pub struct AutomationPropertyChangedHandler {
     handler: Box<dyn CustomPropertyChangedEventHandler>
 }
 
-impl IUIAutomationPropertyChangedEventHandler_Impl for AutomationPropertyChangedHandler {
+impl IUIAutomationPropertyChangedEventHandler_Impl for AutomationPropertyChangedHandler_Impl {
     fn HandlePropertyChangedEvent(&self, sender: Option<&IUIAutomationElement>, propertyid: UIA_PROPERTY_ID, newvalue: &windows::core::VARIANT) -> windows::core::Result<()> {
         if let Some(e) = sender {
             let element = UIElement::from(e);
@@ -74,7 +74,7 @@ pub struct AutomationStructureChangedEventHandler {
     handler: Box<dyn CustomStructureChangedEventHandler>
 }
 
-impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChangedEventHandler {
+impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChangedEventHandler_Impl {
     fn HandleStructureChangedEvent(&self, sender: Option<&IUIAutomationElement>, changetype: windows::Win32::UI::Accessibility::StructureChangeType, runtimeid: *const windows::Win32::System::Com::SAFEARRAY) -> windows_core::Result<()> {
         if let Some(e) = sender {
             let element = UIElement::from(e);
@@ -108,7 +108,7 @@ pub struct AutomationFocusChangedEventHandler {
     handler: Box<dyn CustomFocusChangedEventHandler>
 }
 
-impl IUIAutomationFocusChangedEventHandler_Impl for AutomationFocusChangedEventHandler {
+impl IUIAutomationFocusChangedEventHandler_Impl for AutomationFocusChangedEventHandler_Impl {
     fn HandleFocusChangedEvent(&self, sender: Option<&IUIAutomationElement>) -> windows_core::Result<()> {
         if let Some(e) = sender {
             let element = UIElement::from(e);

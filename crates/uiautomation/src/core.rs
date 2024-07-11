@@ -2425,7 +2425,7 @@ mod tests {
     #[test]
     fn test_window_rect_prop() {
         let window = unsafe { GetForegroundWindow() };
-        if window.0 == 0 {
+        if window.is_invalid() {
             return;
         }
 
