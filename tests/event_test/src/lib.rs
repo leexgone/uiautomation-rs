@@ -6,7 +6,7 @@ use windows::Win32::UI::Accessibility::*;
 pub struct MyEventHandler {
 }
 
-impl IUIAutomationEventHandler_Impl for MyEventHandler {
+impl IUIAutomationEventHandler_Impl for MyEventHandler_Impl {
     fn HandleAutomationEvent(&self,sender:Option<&IUIAutomationElement>,eventid:UIA_EVENT_ID) -> windows::core::Result<()> {
         if let Some(element) = sender {
             let element = UIElement::from(element);

@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 use std::fmt::Debug;
 use std::fmt::Display;
 
@@ -196,7 +197,10 @@ pub struct Handle(HWND);
 
 impl Debug for Handle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Handle(0x{:X})", self.0.0)
+        let v: i64 = unsafe {
+            std::mem::transmute(self.0.0)
+        };
+        write!(f, "Handle(0x{:X})", v)
     }
 }
 
@@ -230,23 +234,28 @@ impl Param<HWND> for Handle {
     }
 }
 
-impl From<isize> for Handle {
-    fn from(value: isize) -> Self {
-        Self(HWND(value))
+impl From<i64> for Handle {
+    fn from(value: i64) -> Self {
+        let hwd: *mut c_void = unsafe {
+            std::mem::transmute(value)
+        };
+        Self(HWND(hwd))
     }
 }
 
-impl Into<isize> for Handle {
-    fn into(self) -> isize {
-        self.0.0
+impl Into<i64> for Handle {
+    fn into(self) -> i64 {
+        unsafe {
+            std::mem::transmute(self.0.0)
+        }
     }
 }
 
-impl AsRef<isize> for Handle {
-    fn as_ref(&self) -> &isize {
-        &self.0.0
-    }
-}
+// impl AsRef<isize> for Handle {
+//     fn as_ref(&self) -> &isize {
+//         &self.0.0
+//     }
+// }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_PROPERTY_ID`.
 /// 
@@ -1149,6 +1158,6 @@ mod tests {
     #[test]
     fn test_handle() {
         let handle = crate::types::Handle::from(0x001);
-        assert_eq!(windows::Win32::Foundation::HWND(0x001), handle.into());
+        assert_eq!(windows::Win32::Foundation::HWND(unsafe { std::mem::transmute(0x001i64) } ), handle.into());
     }
 }
