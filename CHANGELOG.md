@@ -167,3 +167,7 @@
 ## v0.12.0
 
 + update to `windows v0.58.0`
+
+## v0.12.1
+
++ Support `Window` pattern for `PaneControl` [#75](https://github.com/leexgone/uiautomation-rs/issues/75)
