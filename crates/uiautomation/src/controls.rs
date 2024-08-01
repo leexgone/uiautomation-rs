@@ -1043,7 +1043,6 @@ pub struct PaneControl {
     control: UIElement
 }
 
-
 impl Control for PaneControl {
     const TYPE: ControlType = ControlType::Pane;
 }
