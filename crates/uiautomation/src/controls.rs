@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use uiautomation_derive::*;
 use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
+use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
+use windows::Win32::UI::WindowsAndMessaging::SW_SHOWDEFAULT;
 
 use super::actions::*;
 use super::Error;
@@ -1037,10 +1039,21 @@ impl Display for MenuItemControl {
 /// Wrapper a Pane element as control. The control type of the element must be `UIA_PaneControlTypeId`.
 /// 
 /// + Must support: None
-/// + Conditional support: `Dock`, `Scroll`, `Transform`
-#[derive(Debug,	Dock, Scroll, Transform)]
+/// + Conditional support: `Dock`, `Scroll`, `Transform`, `Window`
+#[derive(Debug,	Window, Dock, Scroll, Transform)]
 pub struct PaneControl {
     control: UIElement
+}
+
+impl PaneControl {
+    /// Set window visual state to normal.
+    pub fn normal(&self) -> Result<bool> {
+        let hwnd = self.control.get_native_window_handle()?;
+        let ret = unsafe {
+            ShowWindow(hwnd, SW_SHOWDEFAULT)
+        };
+        Ok(ret.as_bool())
+    }
 }
 
 impl Control for PaneControl {
