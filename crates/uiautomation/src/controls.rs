@@ -1037,8 +1037,8 @@ impl Display for MenuItemControl {
 /// Wrapper a Pane element as control. The control type of the element must be `UIA_PaneControlTypeId`.
 /// 
 /// + Must support: None
-/// + Conditional support: `Dock`, `Scroll`, `Transform`
-#[derive(Debug,	Dock, Scroll, Transform)]
+/// + Conditional support: `Dock`, `Scroll`, `Transform`, `Window`
+#[derive(Debug,	Dock, Scroll, Transform, Window)]
 pub struct PaneControl {
     control: UIElement
 }
