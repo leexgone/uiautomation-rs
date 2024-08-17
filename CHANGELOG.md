@@ -171,3 +171,7 @@
 ## v0.12.1
 
 + Support `Window` pattern for `PaneControl` [#75](https://github.com/leexgone/uiautomation-rs/issues/75)
+
+## v0.12.2
+
++ Add cached versions for "get_xxx"/"is_xxx"/"can_xxx" for all patterns. [#79](https://github.com/leexgone/uiautomation-rs/pull/79)
