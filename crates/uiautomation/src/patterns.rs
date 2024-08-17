@@ -210,9 +210,23 @@ impl UIAnnotationPattern {
         Ok(id.into())
     }
 
+    pub fn get_cached_type(&self) -> Result<AnnotationType> {
+        let id = unsafe {
+            self.pattern.CachedAnnotationTypeId()?
+        };
+        Ok(id.into())
+    }
+
     pub fn get_type_nane(&self) -> Result<String> {
         let name = unsafe {
             self.pattern.CurrentAnnotationTypeName()?
+        };
+        Ok(name.to_string())
+    }
+
+    pub fn get_cached_type_nane(&self) -> Result<String> {
+        let name = unsafe {
+            self.pattern.CachedAnnotationTypeName()?
         };
         Ok(name.to_string())
     }
@@ -224,6 +238,13 @@ impl UIAnnotationPattern {
         Ok(author.to_string())
     }
 
+    pub fn get_cached_author(&self) -> Result<String> {
+        let author = unsafe {
+            self.pattern.CachedAuthor()?
+        };
+        Ok(author.to_string())
+    }
+
     pub fn get_datetime(&self) -> Result<String> {
         let datetime = unsafe {
             self.pattern.CurrentDateTime()?
@@ -231,9 +252,23 @@ impl UIAnnotationPattern {
         Ok(datetime.to_string())
     }
 
+    pub fn get_cached_datetime(&self) -> Result<String> {
+        let datetime = unsafe {
+            self.pattern.CachedDateTime()?
+        };
+        Ok(datetime.to_string())
+    }
+
     pub fn get_target(&self) -> Result<UIElement> {
         let target = unsafe {
             self.pattern.CurrentTarget()?
+        };
+        Ok(target.into())
+    }
+
+    pub fn get_cached_target(&self) -> Result<UIElement> {
+        let target = unsafe {
+            self.pattern.CachedTarget()?
         };
         Ok(target.into())
     }
@@ -336,6 +371,13 @@ impl UIDockPattern {
         Ok(pos.into())
     }
 
+    pub fn get_cached_dock_position(&self) -> Result<DockPosition> {
+        let pos = unsafe {
+            self.pattern.CachedDockPosition()?
+        };
+        Ok(pos.into())
+    }
+
     pub fn set_dock_position(&self, position: DockPosition) -> Result<()> {
         unsafe {
             self.pattern.SetDockPosition(position.into())?
@@ -392,6 +434,13 @@ impl UIDragPattern {
         Ok(grabbed.as_bool())
     }
 
+    pub fn is_cached_grabbed(&self) -> Result<bool> {
+        let grabbed = unsafe {
+            self.pattern.CachedIsGrabbed()?
+        };
+        Ok(grabbed.as_bool())
+    }
+
     pub fn get_drop_effect(&self) -> Result<String> {
         let effect = unsafe {
             self.pattern.CurrentDropEffect()?
@@ -400,9 +449,26 @@ impl UIDragPattern {
         Ok(effect.to_string())
     }
 
+    pub fn get_cached_drop_effect(&self) -> Result<String> {
+        let effect = unsafe {
+            self.pattern.CachedDropEffect()?
+        };
+
+        Ok(effect.to_string())
+    }
+
     pub fn get_drop_effects(&self) -> Result<Vec<String>> {
         let effects = unsafe {
             self.pattern.CurrentDropEffects()?
+        };
+
+        let effects: SafeArray = effects.into();
+        effects.try_into()
+    }
+
+    pub fn get_cached_drop_effects(&self) -> Result<Vec<String>> {
+        let effects = unsafe {
+            self.pattern.CachedDropEffects()?
         };
 
         let effects: SafeArray = effects.into();
@@ -478,9 +544,25 @@ impl UIDropTargetPattern {
         Ok(effect.to_string())        
     }
 
+    pub fn get_cached_drop_target_effect(&self) -> Result<String> {
+        let effect = unsafe {
+            self.pattern.CachedDropTargetEffect()?
+        };
+        Ok(effect.to_string())
+    }
+
     pub fn get_drop_target_effects(&self) -> Result<Vec<String>> {
         let effects = unsafe {
             self.pattern.CurrentDropTargetEffects()?
+        };
+
+        let effects: SafeArray = effects.into();
+        effects.try_into()
+    }
+
+    pub fn get_cached_drop_target_effects(&self) -> Result<Vec<String>> {
+        let effects = unsafe {
+            self.pattern.CachedDropTargetEffects()?
         };
 
         let effects: SafeArray = effects.into();
@@ -547,6 +629,13 @@ impl UIExpandCollapsePattern {
         };
         Ok(state.into())
     }
+
+    pub fn get_cached_state(&self) -> Result<ExpandCollapseState> {
+        let state = unsafe {
+            self.pattern.CachedExpandCollapseState()?
+        };
+        Ok(state.into())
+    }
 }
 
 impl UIPattern for UIExpandCollapsePattern {
@@ -596,9 +685,21 @@ impl UIGridPattern {
         })
     }
 
+    pub fn get_cached_column_count(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedColumnCount()?
+        })
+    }
+
     pub fn get_row_count(&self) -> Result<i32> {
         Ok(unsafe {
             self.pattern.CurrentRowCount()?
+        })
+    }
+
+    pub fn get_cached_row_count(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedRowCount()?
         })
     }
 
@@ -658,9 +759,22 @@ impl UIGridItemPattern {
         Ok(grid.into())
     }
 
+    pub fn get_cached_containing_grid(&self) -> Result<UIElement> {
+        let grid = unsafe {
+            self.pattern.CachedContainingGrid()?
+        };
+        Ok(grid.into())
+    }
+
     pub fn get_row(&self) -> Result<i32> {
         Ok(unsafe {
             self.pattern.CurrentRow()?
+        })
+    }
+
+    pub fn get_cached_row(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedRow()?
         })
     }
 
@@ -670,15 +784,33 @@ impl UIGridItemPattern {
         })
     }
 
+    pub fn get_cached_column(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedColumn()?
+        })
+    }
+
     pub fn get_row_span(&self) -> Result<i32> {
         Ok(unsafe {
             self.pattern.CurrentRowSpan()?
         })
     }
 
+    pub fn get_cached_row_span(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedRowSpan()?
+        })
+    }
+
     pub fn get_column_span(&self) -> Result<i32> {
         Ok(unsafe {
             self.pattern.CurrentColumnSpan()?
+        })
+    }
+
+    pub fn get_cached_column_span(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedColumnSpan()?
         })
     }
 }
@@ -785,6 +917,15 @@ impl UIMultipleViewPattern {
         views.try_into()
     }
 
+    pub fn get_cached_supported_views(&self) -> Result<Vec<i32>> {
+        let views = unsafe {
+            self.pattern.GetCachedSupportedViews()?
+        };
+
+        let views: SafeArray = views.into();
+        views.try_into()
+    }
+
     pub fn get_view_name(&self, view: i32) -> Result<String> {
         let name = unsafe {
             self.pattern.GetViewName(view)?
@@ -801,6 +942,12 @@ impl UIMultipleViewPattern {
     pub fn get_current_view(&self) -> Result<i32> {
         Ok(unsafe {
             self.pattern.CurrentCurrentView()?
+        })
+    }
+
+    pub fn get_cached_current_view(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedCurrentView()?
         })
     }
 }
@@ -858,9 +1005,22 @@ impl UIRangeValuePattern {
         })
     }
 
+    pub fn get_cached_value(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedValue()?
+        })
+    }
+
     pub fn is_readonly(&self) -> Result<bool> {
         let readonly = unsafe {
             self.pattern.CurrentIsReadOnly()?
+        };
+        Ok(readonly.as_bool())
+    }
+
+    pub fn is_cached_readonly(&self) -> Result<bool> {
+        let readonly = unsafe {
+            self.pattern.CachedIsReadOnly()?
         };
         Ok(readonly.as_bool())
     }
@@ -871,9 +1031,21 @@ impl UIRangeValuePattern {
         })
     }
 
+    pub fn get_cached_maximum(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedMaximum()?
+        })
+    }
+
     pub fn get_minimum(&self) -> Result<f64> {
         Ok(unsafe {
             self.pattern.CurrentMinimum()?
+        })
+    }
+
+    pub fn get_cached_minimum(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedMinimum()?
         })
     }
 
@@ -883,9 +1055,21 @@ impl UIRangeValuePattern {
         })
     }
 
+    pub fn get_cached_large_change(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedLargeChange()?
+        })
+    }
+
     pub fn get_small_change(&self) -> Result<f64> {
         Ok(unsafe {
             self.pattern.CurrentSmallChange()?
+        })
+    }
+
+    pub fn get_cached_small_change(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedSmallChange()?
         })
     }
 }
@@ -949,9 +1133,21 @@ impl UIScrollPattern {
         })
     }
 
+    pub fn get_cached_horizontal_scroll_percent(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedHorizontalScrollPercent()?
+        })
+    }
+
     pub fn get_vertical_scroll_percent(&self) -> Result<f64> {
         Ok(unsafe {
             self.pattern.CurrentVerticalScrollPercent()?
+        })
+    }
+
+    pub fn get_cached_vertical_scroll_percent(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedVerticalScrollPercent()?
         })
     }
 
@@ -961,9 +1157,21 @@ impl UIScrollPattern {
         })
     }
 
+    pub fn get_cached_horizontal_view_size(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedHorizontalViewSize()?
+        })
+    }
+
     pub fn get_vertical_view_size(&self) -> Result<f64> {
         Ok(unsafe {
             self.pattern.CurrentVerticalViewSize()?
+        })
+    }
+
+    pub fn get_cached_vertical_view_size(&self) -> Result<f64> {
+        Ok(unsafe {
+            self.pattern.CachedVerticalViewSize()?
         })
     }
 
@@ -974,9 +1182,23 @@ impl UIScrollPattern {
         Ok(scrollable.as_bool())
     }
 
+    pub fn is_cached_horizontally_scrollable(&self) -> Result<bool> {
+        let scrollable = unsafe {
+            self.pattern.CachedHorizontallyScrollable()?
+        };
+        Ok(scrollable.as_bool())
+    }
+
     pub fn is_vertically_scrollable(&self) -> Result<bool> {
         let scrollable = unsafe {
             self.pattern.CurrentVerticallyScrollable()?
+        };
+        Ok(scrollable.as_bool())
+    }
+
+    pub fn is_cached_vertically_scrollable(&self) -> Result<bool> {
+        let scrollable = unsafe {
+            self.pattern.CachedVerticallyScrollable()?
         };
         Ok(scrollable.as_bool())
     }
@@ -1073,6 +1295,16 @@ impl UISelectionPattern {
         Ok(elements)
     }
 
+    pub fn get_cached_selection(&self) -> Result<Vec<UIElement>> {
+        let elem_arr = unsafe {
+            self.pattern.GetCachedSelection()?
+        };
+
+        let elements = UIElement::to_elements(elem_arr)?;
+
+        Ok(elements)
+    }
+
     pub fn can_select_multiple(&self) -> Result<bool> {
         let multiple = unsafe {
             self.pattern.CurrentCanSelectMultiple()?
@@ -1080,9 +1312,23 @@ impl UISelectionPattern {
         Ok(multiple.as_bool())
     }
 
+    pub fn can_cached_select_multiple(&self) -> Result<bool> {
+        let multiple = unsafe {
+            self.pattern.CachedCanSelectMultiple()?
+        };
+        Ok(multiple.as_bool())
+    }
+
     pub fn is_selection_required(&self) -> Result<bool> {
         let required = unsafe {
             self.pattern.CurrentIsSelectionRequired()?
+        };
+        Ok(required.as_bool())
+    }
+
+    pub fn is_cached_selection_required(&self) -> Result<bool> {
+        let required = unsafe {
+            self.pattern.CachedIsSelectionRequired()?
         };
         Ok(required.as_bool())
     }
@@ -1095,10 +1341,26 @@ impl UISelectionPattern {
         Ok(item.into())
     }
 
+    pub fn get_cached_first_selected_item(&self) -> Result<UIElement> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        let item = unsafe {
+            pattern2.CachedFirstSelectedItem()?
+        };
+        Ok(item.into())
+    }
+
     pub fn get_last_selected_item(&self) -> Result<UIElement> {
         let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
         let item = unsafe {
             pattern2.CurrentLastSelectedItem()?
+        };
+        Ok(item.into())
+    }
+
+    pub fn get_cached_last_selected_item(&self) -> Result<UIElement> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        let item = unsafe {
+            pattern2.CachedLastSelectedItem()?
         };
         Ok(item.into())
     }
@@ -1111,10 +1373,25 @@ impl UISelectionPattern {
         Ok(item.into())
     }
 
+    pub fn get_cached_current_selected_item(&self) -> Result<UIElement> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        let item = unsafe {
+            pattern2.CachedCurrentSelectedItem()?
+        };
+        Ok(item.into())
+    }
+
     pub fn get_item_count(&self) -> Result<i32> {
         let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
         Ok(unsafe {
             pattern2.CurrentItemCount()?
+        })
+    }
+
+    pub fn get_cached_item_count(&self) -> Result<i32> {
+        let pattern2: IUIAutomationSelectionPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CachedItemCount()?
         })
     }
 }
@@ -1185,9 +1462,23 @@ impl UISelectionItemPattern {
         Ok(selected.as_bool())
     }
 
+    pub fn is_cached_selected(&self) -> Result<bool> {
+        let selected = unsafe {
+            self.pattern.CachedIsSelected()?
+        };
+        Ok(selected.as_bool())
+    }
+
     pub fn get_selection_container(&self) -> Result<UIElement> {
         let container = unsafe {
             self.pattern.CurrentSelectionContainer()?
+        };
+        Ok(container.into())
+    }
+
+    pub fn get_cached_selection_container(&self) -> Result<UIElement> {
+        let container = unsafe {
+            self.pattern.CachedSelectionContainer()?
         };
         Ok(container.into())
     }
@@ -1291,6 +1582,13 @@ impl UISpreadsheetItemPattern {
         Ok(formula.to_string())
     }
 
+    pub fn get_cached_formula(&self) -> Result<String> {
+        let formula = unsafe {
+            self.pattern.CachedFormula()?
+        };
+        Ok(formula.to_string())
+    }
+
     pub fn get_annotation_objects(&self) -> Result<Vec<UIElement>> {
         let elem_arr = unsafe {
             self.pattern.GetCurrentAnnotationObjects()?
@@ -1299,9 +1597,26 @@ impl UISpreadsheetItemPattern {
         Ok(elements)
     }
 
+    pub fn get_cached_annotation_objects(&self) -> Result<Vec<UIElement>> {
+        let elem_arr = unsafe {
+            self.pattern.GetCachedAnnotationObjects()?
+        };
+        let elements = UIElement::to_elements(elem_arr)?;
+        Ok(elements)
+    }
+
     pub fn get_annotation_types(&self) -> Result<Vec<i32>> {
         let types = unsafe {
             self.pattern.GetCurrentAnnotationTypes()?
+        };
+
+        let types: SafeArray = types.into();
+        types.try_into()
+    }
+
+    pub fn get_cached_annotation_types(&self) -> Result<Vec<i32>> {
+        let types = unsafe {
+            self.pattern.GetCachedAnnotationTypes()?
         };
 
         let types: SafeArray = types.into();
@@ -1357,9 +1672,23 @@ impl UIStylesPattern {
         Ok(style_id.into())
     }
 
+    pub fn get_cached_style(&self) -> Result<StyleType> {
+        let style_id = unsafe {
+            self.pattern.CachedStyleId()?
+        };
+        Ok(style_id.into())
+    }
+
     pub fn get_style_name(&self) -> Result<String> {
         let name = unsafe {
             self.pattern.CurrentStyleName()?
+        };
+        Ok(name.to_string())
+    }
+
+    pub fn get_cached_style_name(&self) -> Result<String> {
+        let name = unsafe {
+            self.pattern.CachedStyleName()?
         };
         Ok(name.to_string())
     }
@@ -1370,9 +1699,22 @@ impl UIStylesPattern {
         })
     }
 
+    pub fn get_cached_fill_color(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedFillColor()?
+        })
+    }
+
     pub fn get_fill_pattern_style(&self) -> Result<String> {
         let style = unsafe {
             self.pattern.CurrentFillPatternStyle()?
+        };
+        Ok(style.to_string())
+    }
+
+    pub fn get_cached_fill_pattern_style(&self) -> Result<String> {
+        let style = unsafe {
+            self.pattern.CachedFillPatternStyle()?
         };
         Ok(style.to_string())
     }
@@ -1383,6 +1725,12 @@ impl UIStylesPattern {
         })
     }
 
+    pub fn get_cached_fill_pattern_color(&self) -> Result<i32> {
+        Ok(unsafe {
+            self.pattern.CachedFillPatternColor()?
+        })
+    }
+
     pub fn get_shape(&self) -> Result<String> {
         let shape = unsafe {
             self.pattern.CurrentShape()?
@@ -1390,9 +1738,23 @@ impl UIStylesPattern {
         Ok(shape.to_string())
     }
 
+    pub fn get_cached_shape(&self) -> Result<String> {
+        let shape = unsafe {
+            self.pattern.CachedShape()?
+        };
+        Ok(shape.to_string())
+    }
+
     pub fn get_extended_properties(&self) -> Result<String> {
         let properties = unsafe {
             self.pattern.CurrentExtendedProperties()?
+        };
+        Ok(properties.to_string())
+    }
+
+    pub fn get_cached_extended_properties(&self) -> Result<String> {
+        let properties = unsafe {
+            self.pattern.CachedExtendedProperties()?
         };
         Ok(properties.to_string())
     }
@@ -1501,6 +1863,14 @@ impl UITablePattern {
         UIElement::to_elements(headers)
     }
 
+    pub fn get_cached_row_headers(&self) -> Result<Vec<UIElement>> {
+        let headers = unsafe {
+            self.pattern.GetCachedRowHeaders()?
+        };
+
+        UIElement::to_elements(headers)
+    }
+
     pub fn get_column_headers(&self) -> Result<Vec<UIElement>> {
         let headers = unsafe {
             self.pattern.GetCurrentColumnHeaders()?
@@ -1509,9 +1879,24 @@ impl UITablePattern {
         UIElement::to_elements(headers)
     }
 
+    pub fn get_cached_column_headers(&self) -> Result<Vec<UIElement>> {
+        let headers = unsafe {
+            self.pattern.GetCachedColumnHeaders()?
+        };
+
+        UIElement::to_elements(headers)
+    }
+
     pub fn get_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
         let major = unsafe {
             self.pattern.CurrentRowOrColumnMajor()?
+        };
+        Ok(major.into())
+    }
+
+    pub fn get_cached_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
+        let major = unsafe {
+            self.pattern.CachedRowOrColumnMajor()?
         };
         Ok(major.into())
     }
@@ -1566,9 +1951,25 @@ impl UITableItemPattern {
         UIElement::to_elements(items)
     }
 
+    pub fn get_cached_row_header_items(&self) -> Result<Vec<UIElement>> {
+        let items = unsafe {
+            self.pattern.GetCachedRowHeaderItems()?
+        };
+
+        UIElement::to_elements(items)
+    }
+
     pub fn get_column_header_items(&self) -> Result<Vec<UIElement>> {
         let items = unsafe {
             self.pattern.GetCurrentColumnHeaderItems()?
+        };
+
+        UIElement::to_elements(items)
+    }
+
+    pub fn get_cached_column_header_items(&self) -> Result<Vec<UIElement>> {
+        let items = unsafe {
+            self.pattern.GetCachedColumnHeaderItems()?
         };
 
         UIElement::to_elements(items)
@@ -2019,6 +2420,13 @@ impl UITogglePattern {
         Ok(state.into())
     }
 
+    pub fn get_cached_toggle_state(&self) -> Result<ToggleState> {
+        let state = unsafe {
+            self.pattern.CachedToggleState()?
+        };
+        Ok(state.into())
+    }
+
     pub fn toggle(&self) -> Result<()> {
         Ok(unsafe {
             self.pattern.Toggle()?
@@ -2075,6 +2483,13 @@ impl UITransformPattern {
         Ok(ret.as_bool())
     }
 
+    pub fn can_cached_move(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedCanMove()?
+        };
+        Ok(ret.as_bool())
+    }
+
     pub fn move_to(&self, x: f64, y: f64) -> Result<()> {
         Ok(unsafe {
             self.pattern.Move(x, y)?
@@ -2088,6 +2503,13 @@ impl UITransformPattern {
         Ok(ret.as_bool())        
     }
 
+    pub fn can_cached_resize(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedCanResize()?
+        };
+        Ok(ret.as_bool())
+    }
+
     pub fn resize(&self, width: f64, height: f64) -> Result<()> {
         Ok(unsafe {
             self.pattern.Resize(width, height)?
@@ -2097,6 +2519,13 @@ impl UITransformPattern {
     pub fn can_rotate(&self) -> Result<bool> {
         let ret = unsafe {
             self.pattern.CurrentCanRotate()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn can_cached_rotate(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedCanRotate()?
         };
         Ok(ret.as_bool())
     }
@@ -2115,10 +2544,25 @@ impl UITransformPattern {
         Ok(zoomable.as_bool())
     }
 
+    pub fn can_cached_zoom(&self) -> Result<bool> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        let zoomable = unsafe {
+            pattern2.CachedCanZoom()?
+        };
+        Ok(zoomable.as_bool())
+    }
+
     pub fn get_zoom_level(&self) -> Result<f64> {
         let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
         Ok(unsafe {
             pattern2.CurrentZoomLevel()?
+        })
+    }
+
+    pub fn get_cached_zoom_level(&self) -> Result<f64> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CachedZoomLevel()?
         })
     }
 
@@ -2129,10 +2573,24 @@ impl UITransformPattern {
         })
     }
 
+    pub fn get_cached_zoom_minimum(&self) -> Result<f64> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CachedZoomMinimum()?
+        })
+    }
+
     pub fn get_zoom_maximum(&self) -> Result<f64> {
         let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
         Ok(unsafe {
             pattern2.CurrentZoomMaximum()?
+        })
+    }
+
+    pub fn get_cached_zoom_maximum(&self) -> Result<f64> {
+        let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
+        Ok(unsafe {
+            pattern2.CachedZoomMaximum()?
         })
     }
 
@@ -2207,12 +2665,27 @@ impl UIValuePattern {
         Ok(value.to_string())
     }
 
+    pub fn get_cached_value(&self) -> Result<String> {
+        let value = unsafe {
+            self.pattern.CachedValue()?
+        };
+        Ok(value.to_string())
+   }
+
     pub fn is_readonly(&self) -> Result<bool> {
         let readonly = unsafe {
             self.pattern.CurrentIsReadOnly()?
         };
         Ok(readonly.as_bool())
     }
+
+    pub fn cached_is_readonly(&self) -> Result<bool> {
+        let readonly = unsafe {
+            self.pattern.CachedIsReadOnly()?
+        };
+        Ok(readonly.as_bool())
+    }
+
 }
 
 impl UIPattern for UIValuePattern {
@@ -2326,6 +2799,14 @@ impl UIWindowPattern {
         Ok(state.into())
     }
 
+    pub fn get_cached_window_visual_state(&self) -> Result<WindowVisualState> {
+        let state = unsafe {
+            self.pattern.CachedWindowVisualState()?
+        };
+
+        Ok(state.into())
+    }
+
     pub fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()> {
         Ok(unsafe {
             self.pattern.SetWindowVisualState(state.into())?
@@ -2339,9 +2820,23 @@ impl UIWindowPattern {
         Ok(ret.as_bool())
     }
 
+    pub fn can_cached_maximize(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedCanMaximize()?
+        };
+        Ok(ret.as_bool())
+    }
+
     pub fn can_minimize(&self) -> Result<bool> {
         let ret = unsafe {
             self.pattern.CurrentCanMinimize()?
+        };
+        Ok(ret.as_bool())
+    }
+
+    pub fn can_cached_minimize(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedCanMinimize()?
         };
         Ok(ret.as_bool())
     }
@@ -2353,6 +2848,13 @@ impl UIWindowPattern {
         Ok(ret.as_bool())
     }
 
+    pub fn cached_is_modal(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedIsModal()?
+        };
+        Ok(ret.as_bool())
+    }
+
     pub fn is_topmost(&self) -> Result<bool> {
         let ret = unsafe {
             self.pattern.CurrentIsTopmost()?
@@ -2360,9 +2862,24 @@ impl UIWindowPattern {
         Ok(ret.as_bool())
     }
 
+    pub fn cached_is_topmost(&self) -> Result<bool> {
+        let ret = unsafe {
+            self.pattern.CachedIsTopmost()?
+        };
+        Ok(ret.as_bool())
+    }
+
     pub fn get_window_interaction_state(&self) -> Result<WindowInteractionState> {
         let state = unsafe {
             self.pattern.CurrentWindowInteractionState()?
+        };
+
+        Ok(state.into())
+    }
+
+    pub fn get_cached_window_interaction_state(&self) -> Result<WindowInteractionState> {
+        let state = unsafe {
+            self.pattern.CachedWindowInteractionState()?
         };
 
         Ok(state.into())
