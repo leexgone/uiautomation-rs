@@ -175,3 +175,7 @@
 ## v0.12.2
 
 + Add cached versions for "get_xxx"/"is_xxx"/"can_xxx" for all patterns. [#79](https://github.com/leexgone/uiautomation-rs/pull/79)
+
+## v0.12.3
+
++ Use `OnceLock` instead of `phf` crate.

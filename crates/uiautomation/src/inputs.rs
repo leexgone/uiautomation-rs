@@ -1,11 +1,12 @@
 use std::cmp::max;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::mem;
 use std::str::Chars;
+use std::sync::OnceLock;
 use std::thread::sleep;
 use std::time::Duration;
 
-use phf::phf_map;
-use phf::phf_set;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
@@ -18,30 +19,84 @@ use super::Error;
 use super::Result;
 use super::types::Point;
 
-const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
-    "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
-    "ALT" => VK_MENU, "MENU" => VK_MENU, "LALT" => VK_LMENU, "LMENU" => VK_LMENU, "RALT" => VK_RMENU, "RMENU" => VK_RMENU,
-    "SHIFT" => VK_SHIFT, "LSHIFT" => VK_LSHIFT, "RSHIFT" => VK_RSHIFT,
-    "WIN" => VK_LWIN, "WINDOWS" => VK_LWIN, "LWIN" => VK_LWIN, "LWINDOWS" => VK_LWIN, "RWIN" => VK_RWIN, "RWINDOWS" => VK_RWIN,
-    "LBUTTON" => VK_LBUTTON, "RBUTTON" => VK_RBUTTON, "MBUTTON" => VK_MBUTTON, "XBUTTON1" => VK_XBUTTON1, "XBUTTON2" => VK_XBUTTON2,
-    "CANCEL" => VK_CANCEL, "BACK" => VK_BACK, "TAB" => VK_TAB, "RETURN" => VK_RETURN, "ENTER" => VK_RETURN, "PAUSE" => VK_PAUSE, "CAPITAL" => VK_CAPITAL,
-    "ESCAPE" => VK_ESCAPE, "ESC" => VK_ESCAPE, "SPACE" => VK_SPACE,
-    "PRIOR" => VK_PRIOR, "PAGE_UP" => VK_PRIOR, "NEXT" => VK_NEXT, "PAGE_DOWN" => VK_NEXT, "HOME" => VK_HOME, "END" => VK_END,
-    "LEFT" => VK_LEFT, "UP" => VK_UP, "RIGHT" => VK_RIGHT, "DOWN" => VK_DOWN, "PRINT" => VK_PRINT,
-    "INSERT" => VK_INSERT, "DELETE" => VK_DELETE,
-    "F1" => VK_F1, "F2" => VK_F2, "F3" => VK_F3, "F4" => VK_F4, "F5" => VK_F5, "F6" => VK_F6, "F7" => VK_F7, "F8" => VK_F8, "F9" => VK_F9, "F10" => VK_F10,
-    "F11" => VK_F11, "F12" => VK_F12, "F13" => VK_F13, "F14" => VK_F14, "F15" => VK_F15, "F16" => VK_F16, "F17" => VK_F17, "F18" => VK_F18, "F19" => VK_F19,
-    "F20" => VK_F20, "F21" => VK_F21, "F22" => VK_F22, "F23" => VK_F23, "F24" => VK_F24,
-};
+// const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
+//     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
+//     "ALT" => VK_MENU, "MENU" => VK_MENU, "LALT" => VK_LMENU, "LMENU" => VK_LMENU, "RALT" => VK_RMENU, "RMENU" => VK_RMENU,
+//     "SHIFT" => VK_SHIFT, "LSHIFT" => VK_LSHIFT, "RSHIFT" => VK_RSHIFT,
+//     "WIN" => VK_LWIN, "WINDOWS" => VK_LWIN, "LWIN" => VK_LWIN, "LWINDOWS" => VK_LWIN, "RWIN" => VK_RWIN, "RWINDOWS" => VK_RWIN,
+//     "LBUTTON" => VK_LBUTTON, "RBUTTON" => VK_RBUTTON, "MBUTTON" => VK_MBUTTON, "XBUTTON1" => VK_XBUTTON1, "XBUTTON2" => VK_XBUTTON2,
+//     "CANCEL" => VK_CANCEL, "BACK" => VK_BACK, "TAB" => VK_TAB, "RETURN" => VK_RETURN, "ENTER" => VK_RETURN, "PAUSE" => VK_PAUSE, "CAPITAL" => VK_CAPITAL,
+//     "ESCAPE" => VK_ESCAPE, "ESC" => VK_ESCAPE, "SPACE" => VK_SPACE,
+//     "PRIOR" => VK_PRIOR, "PAGE_UP" => VK_PRIOR, "NEXT" => VK_NEXT, "PAGE_DOWN" => VK_NEXT, "HOME" => VK_HOME, "END" => VK_END,
+//     "LEFT" => VK_LEFT, "UP" => VK_UP, "RIGHT" => VK_RIGHT, "DOWN" => VK_DOWN, "PRINT" => VK_PRINT,
+//     "INSERT" => VK_INSERT, "DELETE" => VK_DELETE,
+//     "F1" => VK_F1, "F2" => VK_F2, "F3" => VK_F3, "F4" => VK_F4, "F5" => VK_F5, "F6" => VK_F6, "F7" => VK_F7, "F8" => VK_F8, "F9" => VK_F9, "F10" => VK_F10,
+//     "F11" => VK_F11, "F12" => VK_F12, "F13" => VK_F13, "F14" => VK_F14, "F15" => VK_F15, "F16" => VK_F16, "F17" => VK_F17, "F18" => VK_F18, "F19" => VK_F19,
+//     "F20" => VK_F20, "F21" => VK_F21, "F22" => VK_F22, "F23" => VK_F23, "F24" => VK_F24,
+// };
 
-const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
-    "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL",
-    "ALT", "MENU", "LALT", "LMENU", "RALT", "RMENU",
-    "SHIFT", "LSHIFT", "RSHIFT",
-    "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
-};
+// const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
+//     "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL",
+//     "ALT", "MENU", "LALT", "LMENU", "RALT", "RMENU",
+//     "SHIFT", "LSHIFT", "RSHIFT",
+//     "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
+// };
 
 const KEYEVENTF_KEYDOWN: KEYBD_EVENT_FLAGS = KEYBD_EVENT_FLAGS(0);
+
+macro_rules! map {
+    ( $($key: expr => $value: expr), * ) => {
+        {
+            let mut map = std::collections::HashMap::new();
+            $(
+                map.insert($key.to_string(), $value);
+            )*
+            map
+        }
+    };
+}
+
+macro_rules! set {
+    ( $($value: expr), * ) => {
+        {
+            let mut set = std::collections::HashSet::new();
+            $(
+                set.insert($value.to_string());
+            )*
+            set
+        }
+    };
+}
+
+static VIRTUAL_KEYS: OnceLock<HashMap<String, VIRTUAL_KEY>> = OnceLock::new();
+static HOLD_KEYS: OnceLock<HashSet<String>> = OnceLock::new();
+
+fn init_virtual_keys() -> HashMap<String, VIRTUAL_KEY> {
+    map![
+        "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
+        "ALT" => VK_MENU, "MENU" => VK_MENU, "LALT" => VK_LMENU, "LMENU" => VK_LMENU, "RALT" => VK_RMENU, "RMENU" => VK_RMENU,
+        "SHIFT" => VK_SHIFT, "LSHIFT" => VK_LSHIFT, "RSHIFT" => VK_RSHIFT,
+        "WIN" => VK_LWIN, "WINDOWS" => VK_LWIN, "LWIN" => VK_LWIN, "LWINDOWS" => VK_LWIN, "RWIN" => VK_RWIN, "RWINDOWS" => VK_RWIN,
+        "LBUTTON" => VK_LBUTTON, "RBUTTON" => VK_RBUTTON, "MBUTTON" => VK_MBUTTON, "XBUTTON1" => VK_XBUTTON1, "XBUTTON2" => VK_XBUTTON2,
+        "CANCEL" => VK_CANCEL, "BACK" => VK_BACK, "TAB" => VK_TAB, "RETURN" => VK_RETURN, "ENTER" => VK_RETURN, "PAUSE" => VK_PAUSE, "CAPITAL" => VK_CAPITAL,
+        "ESCAPE" => VK_ESCAPE, "ESC" => VK_ESCAPE, "SPACE" => VK_SPACE,
+        "PRIOR" => VK_PRIOR, "PAGE_UP" => VK_PRIOR, "NEXT" => VK_NEXT, "PAGE_DOWN" => VK_NEXT, "HOME" => VK_HOME, "END" => VK_END,
+        "LEFT" => VK_LEFT, "UP" => VK_UP, "RIGHT" => VK_RIGHT, "DOWN" => VK_DOWN, "PRINT" => VK_PRINT,
+        "INSERT" => VK_INSERT, "DELETE" => VK_DELETE,
+        "F1" => VK_F1, "F2" => VK_F2, "F3" => VK_F3, "F4" => VK_F4, "F5" => VK_F5, "F6" => VK_F6, "F7" => VK_F7, "F8" => VK_F8, "F9" => VK_F9, "F10" => VK_F10,
+        "F11" => VK_F11, "F12" => VK_F12, "F13" => VK_F13, "F14" => VK_F14, "F15" => VK_F15, "F16" => VK_F16, "F17" => VK_F17, "F18" => VK_F18, "F19" => VK_F19,
+        "F20" => VK_F20, "F21" => VK_F21, "F22" => VK_F22, "F23" => VK_F23, "F24" => VK_F24
+    ]
+}
+
+fn init_hold_keys() -> HashSet<String> {
+    set![
+        "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL",
+        "ALT", "MENU", "LALT", "LMENU", "RALT", "RMENU",
+        "SHIFT", "LSHIFT", "RSHIFT",
+        "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
+    ]
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum InputItem {
@@ -344,8 +399,10 @@ fn read_special_item(expr: &mut Chars<'_>) -> Result<InputItem> {
             Ok(InputItem::Character(token.chars().nth(0).unwrap()))
         } else {
             let token = token.to_uppercase();
-            if let Some(key) = VIRTUAL_KEYS.get(&token) {
-                if HOLD_KEYS.contains(&token) {
+            let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); //get_virtual_keys!();
+            let hkeys = HOLD_KEYS.get_or_init(init_hold_keys);
+            if let Some(key) = vkeys.get(&token) {
+                if hkeys.contains(&token) {
                     Ok(InputItem::HoldKey(*key))
                 } else {
                     Ok(InputItem::VirtualKey(*key))
@@ -814,6 +871,7 @@ fn send_input(inputs: &[INPUT]) -> Result<()> {
 mod tests {
     use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
+    use crate::inputs::init_virtual_keys;
     use crate::inputs::Keyboard;
     use crate::inputs::parse_input;
     use crate::inputs::Input;
@@ -822,7 +880,9 @@ mod tests {
 
     #[test]
     fn test_virtual_keys() {
-        let key = VIRTUAL_KEYS.get("LBUTTON");
+        let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys);
+
+        let key = vkeys.get("LBUTTON");
         assert_eq!(key, Some(&VK_LBUTTON));
     }
 
