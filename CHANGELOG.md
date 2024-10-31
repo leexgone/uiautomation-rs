@@ -179,3 +179,7 @@
 ## v0.12.3
 
 + Use `OnceLock` instead of `phf` crate.
+
+## v0.13.0
+
++ Support `i686-pc-windows-msvc` target. [#84](https://github.com/leexgone/uiautomation-rs/issues/84)
