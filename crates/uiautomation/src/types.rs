@@ -197,7 +197,7 @@ pub struct Handle(HWND);
 
 impl Debug for Handle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let v: i64 = unsafe {
+        let v: isize = unsafe {
             std::mem::transmute(self.0.0)
         };
         write!(f, "Handle(0x{:X})", v)
@@ -234,8 +234,8 @@ impl Param<HWND> for Handle {
     }
 }
 
-impl From<i64> for Handle {
-    fn from(value: i64) -> Self {
+impl From<isize> for Handle {
+    fn from(value: isize) -> Self {
         let hwd: *mut c_void = unsafe {
             std::mem::transmute(value)
         };
@@ -243,8 +243,8 @@ impl From<i64> for Handle {
     }
 }
 
-impl Into<i64> for Handle {
-    fn into(self) -> i64 {
+impl Into<isize> for Handle {
+    fn into(self) -> isize {
         unsafe {
             std::mem::transmute(self.0.0)
         }
@@ -1158,6 +1158,6 @@ mod tests {
     #[test]
     fn test_handle() {
         let handle = crate::types::Handle::from(0x001);
-        assert_eq!(windows::Win32::Foundation::HWND(unsafe { std::mem::transmute(0x001i64) } ), handle.into());
+        assert_eq!(windows::Win32::Foundation::HWND(unsafe { std::mem::transmute(0x001isize) } ), handle.into());
     }
 }
