@@ -268,7 +268,10 @@ impl Input {
                     }
                 ]    
             } else {
-                let mut shift: bool = (vk >> 8 & 0x01) != 0;
+                let mut shift: bool = (vk & 0x0100) != 0;
+                let ctrl: bool = (vk & 0x0200) != 0;
+                let alt: bool = (vk & 0x0400) != 0;
+                // Do not press shift if CAPSLOCK is on.
                 let state = unsafe { GetKeyState(VK_CAPITAL.0 as _) };
                 if (state & 0x01) != 0 {
                     if (ch >= 'a' as u16 && ch <= 'z' as u16) || (ch >= 'A' as u16 && ch <= 'Z' as u16) {
@@ -283,6 +286,38 @@ impl Input {
                             Anonymous: INPUT_0 {
                                 ki: KEYBDINPUT {
                                     wVk: VK_SHIFT,
+                                    wScan: 0,
+                                    dwFlags: KEYEVENTF_KEYDOWN,
+                                    time: 0,
+                                    dwExtraInfo: 0,
+                                    },
+                                }
+                        }
+                    );
+                }
+                if ctrl {
+                    char_inputs.push(
+                        INPUT {
+                            r#type: INPUT_KEYBOARD,
+                            Anonymous: INPUT_0 {
+                                ki: KEYBDINPUT {
+                                    wVk: VK_CONTROL,
+                                    wScan: 0,
+                                    dwFlags: KEYEVENTF_KEYDOWN,
+                                    time: 0,
+                                    dwExtraInfo: 0,
+                                    },
+                                }
+                        }
+                    );
+                }
+                if alt {
+                    char_inputs.push(
+                        INPUT {
+                            r#type: INPUT_KEYBOARD,
+                            Anonymous: INPUT_0 {
+                                ki: KEYBDINPUT {
+                                    wVk: VK_MENU,
                                     wScan: 0,
                                     dwFlags: KEYEVENTF_KEYDOWN,
                                     time: 0,
@@ -319,6 +354,38 @@ impl Input {
                         }
                     }
                 );
+                if alt {
+                    char_inputs.push(
+                        INPUT {
+                            r#type: INPUT_KEYBOARD,
+                            Anonymous: INPUT_0 {
+                                ki: KEYBDINPUT {
+                                    wVk: VK_MENU,
+                                    wScan: 0,
+                                    dwFlags: KEYEVENTF_KEYUP,
+                                    time: 0,
+                                    dwExtraInfo: 0,
+                                },
+                            }
+                        }
+                    );
+                }
+                if ctrl {
+                    char_inputs.push(
+                        INPUT {
+                            r#type: INPUT_KEYBOARD,
+                            Anonymous: INPUT_0 {
+                                ki: KEYBDINPUT {
+                                    wVk: VK_CONTROL,
+                                    wScan: 0,
+                                    dwFlags: KEYEVENTF_KEYUP,
+                                    time: 0,
+                                    dwExtraInfo: 0,
+                                },
+                            }
+                        }
+                    );
+                }
                 if shift {
                     char_inputs.push(
                         INPUT {
