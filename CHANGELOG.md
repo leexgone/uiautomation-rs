@@ -183,3 +183,7 @@
 ## v0.13.0
 
 + Support `i686-pc-windows-msvc` target. [#84](https://github.com/leexgone/uiautomation-rs/issues/84)
+
+## v0.13.1
+
++ Add support for pressing CONTROL and ALT keys. [#86](https://github.com/leexgone/uiautomation-rs/pull/86)
