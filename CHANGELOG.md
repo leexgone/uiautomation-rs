@@ -187,3 +187,7 @@
 ## v0.13.1
 
 + Add support for pressing CONTROL and ALT keys. [#86](https://github.com/leexgone/uiautomation-rs/pull/86)
+
+## v0.13.2
+
++ Use SendInput({ MOUSEINPUT { ... } }) for simulating mouse movement. [#90](https://github.com/leexgone/uiautomation-rs/pull/90)
