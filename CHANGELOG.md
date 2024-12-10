@@ -195,3 +195,7 @@
 ## v0.13.3
 
 + Add a wrapper for LegacyIAccessiblePattern. [#91](https://github.com/leexgone/uiautomation-rs/pull/91)
+
+## v0.13.4
+
++ Add get_(cached)_heading_level and is_(cached)_dialog. [#92](https://github.com/leexgone/uiautomation-rs/pull/92)
