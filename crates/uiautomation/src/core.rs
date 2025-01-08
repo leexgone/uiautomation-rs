@@ -17,6 +17,8 @@ use windows::Win32::UI::Accessibility::IUIAutomationCacheRequest;
 use windows::Win32::UI::Accessibility::IUIAutomationCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationElement;
 use windows::Win32::UI::Accessibility::IUIAutomationElement3;
+use windows::Win32::UI::Accessibility::IUIAutomationElement8;
+use windows::Win32::UI::Accessibility::IUIAutomationElement9;
 use windows::Win32::UI::Accessibility::IUIAutomationElementArray;
 use windows::Win32::UI::Accessibility::IUIAutomationNotCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationOrCondition;
@@ -36,6 +38,7 @@ use crate::filters::FnFilter;
 use crate::inputs::Mouse;
 use crate::patterns::UIPatternType;
 use crate::types::ElementMode;
+use crate::types::HeadingLevel;
 use crate::types::OrientationType;
 use crate::types::PropertyConditionFlags;
 use crate::types::TreeScope;
@@ -1096,6 +1099,38 @@ impl UIElement {
         }
 
         Ok(())
+    }
+
+    pub fn get_heading_level(&self) -> Result<HeadingLevel> {
+        let element8: IUIAutomationElement8 = self.element.cast()?;
+        let heading_level = unsafe {
+            element8.CurrentHeadingLevel()?
+        };
+        Ok(heading_level.into())
+    }
+
+    pub fn get_cached_heading_level(&self) -> Result<HeadingLevel> {
+        let element8: IUIAutomationElement8 = self.element.cast()?;
+        let heading_level = unsafe {
+            element8.CachedHeadingLevel()?
+        };
+        Ok(heading_level.into())
+    }
+
+    pub fn is_dialog(&self) -> Result<bool> {
+        let element9: IUIAutomationElement9 = self.element.cast()?;
+        let got = unsafe {
+            element9.CurrentIsDialog()?
+        };
+        Ok(got.as_bool())
+    }
+
+    pub fn is_cached_dialog(&self) -> Result<bool> {
+        let element9: IUIAutomationElement9 = self.element.cast()?;
+        let got = unsafe {
+            element9.CachedIsDialog()?
+        };
+        Ok(got.as_bool())
     }
 
     pub(crate) fn to_elements(elements: IUIAutomationElementArray) -> Result<Vec<UIElement>> {
@@ -2302,6 +2337,8 @@ mod tests {
         println!("ProviderDescription: {}", element.get_provider_description().unwrap());
         println!("IsPassword: {}", element.is_password().unwrap());
         println!("AutomationId: {}", element.get_automation_id().unwrap());
+        println!("HeadingLevel: {}", element.get_heading_level().unwrap());
+        println!("IsDialog: {}", element.is_dialog().unwrap());
     }
 
     #[test]

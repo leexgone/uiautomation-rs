@@ -75,17 +75,22 @@ fn auto_update() -> Result<()> {
         return Err("调用更新失败！".into())
     }
 
-    if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).find_first() { // Win10
+    if let Ok(taskbar) = automation.create_matcher().name("Taskbar").control_type(PaneControl::TYPE).timeout(1000).find_first() {                   // Explore Patcher
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(PaneControl::TYPE).find_first() {       // Win11
+    } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(PaneControl::TYPE).timeout(1000).find_first() {             // Win11
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    };
+    } else if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).timeout(1000).find_first() { // Win10
+        let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
+        if let Ok(settings_button) = matcher.find_first() {
+            settings_button.click()?;
+        }
+    }
 
     Ok(())
 }

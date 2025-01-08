@@ -958,6 +958,25 @@ pub enum AnnotationType {
     Mathematics = 60023i32,
 }
 
+/// Defines enum for `windows::Win32::UI::Accessibility::UIA_HEADINGLEVEL_ID`.
+///
+/// This set of constants describes the named constants used to identify the heading level of a UI Automation element.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_HEADINGLEVEL_ID)]
+pub enum HeadingLevel {
+    HeadingLevelNone = 80050i32,
+    HeadingLevel1 = 80051i32,
+    HeadingLevel2 = 80052i32,
+    HeadingLevel3 = 80053i32,
+    HeadingLevel4 = 80054i32,
+    HeadingLevel5 = 80055i32,
+    HeadingLevel6 = 80056i32,
+    HeadingLevel7 = 80057i32,
+    HeadingLevel8 = 80058i32,
+    HeadingLevel9 = 80059i32
+}
+
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_STYLE_ID`.
 /// 
 /// This set of constants describes the named constants used to identify the visual style of text in a document.

@@ -12,6 +12,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationGridPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationInvokePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationItemContainerPattern;
+use windows::Win32::UI::Accessibility::IUIAutomationLegacyIAccessiblePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern;
 use windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern;
@@ -898,6 +899,151 @@ impl Into<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
 
 impl AsRef<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
     fn as_ref(&self) -> &IUIAutomationItemContainerPattern {
+        &self.pattern
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UILegacyIAccessiblePattern {
+    pattern: IUIAutomationLegacyIAccessiblePattern,
+}
+
+impl UILegacyIAccessiblePattern {
+    pub fn select(&self, flags: i32) -> Result<()> {
+        Ok(unsafe { self.pattern.Select(flags)? })
+    }
+
+    pub fn do_default_action(&self) -> Result<()> {
+        Ok(unsafe { self.pattern.DoDefaultAction()? })
+    }
+
+    pub fn set_value(&self, value: &str) -> Result<()> {
+        let value = BSTR::from(value);
+        Ok(unsafe { self.pattern.SetValue(&value)? })
+    }
+
+    pub fn get_child_id(&self) -> Result<i32> {
+        Ok(unsafe { self.pattern.CurrentChildId()? })
+    }
+
+    pub fn get_name(&self) -> Result<String> {
+        let name = unsafe { self.pattern.CurrentName()? };
+        Ok(name.to_string())
+    }
+
+    pub fn get_value(&self) -> Result<String> {
+        let value = unsafe { self.pattern.CurrentValue()? };
+        Ok(value.to_string())
+    }
+
+    pub fn get_description(&self) -> Result<String> {
+        let desc = unsafe { self.pattern.CurrentDescription()? };
+        Ok(desc.to_string())
+    }
+
+    pub fn get_role(&self) -> Result<u32> {
+        Ok(unsafe { self.pattern.CurrentRole()? })
+    }
+
+    pub fn get_state(&self) -> Result<u32> {
+        Ok(unsafe { self.pattern.CurrentState()? })
+    }
+
+    pub fn get_help(&self) -> Result<String> {
+        let help = unsafe { self.pattern.CurrentHelp()? };
+        Ok(help.to_string())
+    }
+
+    pub fn get_keyboard_shortcut(&self) -> Result<String> {
+        let shortcut = unsafe { self.pattern.CurrentKeyboardShortcut()? };
+        Ok(shortcut.to_string())
+    }
+
+    pub fn get_selection(&self) -> Result<Vec<UIElement>> {
+        let selection = unsafe { self.pattern.GetCurrentSelection()? };
+        crate::core::UIElement::to_elements(selection)
+    }
+
+    pub fn get_default_action(&self) -> Result<String> {
+        let action = unsafe { self.pattern.CurrentDefaultAction()? };
+        Ok(action.to_string())
+    }
+
+    pub fn get_cached_child_id(&self) -> Result<i32> {
+        Ok(unsafe { self.pattern.CachedChildId()? })
+    }
+
+    pub fn get_cached_name(&self) -> Result<String> {
+        let name = unsafe { self.pattern.CachedName()? };
+        Ok(name.to_string())
+    }
+
+    pub fn get_cached_value(&self) -> Result<String> {
+        let value = unsafe { self.pattern.CachedValue()? };
+        Ok(value.to_string())
+    }
+
+    pub fn get_cached_description(&self) -> Result<String> {
+        let desc = unsafe { self.pattern.CachedDescription()? };
+        Ok(desc.to_string())
+    }
+
+    pub fn get_cached_role(&self) -> Result<u32> {
+        Ok(unsafe { self.pattern.CachedRole()? })
+    }
+
+    pub fn get_cached_state(&self) -> Result<u32> {
+        Ok(unsafe { self.pattern.CachedState()? })
+    }
+
+    pub fn get_cached_help(&self) -> Result<String> {
+        let help = unsafe { self.pattern.CachedHelp()? };
+        Ok(help.to_string())
+    }
+
+    pub fn get_cached_keyboard_shortcut(&self) -> Result<String> {
+        let shortcut = unsafe { self.pattern.CachedKeyboardShortcut()? };
+        Ok(shortcut.to_string())
+    }
+
+    pub fn get_cached_selection(&self) -> Result<Vec<UIElement>> {
+        let selection = unsafe { self.pattern.GetCachedSelection()? };
+        crate::core::UIElement::to_elements(selection)
+    }
+
+    pub fn get_cached_default_action(&self) -> Result<String> {
+        let action = unsafe { self.pattern.CachedDefaultAction()? };
+        Ok(action.to_string())
+    }
+}
+
+impl UIPattern for UILegacyIAccessiblePattern {
+    const TYPE: UIPatternType = UIPatternType::LegacyIAccessible;
+}
+
+impl TryFrom<IUnknown> for UILegacyIAccessiblePattern {
+    type Error = Error;
+
+    fn try_from(value: IUnknown) -> Result<Self> {
+        let pattern: IUIAutomationLegacyIAccessiblePattern = value.cast()?;
+        Ok(Self { pattern })
+    }
+}
+
+impl From<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
+    fn from(pattern: IUIAutomationLegacyIAccessiblePattern) -> Self {
+        Self { pattern }
+    }
+}
+
+impl Into<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
+    fn into(self) -> IUIAutomationLegacyIAccessiblePattern {
+        self.pattern
+    }
+}
+
+impl AsRef<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
+    fn as_ref(&self) -> &IUIAutomationLegacyIAccessiblePattern {
         &self.pattern
     }
 }

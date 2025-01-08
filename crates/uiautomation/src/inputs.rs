@@ -775,13 +775,13 @@ impl Mouse {
                         source.get_x() + step_x * i, 
                         source.get_y() + step_y * i
                     );
-                    Self::set_cursor_pos(pos)?;
+                    Self::mouse_move_event(&pos)?;
                     sleep(interval);
                 }
             }
         }
 
-        Self::set_cursor_pos(target)
+        Self::mouse_move_event(&target)
     }
 
     /// Simulates a mouse click event.
@@ -800,8 +800,8 @@ impl Mouse {
         }
 
         self.before_click()?;
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+        self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
+        self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
         self.after_click()?;
 
         Ok(())
@@ -824,13 +824,13 @@ impl Mouse {
 
         self.before_click()?;
 
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+        self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
+        self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
 
         sleep(Duration::from_millis(max(200, self.interval)));
 
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTDOWN)?;
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_LEFTUP)?;
+        self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
+        self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
 
         self.after_click()?;
 
@@ -853,8 +853,8 @@ impl Mouse {
         }
 
         self.before_click()?;
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTDOWN)?;
-        self.mouse_event(pos.get_x(), pos.get_y(), MOUSEEVENTF_RIGHTUP)?;
+        self.mouse_click_event(MOUSEEVENTF_RIGHTDOWN)?;
+        self.mouse_click_event(MOUSEEVENTF_RIGHTUP)?;
         self.after_click()?;
 
         Ok(())
@@ -880,13 +880,13 @@ impl Mouse {
         Ok(())
     }
 
-    fn mouse_event(&self, x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
+    fn mouse_click_event(&self, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
         let input = [INPUT {
             r#type: INPUT_MOUSE,
             Anonymous: INPUT_0 { 
                 mi: MOUSEINPUT { 
-                    dx: x, 
-                    dy: y, 
+                    dx: 0,
+                    dy: 0,
                     mouseData: 0, 
                     dwFlags: flags, 
                     time: 0, 
@@ -897,6 +897,28 @@ impl Mouse {
         send_input(&input)?;
         self.wait();
 
+        Ok(())
+    }
+
+    /// Moves the cursor to the specified screen coordinates using send_input().
+    fn mouse_move_event(pos: &Point) -> Result<()> {
+        let (cx_screen, cy_screen) = get_screen_size()?;
+        let dx = (pos.get_x() as f32 / cx_screen as f32 * 65535.0) as i32;
+        let dy = (pos.get_y() as f32 / cy_screen as f32 * 65535.0) as i32;
+        let input = [INPUT {
+            r#type: INPUT_MOUSE,
+            Anonymous: INPUT_0 {
+                mi: MOUSEINPUT {
+                    dx,
+                    dy,
+                    mouseData: 0,
+                    dwFlags: MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
+                    time: 0,
+                    dwExtraInfo: 0,
+                },
+            },
+        }];
+        send_input(&input)?;
         Ok(())
     }
 
