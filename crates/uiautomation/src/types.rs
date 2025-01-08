@@ -4,13 +4,13 @@ use std::fmt::Display;
 
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
-use windows::core::Param;
+// use windows::core::Param;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
 
 /// A Point type stores the x and y position.
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Point(POINT);
 
 impl Point {
@@ -41,6 +41,9 @@ impl Point {
     pub fn set_y(&mut self, y: i32) {
         self.0.y = y;
     }
+}
+
+impl Eq for Point {
 }
 
 impl Debug for Point {
@@ -80,7 +83,7 @@ impl AsMut<POINT> for Point {
 }
 
 /// A Rect type stores the position and size of a rectangle.
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Rect(RECT);
 
 impl Rect {
@@ -153,6 +156,10 @@ impl Rect {
     pub fn get_height(&self) -> i32 {
         self.0.bottom - self.0.top + 1
     }
+}
+
+impl Eq for Rect {
+    
 }
 
 impl Debug for Rect {
@@ -228,11 +235,11 @@ impl AsRef<HWND> for Handle {
     }
 }
 
-impl Param<HWND> for Handle {
-    unsafe fn param(self) -> windows::core::ParamValue<HWND> {
-        windows::core::ParamValue::Owned(self.0)
-    }
-}
+// impl Param<HWND> for Handle {
+//     unsafe fn param(self) -> windows::core::ParamValue<HWND> {
+//         windows::core::ParamValue::Owned(self.0)
+//     }
+// }
 
 impl From<isize> for Handle {
     fn from(value: isize) -> Self {

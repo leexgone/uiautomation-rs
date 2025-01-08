@@ -109,7 +109,7 @@ impl UIAutomation {
     /// Retrieves a UI Automation element for the specified window.
     pub fn element_from_handle(&self, hwnd: Handle) -> Result<UIElement> {
         let element = unsafe {
-            self.automation.ElementFromHandle(hwnd)?
+            self.automation.ElementFromHandle(hwnd.into())?
         };
 
         Ok(UIElement::from(element))
@@ -118,7 +118,7 @@ impl UIAutomation {
     /// Retrieves a UI Automation element for the specified window, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
     pub fn element_from_handle_build_cache(&self, hwnd: Handle, cache_request: &UICacheRequest) -> Result<UIElement> {
         let element = unsafe {
-            self.automation.ElementFromHandleBuildCache(hwnd, cache_request)?
+            self.automation.ElementFromHandleBuildCache(hwnd.into(), cache_request)?
         };
         Ok(element.into())
     }
@@ -306,9 +306,9 @@ impl UIAutomation {
     pub fn create_property_condition(&self, property: UIProperty, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property.into(), value, flags.into())?
+                self.automation.CreatePropertyConditionEx(property.into(), value.as_ref(), flags.into())?
             } else {
-                self.automation.CreatePropertyCondition(property.into(), value)?
+                self.automation.CreatePropertyCondition(property.into(), value.as_ref())?
             }
         };
         Ok(condition.into())

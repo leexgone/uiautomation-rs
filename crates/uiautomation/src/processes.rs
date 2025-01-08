@@ -132,7 +132,7 @@ impl Process {
             unsafe {
                 CreateProcessW(
                     app.to_pcwstr(),
-                    cmd.to_pwstr(),
+                    Some(cmd.to_pwstr()),
                     None,
                     None,
                     true,

@@ -192,7 +192,7 @@ impl UIPropertyChangedEventHandler {
     /// Handles a Microsoft UI Automation property-changed event.
     pub fn handle_property_changed_event(&self, sender: &UIElement, property_id: UIProperty, new_value: Variant) -> Result<()> {
         unsafe {
-            self.handler.HandlePropertyChangedEvent(sender, property_id.into(), new_value)?
+            self.handler.HandlePropertyChangedEvent(sender, property_id.into(), new_value.as_ref())?
         };
         Ok(())
     }

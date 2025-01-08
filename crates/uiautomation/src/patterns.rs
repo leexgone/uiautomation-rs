@@ -861,7 +861,7 @@ impl UIItemContainerPattern {
     pub fn find_item_by_property(&self, start_after: UIElement, property: UIProperty, value: Variant) -> Result<UIElement> {
         // let val: VARIANT = value.into();
         let element = unsafe {
-            self.pattern.FindItemByProperty(start_after.as_ref(), property.into(), value)?
+            self.pattern.FindItemByProperty(start_after.as_ref(), property.into(), value.as_ref())?
         };
 
         Ok(element.into())
@@ -2426,7 +2426,7 @@ impl UITextRange {
 
     pub fn find_attribute(&self, attr: TextAttribute, value: Variant, backward: bool) -> Result<UITextRange> {
         let range = unsafe {
-            self.range.FindAttribute(attr.into(), value, backward)?
+            self.range.FindAttribute(attr.into(), value.as_ref(), backward)?
         };
         Ok(range.into())
     }

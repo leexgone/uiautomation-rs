@@ -26,8 +26,8 @@ pub struct AutomationEventHandler {
 }
 
 impl IUIAutomationEventHandler_Impl for AutomationEventHandler_Impl {
-    fn HandleAutomationEvent(&self, sender: Option<&IUIAutomationElement>, eventid: UIA_EVENT_ID) -> windows::core::Result<()> {
-        if let Some(e) = sender { 
+    fn HandleAutomationEvent(&self, sender: windows_core::Ref<'_, IUIAutomationElement>, eventid: UIA_EVENT_ID) -> windows::core::Result<()> {
+        if let Some(e) = sender.as_ref() { 
             let element = UIElement::from(e);
             self.handler.handle(&element, eventid.into()).map_err(|e| e.into())
         } else {
@@ -50,8 +50,8 @@ pub struct AutomationPropertyChangedHandler {
 }
 
 impl IUIAutomationPropertyChangedEventHandler_Impl for AutomationPropertyChangedHandler_Impl {
-    fn HandlePropertyChangedEvent(&self, sender: Option<&IUIAutomationElement>, propertyid: UIA_PROPERTY_ID, newvalue: &windows::core::VARIANT) -> windows::core::Result<()> {
-        if let Some(e) = sender {
+    fn HandlePropertyChangedEvent(&self, sender: windows_core::Ref<'_, IUIAutomationElement>, propertyid: UIA_PROPERTY_ID, newvalue: &windows::Win32::System::Variant::VARIANT) -> windows::core::Result<()> {
+        if let Some(e) = sender.as_ref() {
             let element = UIElement::from(e);
             let value = Variant::from(newvalue);
             self.handler.handle(&element, propertyid.into(), value).map_err(|e| e.into())
@@ -75,8 +75,8 @@ pub struct AutomationStructureChangedEventHandler {
 }
 
 impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChangedEventHandler_Impl {
-    fn HandleStructureChangedEvent(&self, sender: Option<&IUIAutomationElement>, changetype: windows::Win32::UI::Accessibility::StructureChangeType, runtimeid: *const windows::Win32::System::Com::SAFEARRAY) -> windows_core::Result<()> {
-        if let Some(e) = sender {
+    fn HandleStructureChangedEvent(&self, sender: windows_core::Ref<'_, IUIAutomationElement>, changetype: windows::Win32::UI::Accessibility::StructureChangeType, runtimeid: *const windows::Win32::System::Com::SAFEARRAY) -> windows_core::Result<()> {
+        if let Some(e) = sender.as_ref() {
             let element = UIElement::from(e);
             let arr = SafeArray::from(runtimeid);
             let ret = if arr.is_null() {
@@ -109,8 +109,8 @@ pub struct AutomationFocusChangedEventHandler {
 }
 
 impl IUIAutomationFocusChangedEventHandler_Impl for AutomationFocusChangedEventHandler_Impl {
-    fn HandleFocusChangedEvent(&self, sender: Option<&IUIAutomationElement>) -> windows_core::Result<()> {
-        if let Some(e) = sender {
+    fn HandleFocusChangedEvent(&self, sender: windows_core::Ref<'_, IUIAutomationElement>) -> windows_core::Result<()> {
+        if let Some(e) = sender.as_ref() {
             let element = UIElement::from(e);
             self.handler.handle(&element).map_err(|e| e.into())
         } else {
