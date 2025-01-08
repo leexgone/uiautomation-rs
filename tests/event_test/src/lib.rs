@@ -7,8 +7,8 @@ pub struct MyEventHandler {
 }
 
 impl IUIAutomationEventHandler_Impl for MyEventHandler_Impl {
-    fn HandleAutomationEvent(&self,sender:Option<&IUIAutomationElement>,eventid:UIA_EVENT_ID) -> windows::core::Result<()> {
-        if let Some(element) = sender {
+    fn HandleAutomationEvent(&self,sender:windows_core::Ref<'_, IUIAutomationElement>,eventid:UIA_EVENT_ID) -> windows::core::Result<()> {
+        if let Some(element) = sender.as_ref() {
             let element = UIElement::from(element);
             println!("event: {}, element: {}", eventid.0, element);
         } else {

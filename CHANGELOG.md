@@ -199,3 +199,7 @@
 ## v0.13.4
 
 + Add get_(cached)_heading_level and is_(cached)_dialog. [#92](https://github.com/leexgone/uiautomation-rs/pull/92)
+
+## v0.14.0
+
++ update to `windows v0.59.0`.

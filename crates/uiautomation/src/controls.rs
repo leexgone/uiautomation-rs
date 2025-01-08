@@ -1988,7 +1988,7 @@ impl WindowControl {
     pub fn set_foregrand(&self) -> Result<bool> {
         let hwnd = self.control.get_native_window_handle()?;
         let ret = unsafe {
-            SetForegroundWindow(hwnd)
+            SetForegroundWindow(hwnd.into())
         };
         Ok(ret.as_bool())
     }

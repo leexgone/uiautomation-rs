@@ -97,6 +97,6 @@ pub fn message_box(text: &str, caption: &str, styles: MESSAGEBOX_STYLE) -> MESSA
 
     unsafe {
         let hwnd = GetActiveWindow();
-        MessageBoxW(hwnd, lptext, lpcaption, styles)
+        MessageBoxW(hwnd.into(), lptext, lpcaption, styles)
     }    
 }

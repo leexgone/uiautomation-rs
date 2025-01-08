@@ -1,4 +1,6 @@
 use std::fmt::Display;
+use std::string::FromUtf16Error;
+use std::string::FromUtf8Error;
 
 use windows::Win32::Foundation::GetLastError;
 use windows::core::HRESULT;
@@ -39,18 +41,6 @@ impl Error {
 
     pub fn last_os_error() -> Error {
         let error = unsafe { GetLastError() };
-        // let code: i32 = if (error.0 as i32) < 0 {
-        //     error.0 as _
-        // } else { 
-        //     ((error.0 & 0x0000FFFF) | 0x80070000) as _
-        // };
-
-        // HRESULT(code).into()
-        // if let Err(e) = error {
-        //     e.into()
-        // } else {
-        //     HRESULT(0).into()
-        // }
         let result = HRESULT::from_win32(error.0);
         result.into()
     }
@@ -92,11 +82,6 @@ impl From<windows::core::Error> for Error {
 
 impl Into<windows::core::Error> for Error {
     fn into(self) -> windows::core::Error {
-        // if self.code < 0 {
-        //     windows::core::Error::new(HRESULT(self.code), self.message)
-        // } else {
-        //     windows::core::Error::new(E_FAIL, self.message)
-        // }
         if let Some(result) = self.result() {
             windows::core::Error::from_hresult(result)
         } else {
@@ -129,6 +114,18 @@ impl From<&str> for Error {
             code: 0,
             message: String::from(message)
         }
+    }
+}
+
+impl From<FromUtf8Error> for Error {
+    fn from(value: FromUtf8Error) -> Self {
+        value.to_string().into()
+    }
+}
+
+impl From<FromUtf16Error> for Error {
+    fn from(value: FromUtf16Error) -> Self {
+        value.to_string().into()
     }
 }
 

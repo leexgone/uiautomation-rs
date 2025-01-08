@@ -1,15 +1,13 @@
 use std::fmt::Display;
+use std::mem::ManuallyDrop;
 use std::ptr::null_mut;
 
-use windows::core::Param;
-use windows::core::VARIANT;
 use windows::core::BSTR;
 use windows::core::HRESULT;
 use windows::core::HSTRING;
 use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::PSTR;
-use windows::core::imp;
 use windows::Win32::Foundation::DECIMAL;
 use windows::Win32::Foundation::VARIANT_BOOL;
 use windows::Win32::System::Com::*;
@@ -124,29 +122,51 @@ pub struct Variant {
 impl Variant {
     /// Create a null variant.
     fn new_null(vt: VARENUM) -> Variant {
-        let mut var: imp::VARIANT = unsafe { std::mem::zeroed() };
-        var.Anonymous.Anonymous.vt = vt.0;
+        // let mut var: imp::VARIANT = unsafe { std::mem::zeroed() };
+        // var.Anonymous.Anonymous.vt = vt.0;
         
-        let variant = unsafe { VARIANT::from_raw(var) };
+        // let variant = unsafe { VARIANT::from_raw(var) };
 
-        variant.into()
+        // variant.into()
+        let mut val = VARIANT_0_0::default();
+        val.vt = vt;
+        let val = VARIANT {
+            Anonymous: VARIANT_0 {
+                Anonymous: ManuallyDrop::new(val)
+            }
+        };
+        val.into()
     }
 
     /// Create a `Variant` from `vt` and `value`.
-    fn new(vt: VARENUM, value: imp::VARIANT_0_0_0) -> Variant {
-        let mut val: imp::VARIANT = unsafe { std::mem::zeroed() };
-        val.Anonymous.Anonymous.vt = vt.0;
-        val.Anonymous.Anonymous.Anonymous = value;
+    fn new(vt: VARENUM, value: VARIANT_0_0_0) -> Variant {
+        // let mut val: imp::VARIANT = unsafe { std::mem::zeroed() };
+        // val.Anonymous.Anonymous.vt = vt.0;
+        // val.Anonymous.Anonymous.Anonymous = value;
 
-        let variant = unsafe { VARIANT::from_raw(val) };
+        // let variant = unsafe { VARIANT::from_raw(val) };
 
-        variant.into()
+        // variant.into()
+        let val = VARIANT {
+            Anonymous: VARIANT_0 {
+                Anonymous: ManuallyDrop::new(VARIANT_0_0 {
+                    vt,
+                    Anonymous: value,
+                    wReserved1: 0,
+                    wReserved2: 0,
+                    wReserved3: 0,
+                })
+            }
+        };
+
+        val.into()
     }
 
     /// Retrieve the variant type.
     fn vt(&self) -> VARENUM {
-        let val = self.value.as_raw();
-        unsafe { VARENUM(val.Anonymous.Anonymous.vt) }
+        // let val = self.value.as_raw();
+        // unsafe { VARENUM(val.Anonymous.Anonymous.vt) }
+        self.value.vt()
     }
 
     /// Retrieve the variant type as `VARENUM`.
@@ -155,13 +175,15 @@ impl Variant {
     }
 
     /// Retrieve the data of the variant.
-    pub(crate) fn get_data(&self) -> &imp::VARIANT_0_0_0 {
-        let var = self.value.as_raw();
-        unsafe { &var.Anonymous.Anonymous.Anonymous }
+    pub(crate) fn get_data(&self) -> &VARIANT_0_0_0 {
+        // let var = self.value.as_raw();
+        // unsafe { &var.Anonymous.Anonymous.Anonymous }
+        unsafe { &self.value.Anonymous.Anonymous.Anonymous }
     }
 
     fn as_bool(&self) -> VARIANT_BOOL {
-        unsafe { VARIANT_BOOL(self.get_data().boolVal) }
+        // unsafe { VARIANT_BOOL(self.get_data().boolVal) }
+        unsafe { self.get_data().boolVal }
     }
 
     fn as_decimal(&self) -> DECIMAL {
@@ -379,11 +401,11 @@ impl Display for Variant {
     }
 }
 
-impl Param<VARIANT> for Variant {
-    unsafe fn param(self) -> windows::core::ParamValue<VARIANT> {
-        windows::core::ParamValue::Owned(self.value)
-    }
-}
+// impl Param<VARIANT> for Variant {
+//     unsafe fn param(self) -> windows::core::ParamValue<VARIANT> {
+//         windows::core::ParamValue::Owned(self.value)
+//     }
+// }
 
 macro_rules! val_to_variant {
     ($v: expr) => {
@@ -399,21 +421,21 @@ macro_rules! vec_to_variant {
         {
             let vt = VARENUM(VT_ARRAY.0 | $t.0);
             let arr: SafeArray = $v.try_into().unwrap();
-            Variant::new(vt, imp::VARIANT_0_0_0 { parray: arr.into() })
+            Variant::new(vt, VARIANT_0_0_0 { parray: arr.into() })
         }
     };
 }
 
-macro_rules! to_decimal_imp {
-    ($d: expr) => {
-        imp::DECIMAL { 
-            wReserved: $d.wReserved, 
-            Anonymous1: imp::DECIMAL_0 { signscale: unsafe { $d.Anonymous1.signscale } }, 
-            Hi32: $d.Hi32, 
-            Anonymous2: imp::DECIMAL_1 { Lo64: unsafe { $d.Anonymous2.Lo64 } }
-        }        
-    };
-}
+// macro_rules! to_decimal_imp {
+//     ($d: expr) => {
+//         imp::DECIMAL { 
+//             wReserved: $d.wReserved, 
+//             Anonymous1: imp::DECIMAL_0 { signscale: unsafe { $d.Anonymous1.signscale } }, 
+//             Hi32: $d.Hi32, 
+//             Anonymous2: imp::DECIMAL_1 { Lo64: unsafe { $d.Anonymous2.Lo64 } }
+//         }        
+//     };
+// }
 
 impl From<Value> for Variant {
     fn from(value: Value) -> Self {
@@ -433,23 +455,25 @@ impl From<Value> for Variant {
             Value::UINT(v)  => val_to_variant!(v), 
             Value::R4(v)    => val_to_variant!(v), 
             Value::R8(v)    => val_to_variant!(v), 
-            Value::CURRENCY(v)  => Variant::new(VT_CY, imp::VARIANT_0_0_0 { cyVal: imp::CY { int64: v} }),
-            Value::DATE(v)      => Variant::new(VT_DATE, imp::VARIANT_0_0_0 { date: v }),
+            Value::CURRENCY(v)  => Variant::new(VT_CY, VARIANT_0_0_0 { cyVal: CY { int64: v} }),
+            Value::DATE(v)      => Variant::new(VT_DATE, VARIANT_0_0_0 { date: v }),
             Value::STRING(v)    => val_to_variant!(BSTR::from(v)), 
             Value::UNKNOWN(v)   => val_to_variant!(v), 
             Value::DISPATCH(v)  => val_to_variant!(v), 
-            Value::ERROR(v)     => Variant::new(VT_ERROR, imp::VARIANT_0_0_0 { intVal: v.0 }),
-            Value::HRESULT(v)   => Variant::new(VT_HRESULT, imp::VARIANT_0_0_0 { intVal: v.0 }),
+            Value::ERROR(v)     => Variant::new(VT_ERROR, VARIANT_0_0_0 { intVal: v.0 }),
+            Value::HRESULT(v)   => Variant::new(VT_HRESULT, VARIANT_0_0_0 { intVal: v.0 }),
             Value::BOOL(v)      => val_to_variant!(v), 
             Value::VARIANT(v) => {
-                let mut val = v.value.as_raw().clone();
-                Variant::new(VT_VARIANT, imp::VARIANT_0_0_0 { pvarVal: &mut val as _ }) 
+                let mut val = v.value.clone();
+                Variant::new(VT_VARIANT, VARIANT_0_0_0 { pvarVal: &mut val as _ }) 
             },
             Value::DECIMAL(v) => {
-                let mut decimal = to_decimal_imp!(v);
-                Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut decimal as _ })
+                // let mut decimal = to_decimal_imp!(v);
+                // Variant::new(VT_DECIMAL, imp::VARIANT_0_0_0 { pdecVal: &mut decimal as _ })
+                let mut decimal = v;
+                Variant::new(VT_DECIMAL, VARIANT_0_0_0 { pdecVal: &mut decimal as _ })
             },
-            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, imp::VARIANT_0_0_0 { parray: v.into() }),
+            Value::SAFEARRAY(v) => Variant::new(VT_SAFEARRAY, VARIANT_0_0_0 { parray: v.into() }),
             Value::ArrayBool(v) => vec_to_variant!(v, VT_BOOL), 
             Value::ArrayR8(v)   => vec_to_variant!(v, VT_R8),
             Value::ArrayI2(v)   => vec_to_variant!(v, VT_I2),
@@ -580,19 +604,22 @@ impl TryInto<Value> for &Variant {
             };
             Ok(Value::DATE(val))
         } else if vt == VT_BSTR || vt == VT_LPSTR {
-            let val = unsafe { BSTR::from_raw(self.get_data().bstrVal) };
-            Ok(Value::STRING(val.to_string()))
+            // let val = unsafe { BSTR::from_raw(self.get_data().bstrVal) };
+            // Ok(Value::STRING(val.to_string()))
+            let val = unsafe { self.get_data().bstrVal.to_string() };
+            Ok(Value::STRING(val))
         } else if vt == VT_LPSTR {
             let val = unsafe {
                 if self.get_data().pcVal.is_null() {
                     String::from("")
                 } else {
                     let lpstr = self.get_data().pcVal;
-                    let mut end = lpstr;
-                    while *end != 0 {
-                        end = end.add(1);
-                    };
-                    String::from_utf8_lossy(std::slice::from_raw_parts(lpstr, end.offset_from(lpstr) as _)).into()
+                    // let mut end = lpstr;
+                    // while *end != 0 {
+                    //     end = end.add(1);
+                    // };
+                    // String::from_utf8_lossy(std::slice::from_raw_parts(lpstr, end.offset_from(lpstr) as _)).into()
+                    lpstr.to_string()?
                 }
             };
 
@@ -623,13 +650,14 @@ impl TryInto<Value> for &Variant {
             Ok(Value::HRESULT(HRESULT(val)))
         } else if vt == VT_BOOL {
             let val = unsafe {
-                self.get_data().__OBSOLETE__VARIANT_BOOL != 0
+                self.get_data().__OBSOLETE__VARIANT_BOOL.as_bool()
             };
             Ok(Value::BOOL(val))
         } else if vt == VT_VARIANT {
             let val = unsafe {
-                let v = (*self.get_data().pvarVal).clone();
-                VARIANT::from_raw(v)
+                // let v = (*self.get_data().pvarVal).clone();
+                // VARIANT::from_raw(v)
+                (*self.get_data().pvarVal).clone()
             };
             
             Ok(Value::VARIANT(val.into()))
@@ -1469,38 +1497,38 @@ impl Default for SafeArray {
     }
 }
 
-impl From<*mut imp::SAFEARRAY> for SafeArray {
-    fn from(value: *mut imp::SAFEARRAY) -> Self {
-        let array: *mut SAFEARRAY = unsafe {
-            std::mem::transmute(value)
-        };
-        Self { 
-            array, 
-            owned: true 
-        }
-    }
-}
+// impl From<*mut imp::SAFEARRAY> for SafeArray {
+//     fn from(value: *mut imp::SAFEARRAY) -> Self {
+//         let array: *mut SAFEARRAY = unsafe {
+//             std::mem::transmute(value)
+//         };
+//         Self { 
+//             array, 
+//             owned: true 
+//         }
+//     }
+// }
 
-impl From<*const imp::SAFEARRAY> for SafeArray {
-    fn from(value: *const imp::SAFEARRAY) -> Self {
-        let array: *mut SAFEARRAY = unsafe {
-            std::mem::transmute(value)
-        };
-        Self {
-            array,
-            owned: false
-        }
-    }
-}
+// impl From<*const imp::SAFEARRAY> for SafeArray {
+//     fn from(value: *const imp::SAFEARRAY) -> Self {
+//         let array: *mut SAFEARRAY = unsafe {
+//             std::mem::transmute(value)
+//         };
+//         Self {
+//             array,
+//             owned: false
+//         }
+//     }
+// }
 
-impl Into<*mut imp::SAFEARRAY> for SafeArray {
-    fn into(mut self) -> *mut imp::SAFEARRAY {
-        self.owned = false;
-        unsafe {
-            std::mem::transmute(self.array)
-        }
-    }
-}
+// impl Into<*mut imp::SAFEARRAY> for SafeArray {
+//     fn into(mut self) -> *mut imp::SAFEARRAY {
+//         self.owned = false;
+//         unsafe {
+//             std::mem::transmute(self.array)
+//         }
+//     }
+// }
 
 
 impl From<*mut SAFEARRAY> for SafeArray {
