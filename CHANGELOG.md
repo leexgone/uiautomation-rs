@@ -202,4 +202,9 @@
 
 ## v0.14.0
 
-+ update to `windows v0.59.0`.
++ Update to `windows v0.59.0`.
+
+## v0.15.0
+
++ Add `Keyboard.ignore_parse_err()` option to ignore parsing error.
++ Add `UIElement.send_text()` method to output the literal content of the text.

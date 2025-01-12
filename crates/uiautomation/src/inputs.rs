@@ -19,29 +19,6 @@ use super::Error;
 use super::Result;
 use super::types::Point;
 
-// const VIRTUAL_KEYS: phf::Map<&'static str, VIRTUAL_KEY> = phf_map! {
-//     "CONTROL" => VK_CONTROL, "CTRL" => VK_CONTROL, "LCONTROL" => VK_LCONTROL, "LCTRL" => VK_LCONTROL, "RCONTROL" => VK_RCONTROL, "RCTRL" => VK_RCONTROL,
-//     "ALT" => VK_MENU, "MENU" => VK_MENU, "LALT" => VK_LMENU, "LMENU" => VK_LMENU, "RALT" => VK_RMENU, "RMENU" => VK_RMENU,
-//     "SHIFT" => VK_SHIFT, "LSHIFT" => VK_LSHIFT, "RSHIFT" => VK_RSHIFT,
-//     "WIN" => VK_LWIN, "WINDOWS" => VK_LWIN, "LWIN" => VK_LWIN, "LWINDOWS" => VK_LWIN, "RWIN" => VK_RWIN, "RWINDOWS" => VK_RWIN,
-//     "LBUTTON" => VK_LBUTTON, "RBUTTON" => VK_RBUTTON, "MBUTTON" => VK_MBUTTON, "XBUTTON1" => VK_XBUTTON1, "XBUTTON2" => VK_XBUTTON2,
-//     "CANCEL" => VK_CANCEL, "BACK" => VK_BACK, "TAB" => VK_TAB, "RETURN" => VK_RETURN, "ENTER" => VK_RETURN, "PAUSE" => VK_PAUSE, "CAPITAL" => VK_CAPITAL,
-//     "ESCAPE" => VK_ESCAPE, "ESC" => VK_ESCAPE, "SPACE" => VK_SPACE,
-//     "PRIOR" => VK_PRIOR, "PAGE_UP" => VK_PRIOR, "NEXT" => VK_NEXT, "PAGE_DOWN" => VK_NEXT, "HOME" => VK_HOME, "END" => VK_END,
-//     "LEFT" => VK_LEFT, "UP" => VK_UP, "RIGHT" => VK_RIGHT, "DOWN" => VK_DOWN, "PRINT" => VK_PRINT,
-//     "INSERT" => VK_INSERT, "DELETE" => VK_DELETE,
-//     "F1" => VK_F1, "F2" => VK_F2, "F3" => VK_F3, "F4" => VK_F4, "F5" => VK_F5, "F6" => VK_F6, "F7" => VK_F7, "F8" => VK_F8, "F9" => VK_F9, "F10" => VK_F10,
-//     "F11" => VK_F11, "F12" => VK_F12, "F13" => VK_F13, "F14" => VK_F14, "F15" => VK_F15, "F16" => VK_F16, "F17" => VK_F17, "F18" => VK_F18, "F19" => VK_F19,
-//     "F20" => VK_F20, "F21" => VK_F21, "F22" => VK_F22, "F23" => VK_F23, "F24" => VK_F24,
-// };
-
-// const HOLD_KEYS: phf::Set<&'static str> = phf_set! {
-//     "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL",
-//     "ALT", "MENU", "LALT", "LMENU", "RALT", "RMENU",
-//     "SHIFT", "LSHIFT", "RSHIFT",
-//     "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
-// };
-
 const KEYEVENTF_KEYDOWN: KEYBD_EVENT_FLAGS = KEYBD_EVENT_FLAGS(0);
 
 macro_rules! map {
@@ -408,98 +385,129 @@ impl Input {
     }
 }
 
-fn parse_input(expression: &str) -> Result<Vec<Input>> {
-    let mut inputs: Vec<Input> = Vec::new();
-
-    let mut expr = expression.chars();
-    while let Some((items, is_holdkey)) = next_input(&mut expr)? {
-        if let Some(prev) = inputs.last_mut() {
-            // if !is_holdkey && (prev.is_holdkey_only() || !prev.has_holdkey()) {
-            if (is_holdkey && !prev.has_items()) || (!is_holdkey && (!prev.has_holdkey() || prev.is_holdkey_only())) { 
-                prev.push_all(&items);
-                continue;
-            }
-        }
-
-        let mut input = Input::new();
-        input.push_all(&items);
-
-        inputs.push(input);
-    }
-
-    Ok(inputs)
+struct Parser {
+    ignore_err: bool,
 }
 
-fn next_input(expr: &mut Chars<'_>) -> Result<Option<(Vec<InputItem>, bool)>> {
-    if let Some(ch) = expr.next() {
-        let next = match ch {
-            '{' => {
-                let item = read_special_item(expr)?;
-                Some((vec![item], item.is_holdkey()))
-            }
-            '(' => {
-                let items = read_group_items(expr)?;
-                Some((items, false))
-            }
-            _ => Some((vec![InputItem::Character(ch)], false)),
-        };
-        Ok(next)
-    } else {
-        Ok(None)
-    }
-}
-
-fn read_special_item(expr: &mut Chars<'_>) -> Result<InputItem> {
-    let mut token = String::new();
-    let mut matched = false;
-    while let Some(ch) = expr.next() {
-        if ch == '}' && !token.is_empty() {
-            matched = true;
-            break;
-        } else {
-            token.push(ch);
-        }
+impl Parser {
+    fn new(ignore_err: bool) -> Self {
+        Self { ignore_err }
     }
 
-    if matched {
-        if token == "(" || token == ")" || token == "{" || token == "}" {
-            Ok(InputItem::Character(token.chars().nth(0).unwrap()))
-        } else {
-            let token = token.to_uppercase();
-            let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); //get_virtual_keys!();
-            let hkeys = HOLD_KEYS.get_or_init(init_hold_keys);
-            if let Some(key) = vkeys.get(&token) {
-                if hkeys.contains(&token) {
-                    Ok(InputItem::HoldKey(*key))
-                } else {
-                    Ok(InputItem::VirtualKey(*key))
+    fn parse_input(&self, expression: &str) -> Result<Vec<Input>> {
+        let mut inputs: Vec<Input> = Vec::new();
+
+        let mut expr = expression.chars();
+        while let Some((items, is_holdkey)) = self.next_input(&mut expr, if let Some(p) = inputs.last() { p.is_holdkey_only() } else { false })? {
+            if let Some(prev) = inputs.last_mut() {
+                if (is_holdkey && !prev.has_items()) || (!is_holdkey && (!prev.has_holdkey() || prev.is_holdkey_only())) { 
+                    prev.push_all(&items);
+                    continue;
                 }
+            }
+
+            let mut input = Input::new();
+            input.push_all(&items);
+
+            inputs.push(input);
+        }
+
+        Ok(inputs)
+    }
+
+    fn next_input(&self, expr: &mut Chars<'_>, is_holding: bool) -> Result<Option<(Vec<InputItem>, bool)>> {
+        if let Some(ch) = expr.next() {
+            let next = match ch {
+                '{' => {
+                    if self.ignore_err {
+                        let snapshot = expr.clone();
+                        if let Ok(item) = self.read_special_item(expr) {
+                            Some((vec![item], item.is_holdkey()))
+                        } else {
+                            *expr = snapshot;
+                            Some((vec![InputItem::Character(ch)], false))
+                        }
+                    } else {
+                        let item =  self.read_special_item(expr)?;
+                        Some((vec![item], item.is_holdkey()))
+                    }
+                }
+                '(' => {
+                    if !is_holding {
+                        Some((vec![InputItem::Character(ch)], false))
+                    } else if self.ignore_err {
+                        let snapshot = expr.clone();
+                        if let Ok(items) = self.read_group_items(expr) {
+                            Some((items, false))
+                        } else {
+                            *expr = snapshot;
+                            Some((vec![InputItem::Character(ch)], false))
+                        }
+                    } else {
+                        let items = self.read_group_items(expr)?;
+                        Some((items, false))
+                    }
+                }
+                _ => Some((vec![InputItem::Character(ch)], false)),
+            };
+            Ok(next)
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn read_special_item(&self, expr: &mut Chars<'_>) -> Result<InputItem> {
+        let mut token = String::new();
+        let mut matched = false;
+        while let Some(ch) = expr.next() {
+            if ch == '}' && !token.is_empty() {
+                matched = true;
+                break;
             } else {
-                Err(Error::new(ERR_FORMAT, "Error Input Format"))
+                token.push(ch);
             }
         }
-    } else {
-        Err(Error::new(ERR_FORMAT, "Error Input Format"))
+
+        if matched {
+            if token == "(" || token == ")" || token == "{" || token == "}" {
+                Ok(InputItem::Character(token.chars().nth(0).unwrap()))
+            } else {
+                let token = token.to_uppercase();
+                let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); //get_virtual_keys!();
+                let hkeys = HOLD_KEYS.get_or_init(init_hold_keys);
+                if let Some(key) = vkeys.get(&token) {
+                    if hkeys.contains(&token) {
+                        Ok(InputItem::HoldKey(*key))
+                    } else {
+                        Ok(InputItem::VirtualKey(*key))
+                    }
+                } else {
+                    Err(Error::new(ERR_FORMAT, "Error Input Format"))
+                }
+            }
+        } else {
+            Err(Error::new(ERR_FORMAT, "Error Input Format"))
+        }
     }
-}
 
-fn read_group_items(expr: &mut Chars<'_>) -> Result<Vec<InputItem>> {
-    let mut items: Vec<InputItem> = Vec::new();
-    let mut matched = false;
+    fn read_group_items(&self, expr: &mut Chars<'_>) -> Result<Vec<InputItem>> {
+        let mut items: Vec<InputItem> = Vec::new();
+        let mut matched = false;
 
-    while let Some((next, _)) = next_input(expr)? {
-        if next.len() == 1 && next[0] == InputItem::Character(')') {
-            matched = true;
-            break;
+        while let Some((next, _)) = self.next_input(expr, if let Some(&InputItem::HoldKey(_)) = items.last() { true } else { false })? {
+            if next.len() == 1 && next[0] == InputItem::Character(')') {
+                matched = true;
+                break;
+            }
+
+            items.extend(next);
         }
 
-        items.extend(next);
-    }
-
-    if matched {
-        Ok(items)
-    } else {
-        Err(Error::new(ERR_FORMAT, "Error Input Format"))
+        if matched && !items.is_empty() {
+            Ok(items)
+        } else {
+            Err(Error::new(ERR_FORMAT, "Error Input Format"))
+        }
     }
 }
 
@@ -507,7 +515,8 @@ fn read_group_items(expr: &mut Chars<'_>) -> Result<Vec<InputItem>> {
 #[derive(Debug, Default)]
 pub struct Keyboard {
     interval: u64,
-    holdkeys: Vec<VIRTUAL_KEY>
+    holdkeys: Vec<VIRTUAL_KEY>,
+    ignore_parse_err: bool,
 }
 
 impl Keyboard {
@@ -515,7 +524,8 @@ impl Keyboard {
     pub fn new() -> Self {
         Self {
             interval: 0,
-            holdkeys: Vec::new()
+            holdkeys: Vec::new(),
+            ignore_parse_err: false,
         }
     }
 
@@ -527,15 +537,26 @@ impl Keyboard {
         self
     }
 
+    /// Set whether ignore parse error.
+    /// 
+    /// `ignore_parse_err` is the flag to ignore parse error, `false` is default value.
+    /// 
+    /// If `ignore_parse_err` is `true`, the parser will ignore parse error and allow `{` & `(` as regular inputs.
+    /// For example: `{Hi},(rust)!` types `{Hi},(rust)!`.
+    pub fn ignore_parse_err(mut self, ignore_parse_err: bool) -> Self {
+        self.ignore_parse_err = ignore_parse_err;
+        self
+    }
+
     /// Simulates typing `keys` on keyboard.
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
     /// 
     /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     /// 
-    /// `{` `}` `(` `)` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
+    /// When `ignore_parse_err` is `false`, `{` `}` `(` `)` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
     pub fn send_keys(&self, keys: &str) -> Result<()> {
-        let inputs = parse_input(keys)?;
+        let inputs = Parser::new(self.ignore_parse_err).parse_input(keys)?;
         for ref input in inputs {
             // self.send_keyboard(input)?;
             let input_keys = input.create_inputs()?;
@@ -545,13 +566,33 @@ impl Keyboard {
         Ok(())
     }
 
+    /// Simulates typing `text` on keyboard without any special keys.
+    /// 
+    /// This method will only output the literal content of the text.
+    pub fn send_text(&self, text: &str) -> Result<()> {
+        let inputs = vec![
+            Input {
+                holdkeys: Vec::new(),
+                items: text.chars().map(|ch| InputItem::Character(ch)).collect(),
+            }
+        ];
+
+        for ref input in inputs {
+            let input_keys = input.create_inputs()?;
+            self.send_keyboard(&input_keys)?;
+        }
+
+        Ok(())
+        
+    }
+
     /// Simulates starting to hold `keys` on keyboard. Only holdkeys are allowed.
     /// 
     /// The `keys` will be released when `end_hold_keys()` is invoked.
     pub fn begin_hold_keys(&mut self, keys: &str) -> Result<()> {
         let mut holdkeys: Vec<VIRTUAL_KEY> = Vec::new();
 
-        let inputs = parse_input(keys)?;
+        let inputs = Parser::new(false).parse_input(keys)?;
         for input in inputs {
             if input.has_items() {
                 return Err(Error::new(ERR_FORMAT, "Error holdkeys"));
@@ -700,7 +741,7 @@ impl Mouse {
         self.holdkeys.clear();
 
         let mut expr = holdkeys.chars();
-        while let Some((items, is_holdkey)) = next_input(&mut expr).unwrap() {
+        while let Some((items, is_holdkey)) = Parser::new(false).next_input(&mut expr, true).unwrap() {
             if is_holdkey {
                 for item in items {
                     if let InputItem::HoldKey(key) = item {
@@ -958,13 +999,15 @@ fn send_input(inputs: &[INPUT]) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
     use crate::inputs::init_virtual_keys;
     use crate::inputs::Keyboard;
-    use crate::inputs::parse_input;
     use crate::inputs::Input;
     use crate::inputs::InputItem;
+    use crate::inputs::Parser;
     use crate::inputs::VIRTUAL_KEYS;
 
     #[test]
@@ -984,7 +1027,7 @@ mod tests {
     #[test]
     fn test_parse_input_1() {
         assert_eq!(
-            parse_input("{ctrl}c").unwrap(),
+            Parser::new(false).parse_input("{ctrl}c").unwrap(),
             vec![Input {
                 holdkeys: vec![VK_CONTROL],
                 items: vec![InputItem::Character('c')]
@@ -995,7 +1038,7 @@ mod tests {
     #[test]
     fn test_parse_input_2() {
         assert_eq!(
-            parse_input("{ctrl}{alt}{delete}").unwrap(),
+            Parser::new(false).parse_input("{ctrl}{alt}{delete}").unwrap(),
             vec![Input {
                 holdkeys: vec![VK_CONTROL, VK_MENU],
                 items: vec![InputItem::VirtualKey(VK_DELETE)]
@@ -1006,7 +1049,7 @@ mod tests {
     #[test]
     fn test_parse_input_3() {
         assert_eq!(
-            parse_input("{shift}(ab)").unwrap(),
+            Parser::new(false).parse_input("{shift}(ab)").unwrap(),
             vec![Input {
                 holdkeys: vec![VK_SHIFT],
                 items: vec![InputItem::Character('a'), InputItem::Character('b')]
@@ -1017,7 +1060,7 @@ mod tests {
     #[test]
     fn test_parse_input_4() {
         assert_eq!(
-            parse_input("{{}{}}{(}{)}").unwrap(),
+            Parser::new(false).parse_input("{{}{}}{(}{)}").unwrap(),
             vec![
                 Input {
                     holdkeys: Vec::new(),
@@ -1029,13 +1072,13 @@ mod tests {
 
     #[test]
     fn test_parse_input_5() {
-        assert!(parse_input("Hello,Rust UIAutomation!{enter}").is_ok());
+        assert!(Parser::new(false).parse_input("Hello,Rust UIAutomation!{enter}").is_ok());
     }
 
     #[test]
     fn test_parse_input_6() {
         assert_eq!(
-            parse_input("你好！").unwrap(),
+            Parser::new(false).parse_input("你好！").unwrap(),
             vec![
                 Input {
                     holdkeys: Vec::new(),
@@ -1046,8 +1089,108 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_input_7() {
+        assert_eq!(
+            Parser::new(true).parse_input("{").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('{')]
+                }
+            ]
+        );
+        assert!(
+            Parser::new(false).parse_input("{").is_err()
+        );
+        assert_eq!(
+            Parser::new(true).parse_input("{ctrl}{").unwrap(),
+            vec![
+                Input {
+                    holdkeys: vec![VK_CONTROL],
+                    items: vec![InputItem::Character('{')]
+                }
+            ]
+        );
+        assert_eq!(
+            Parser::new(true).parse_input("{}").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('{'), InputItem::Character('}')]
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_input_8() {
+        assert_eq!(
+            Parser::new(true).parse_input("(").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('(')]
+                }
+            ]
+        );
+        assert!(
+            Parser::new(false).parse_input("(").is_ok()
+        );
+        assert_eq!(
+            Parser::new(true).parse_input("({ctrl}()").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('(')]
+                },
+                Input {
+                    holdkeys: vec![VK_CONTROL],
+                    items: vec![InputItem::Character('(')]
+                },
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character(')')]
+                },
+            ]
+        );
+        assert_eq!(
+            Parser::new(true).parse_input("({ctrl}{)").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('(')]
+                },
+                Input {
+                    holdkeys: vec![VK_CONTROL],
+                    items: vec![InputItem::Character('{')]
+                },
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character(')')]
+                },
+            ]
+        );
+        assert_eq!(
+            Parser::new(true).parse_input("()").unwrap(),
+            vec![
+                Input {
+                    holdkeys: Vec::new(),
+                    items: vec![InputItem::Character('('), InputItem::Character(')')]
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_input_9() {
+        assert!(
+            Parser::new(true).parse_input(" {None} (Keys).").is_ok()
+        );
+    }
+
+    #[test]
     fn test_zh_input() {
-        let inputs = parse_input("你好").unwrap();
+        let inputs = Parser::new(false).parse_input("你好").unwrap();
         for input in &inputs {
             let keys = input.create_inputs();
             assert!(keys.is_ok());

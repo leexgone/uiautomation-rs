@@ -1194,6 +1194,16 @@ impl UIElement {
         kb.end_hold_keys()
     }
 
+    /// Simulates sending text to the element without any special keys.
+    /// 
+    /// This method will only output the literal content of the text.
+    pub fn send_text(&self, text: &str, interval: u64) -> Result<()> {
+        self.set_focus()?;
+
+        let kb = Keyboard::new();
+        kb.interval(interval).send_text(text)
+    }
+
     /// Simulates mouse left click event on the element.
     pub fn click(&self) -> Result<()> {
         self.try_focus();
