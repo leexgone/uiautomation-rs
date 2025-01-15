@@ -208,3 +208,7 @@
 
 + Add `Keyboard.ignore_parse_err()` option to ignore parsing error.
 + Add `UIElement.send_text()` method to output the literal content of the text.
+
+## v0.15.1
+
++ Update deps & append docs.
