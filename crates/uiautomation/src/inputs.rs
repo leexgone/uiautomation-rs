@@ -552,9 +552,12 @@ impl Keyboard {
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
     /// 
-    /// `()` is used for group keys. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
+    /// `()` is used for group keys. The '(' symbol only takes effect after the '{}' symbol. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     /// 
-    /// When `ignore_parse_err` is `false`, `{` `}` `(` `)` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
+    /// `{` `}` `(` `)` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
+    /// 
+    ///  When `ignore_parse_err` is `false`, the parser will throw an error if the input format is incorrect.
+    ///  When `ignore_parse_err` is `true`, the parser will ignore parse error and try to allow `{` & `(` as regular inputs.
     pub fn send_keys(&self, keys: &str) -> Result<()> {
         let inputs = Parser::new(self.ignore_parse_err).parse_input(keys)?;
         for ref input in inputs {
