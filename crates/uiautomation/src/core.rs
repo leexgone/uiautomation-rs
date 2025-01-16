@@ -1106,7 +1106,7 @@ impl UIElement {
         let heading_level = unsafe {
             element8.CurrentHeadingLevel()?
         };
-        heading_level.try_into()
+        Ok(heading_level.into())
     }
 
     pub fn get_cached_heading_level(&self) -> Result<HeadingLevel> {
@@ -1114,7 +1114,7 @@ impl UIElement {
         let heading_level = unsafe {
             element8.CachedHeadingLevel()?
         };
-        heading_level.try_into()
+        Ok(heading_level.into())
     }
 
     pub fn is_dialog(&self) -> Result<bool> {
