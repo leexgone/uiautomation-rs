@@ -104,19 +104,19 @@ pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
     gen.into()
 }
 
-pub(crate) fn impl_try_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
-    let enum_name = &enum_item.ident;
+// pub(crate) fn impl_try_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
+//     let enum_name = &enum_item.ident;
 
-    let gen = quote! {
-        #enum_item
+//     let gen = quote! {
+//         #enum_item
 
-        impl TryFrom<#type_path> for #enum_name {
-            type Error = super::errors::Error;
-            fn try_from(value: #type_path) -> super::errors::Result<Self> {
-                value.0.try_into()
-            }
-        }
-    };
+//         impl TryFrom<#type_path> for #enum_name {
+//             type Error = super::errors::Error;
+//             fn try_from(value: #type_path) -> super::errors::Result<Self> {
+//                 value.0.try_into()
+//             }
+//         }
+//     };
 
-    gen.into()
-}
+//     gen.into()
+// }

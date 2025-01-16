@@ -970,7 +970,7 @@ pub enum AnnotationType {
 /// This set of constants describes the named constants used to identify the heading level of a UI Automation element.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-#[try_map_as(windows::Win32::UI::Accessibility::UIA_HEADINGLEVEL_ID)]
+#[map_as(windows::Win32::UI::Accessibility::UIA_HEADINGLEVEL_ID)]
 pub enum HeadingLevel {
     HeadingLevelNone = 80050i32,
     HeadingLevel1 = 80051i32,
