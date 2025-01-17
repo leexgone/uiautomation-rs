@@ -642,6 +642,44 @@ pub enum WindowInteractionState {
     NotResponding = 4i32
 }
 
+#[repr(i32)]
+enum Test {
+    A = 0i32,
+    B = 1i32,
+}
+
+impl TryFrom<i32> for Test {
+    type Error = ();
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::A),
+            1 => Ok(Self::B),
+            _ => Err(())
+        }
+    }
+}
+
+// impl From<windows::Win32::UI::Accessibility::WindowInteractionState> for Test {
+//     fn from(value: windows::Win32::UI::Accessibility::WindowInteractionState) -> Self {
+//         value.0.try_into().unwrap()
+//     }
+// }
+
+impl TryFrom<windows::Win32::UI::Accessibility::WindowInteractionState> for Test {
+    type Error = ();
+
+    fn try_from(value: windows::Win32::UI::Accessibility::WindowInteractionState) -> Result<Self, Self::Error> {
+        // match value {
+        //     windows::Win32::UI::Accessibility::WindowInteractionState_Running => Ok(Self::A),
+        //     windows::Win32::UI::Accessibility::WindowInteractionState_Closing => Ok(Self::B),
+        //     _ => Err(())
+        // }
+        value.0.try_into()
+    }
+    
+}
+
 // impl Display for WindowInteractionState {
 //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 //         match *self {
@@ -1175,7 +1213,7 @@ mod tests {
         assert_eq!(1i32, WindowInteractionState::Closing as i32);
 
         assert_eq!(Accessibility::WindowInteractionState_ReadyForUserInteraction, WindowInteractionState::ReadyForUserInteraction.into());
-        assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.into());
+        assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.try_into().unwrap());
 
         let running = format!("{}", WindowInteractionState::Running);
         assert_eq!(running, "Running");

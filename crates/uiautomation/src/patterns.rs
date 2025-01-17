@@ -208,14 +208,16 @@ impl UIAnnotationPattern {
         let id = unsafe {
             self.pattern.CurrentAnnotationTypeId()?
         };
-        Ok(id.into())
+        // Ok(id.into())
+        id.try_into()
     }
 
     pub fn get_cached_type(&self) -> Result<AnnotationType> {
         let id = unsafe {
             self.pattern.CachedAnnotationTypeId()?
         };
-        Ok(id.into())
+        // Ok(id.into())
+        id.try_into()
     }
 
     pub fn get_type_nane(&self) -> Result<String> {
@@ -369,14 +371,16 @@ impl UIDockPattern {
         let pos = unsafe {
             self.pattern.CurrentDockPosition()?
         };
-        Ok(pos.into())
+        // Ok(pos.into())
+        pos.try_into()
     }
 
     pub fn get_cached_dock_position(&self) -> Result<DockPosition> {
         let pos = unsafe {
             self.pattern.CachedDockPosition()?
         };
-        Ok(pos.into())
+        // Ok(pos.into())
+        pos.try_into()
     }
 
     pub fn set_dock_position(&self, position: DockPosition) -> Result<()> {
@@ -628,14 +632,16 @@ impl UIExpandCollapsePattern {
         let state = unsafe {
             self.pattern.CurrentExpandCollapseState()?
         };
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 
     pub fn get_cached_state(&self) -> Result<ExpandCollapseState> {
         let state = unsafe {
             self.pattern.CachedExpandCollapseState()?
         };
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 }
 
@@ -1815,14 +1821,16 @@ impl UIStylesPattern {
         let style_id = unsafe {
             self.pattern.CurrentStyleId()?
         };
-        Ok(style_id.into())
+        // Ok(style_id.into())
+        style_id.try_into()
     }
 
     pub fn get_cached_style(&self) -> Result<StyleType> {
         let style_id = unsafe {
             self.pattern.CachedStyleId()?
         };
-        Ok(style_id.into())
+        // Ok(style_id.into())
+        style_id.try_into()
     }
 
     pub fn get_style_name(&self) -> Result<String> {
@@ -2037,14 +2045,16 @@ impl UITablePattern {
         let major = unsafe {
             self.pattern.CurrentRowOrColumnMajor()?
         };
-        Ok(major.into())
+        // Ok(major.into())
+        major.try_into()
     }
 
     pub fn get_cached_row_or_column_major(&self) -> Result<RowOrColumnMajor> {
         let major = unsafe {
             self.pattern.CachedRowOrColumnMajor()?
         };
-        Ok(major.into())
+        // Ok(major.into())
+        major.try_into()
     }
 }
 
@@ -2266,7 +2276,8 @@ impl UITextPattern {
         let selection = unsafe {
             self.pattern.SupportedTextSelection()?
         };
-        Ok(selection.into())
+        // Ok(selection.into())
+        selection.try_into()
     }
 
     pub fn get_range_from_annotation(&self, annotation: &UIElement) -> Result<UITextRange> {
@@ -2563,14 +2574,16 @@ impl UITogglePattern {
         let state = unsafe {
             self.pattern.CurrentToggleState()?
         };
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 
     pub fn get_cached_toggle_state(&self) -> Result<ToggleState> {
         let state = unsafe {
             self.pattern.CachedToggleState()?
         };
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 
     pub fn toggle(&self) -> Result<()> {
@@ -2942,7 +2955,8 @@ impl UIWindowPattern {
         let state = unsafe {
             self.pattern.CurrentWindowVisualState()?
         };
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 
     pub fn get_cached_window_visual_state(&self) -> Result<WindowVisualState> {
@@ -2950,7 +2964,8 @@ impl UIWindowPattern {
             self.pattern.CachedWindowVisualState()?
         };
 
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 
     pub fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()> {
@@ -3020,7 +3035,8 @@ impl UIWindowPattern {
             self.pattern.CurrentWindowInteractionState()?
         };
 
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 
     pub fn get_cached_window_interaction_state(&self) -> Result<WindowInteractionState> {
@@ -3028,7 +3044,8 @@ impl UIWindowPattern {
             self.pattern.CachedWindowInteractionState()?
         };
 
-        Ok(state.into())
+        // Ok(state.into())
+        state.try_into()
     }
 }
 

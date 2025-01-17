@@ -88,12 +88,19 @@ pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
     let gen = quote! {
         #enum_item
 
-        impl From<#type_path> for #enum_name {
-            fn from(value: #type_path) -> Self {
-                value.0.try_into().unwrap()
+        // impl From<#type_path> for #enum_name {
+        //     fn from(value: #type_path) -> Self {
+        //         value.0.try_into().unwrap()
+        //     }
+        // }
+        
+        impl TryFrom<#type_path> for #enum_name {
+            type Error = super::errors::Error;
+            fn try_from(value: #type_path) -> super::errors::Result<Self> {
+                value.0.try_into()
             }
         }
-        
+
         impl Into<#type_path> for #enum_name {
             fn into(self) -> #type_path {
                 #type_path(self as _)

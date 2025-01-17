@@ -212,3 +212,7 @@
 ## v0.15.1
 
 + Update deps & append docs.
+
+## v0.16.0
+
++ Impl `TryFrom` for enum types, instead of `From`.

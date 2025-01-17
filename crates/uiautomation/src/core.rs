@@ -835,7 +835,8 @@ impl UIElement {
             self.element.CurrentOrientation()?
         };
 
-        Ok(orientation.into())
+        // Ok(orientation.into())
+        orientation.try_into()
     }
 
     /// Retrieves a cached value that indicates the orientation of the element.
@@ -844,7 +845,8 @@ impl UIElement {
             self.element.CachedOrientation()?
         };
 
-        Ok(orientation.into())
+        // Ok(orientation.into())
+        orientation.try_into()
     }
 
     /// Retrieves the name of the underlying UI framework.
@@ -1348,7 +1350,8 @@ impl UICacheRequest {
         let mode = unsafe {
             self.request.AutomationElementMode()?
         };
-        Ok(mode.into())
+        // Ok(mode.into())
+        mode.try_into()
     }
 
     /// Sets whether returned elements contain full references to the underlying UI, or only cached information.
@@ -1380,7 +1383,8 @@ impl UICacheRequest {
         let scope = unsafe {
             self.request.TreeScope()?
         };
-        Ok(scope.into())
+        // Ok(scope.into())
+        scope.try_into()
     }
 
     /// Sets the scope of caching.
@@ -2249,7 +2253,8 @@ impl UIPropertyCondition {
         let property_id = unsafe {
             self.0.PropertyId()?
         };
-        Ok(property_id.into())
+        // Ok(property_id.into())
+        property_id.try_into()
     }
 
     /// Retrieves the property value that must be matched for the condition to be true.
@@ -2262,9 +2267,11 @@ impl UIPropertyCondition {
 
     /// Retrieves a set of flags that specify how the condition is applied.
     pub fn get_property_condition_flags(&self) -> Result<PropertyConditionFlags> {
-        Ok(unsafe {
+        let flags = unsafe {
             self.0.PropertyConditionFlags()?
-        }.into())
+        };
+
+        flags.try_into()
     }
 }
 
