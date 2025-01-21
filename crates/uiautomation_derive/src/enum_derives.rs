@@ -7,7 +7,7 @@ use syn::ItemEnum;
 use syn::Path;
 use syn::parse_quote;
 
-const REPR_TYPES: &[&'static str] = &["u8", "u16", "u32", "u64", "usize", "i8", "i16", "i32", "i64", "isize"];
+const REPR_TYPES: [&str; 10] = ["u8", "u16", "u32", "u64", "usize", "i8", "i16", "i32", "i64", "isize"];
 
 pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
     let enum_name = &enum_item.ident;
@@ -88,12 +88,6 @@ pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
     let gen = quote! {
         #enum_item
 
-        // impl From<#type_path> for #enum_name {
-        //     fn from(value: #type_path) -> Self {
-        //         value.0.try_into().unwrap()
-        //     }
-        // }
-        
         impl TryFrom<#type_path> for #enum_name {
             type Error = super::errors::Error;
             fn try_from(value: #type_path) -> super::errors::Result<Self> {
@@ -110,20 +104,3 @@ pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
 
     gen.into()
 }
-
-// pub(crate) fn impl_try_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
-//     let enum_name = &enum_item.ident;
-
-//     let gen = quote! {
-//         #enum_item
-
-//         impl TryFrom<#type_path> for #enum_name {
-//             type Error = super::errors::Error;
-//             fn try_from(value: #type_path) -> super::errors::Result<Self> {
-//                 value.0.try_into()
-//             }
-//         }
-//     };
-
-//     gen.into()
-// }

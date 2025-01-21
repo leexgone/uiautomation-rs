@@ -164,11 +164,3 @@ pub fn map_as(args: TokenStream, item: TokenStream) -> TokenStream {
 
     impl_map_as(type_path, enum_item)
 }
-
-// #[proc_macro_attribute]
-// pub fn try_map_as(args: TokenStream, item: TokenStream) -> TokenStream {
-//     let enum_item: ItemEnum = syn::parse(item).expect("#[try_map_as()] must be used on enums only");
-//     let type_path: Path = syn::parse(args).expect("#[try_map_as() requires type path");
-
-//     impl_try_map_as(type_path, enum_item)
-// }

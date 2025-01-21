@@ -473,7 +473,7 @@ impl Parser {
                 Ok(InputItem::Character(token.chars().nth(0).unwrap()))
             } else {
                 let token = token.to_uppercase();
-                let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); //get_virtual_keys!();
+                let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); 
                 let hkeys = HOLD_KEYS.get_or_init(init_hold_keys);
                 if let Some(key) = vkeys.get(&token) {
                     if hkeys.contains(&token) {
@@ -636,22 +636,6 @@ impl Keyboard {
         }
     }
 
-    // fn send_keyboard(&self, input: &Input) -> Result<()> {
-    //     let input_keys = input.create_inputs()?;
-    //     if self.interval == 0 {
-    //         send_input(&input_keys.as_slice())
-    //     } else {
-    //         for input_key in &input_keys {
-    //             let input_key_slice: [INPUT; 1] = [input_key.clone()];
-    //             send_input(&input_key_slice)?;
-
-    //             self.wait();
-    //         }
-
-    //         Ok(())
-    //     }
-    // }
-
     fn send_keyboard(&self, input_keys: &[INPUT]) -> Result<()> {
         // let input_keys = input.create_inputs()?;
         if self.interval == 0 {
@@ -760,27 +744,12 @@ impl Mouse {
     /// Retrieves the position of the mouse cursor, in screen coordinates.
     pub fn get_cursor_pos() -> Result<Point> {
         let mut pos: Point = Point::default();
-        // let ret = unsafe {
-        //     GetCursorPos(pos.as_mut())
-        // };
-
-        // if ret.as_bool() {
-        //     Ok(pos)
-        // } else {
-        //     Err(Error::last_os_error())
-        // }
         unsafe { GetCursorPos(pos.as_mut())? };
         Ok(pos)
     }
 
     /// Moves the cursor to the specified screen coordinates. 
     pub fn set_cursor_pos(pos: Point) -> Result<()> {
-        // let ret = unsafe { SetCursorPos(pos.get_x(), pos.get_y()) };
-        // if ret.as_bool() {
-        //     Ok(())
-        // } else {
-        //     Err(Error::last_os_error())
-        // }
         unsafe { SetCursorPos(pos.get_x(), pos.get_y())? };
         Ok(())
     }
@@ -798,11 +767,6 @@ impl Mouse {
     /// mouse.move_to(Point::new(1000,800)).unwrap();
     /// ```
     pub fn move_to(&self, target: Point) -> Result<()> {
-        // let (width, height) = get_screen_size()?;
-        // let x = min(max(0, target.get_x()), width);
-        // let y = min(max(0, target.get_y()), height);
-        // let target = Point::new(x, y);
-        
         if self.move_time > 0 {
             let source = Self::get_cursor_pos()?;
             let delta_x = target.get_x() - source.get_x();
