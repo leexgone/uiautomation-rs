@@ -146,7 +146,7 @@ pub trait Control {
 /// 
 /// + Must support: `ExpandCollapse`, `Toggle`
 /// + Conditional support: None
-#[derive(Debug, ExpandCollapse, Toggle)]
+#[derive(Debug, Control, ExpandCollapse, Toggle)]
 pub struct AppBarControl {
     control: UIElement
 }
@@ -171,11 +171,11 @@ impl TryFrom<&UIElement> for AppBarControl {
     }
 }
 
-impl Into<UIElement> for AppBarControl {
-    fn into(self) -> UIElement {
-        self.control
-    }
-}
+// impl Into<UIElement> for AppBarControl {
+//     fn into(self) -> UIElement {
+//         self.control
+//     }
+// }
 
 impl AsRef<UIElement> for AppBarControl {
     fn as_ref(&self) -> &UIElement {

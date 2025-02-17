@@ -2,6 +2,7 @@ extern crate proc_macro;
 
 mod action_derives;
 mod enum_derives;
+mod control_derives;
 
 use proc_macro::TokenStream;
 use syn::ItemEnum;
@@ -9,6 +10,7 @@ use syn::Path;
 
 use self::action_derives::*;
 use self::enum_derives::*;
+use self::control_derives::*;
 
 #[proc_macro_derive(Invoke)]
 pub fn derive_invoke(input: TokenStream) -> TokenStream {
@@ -163,4 +165,11 @@ pub fn map_as(args: TokenStream, item: TokenStream) -> TokenStream {
     let type_path: Path = syn::parse(args).expect("#[maps_as() requires type path");
 
     impl_map_as(type_path, enum_item)
+}
+
+#[proc_macro_derive(Control)]
+pub fn derive_control(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+
+    impl_control(&ast)
 }
