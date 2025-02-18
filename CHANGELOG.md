@@ -216,3 +216,7 @@
 ## v0.16.0
 
 + Impl `TryFrom` for enum types, instead of `From`.
+
+## v0.16.1
+
++ Add `Control` derive.
