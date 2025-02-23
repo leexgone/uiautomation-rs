@@ -393,11 +393,11 @@ impl AsRef<VARIANT> for Variant {
 
 impl Display for Variant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Ok(val) = self.get_value() {
+        match self.get_value() { Ok(val) => {
             write!(f, "{}", val)
-        } else {
+        } _ => {
             Err(std::fmt::Error {})
-        }
+        }}
     }
 }
 
@@ -408,7 +408,7 @@ impl Display for Variant {
 // }
 
 macro_rules! val_to_variant {
-    ($v: expr) => {
+    ($v: expr_2021) => {
         {
             let variant = VARIANT::from($v);
             variant.into()
@@ -417,7 +417,7 @@ macro_rules! val_to_variant {
 }
 
 macro_rules! vec_to_variant {
-    ($v: expr, $t: expr) => {
+    ($v: expr_2021, $t: expr_2021) => {
         {
             let vt = VARENUM(VT_ARRAY.0 | $t.0);
             let arr: SafeArray = $v.try_into().unwrap();
@@ -488,7 +488,7 @@ impl From<Value> for Variant {
 }
 
 macro_rules! variant_as_vec {
-    ($fetch: ident, $variant: expr) => {
+    ($fetch: ident, $variant: expr_2021) => {
         {
             let count = unsafe { VariantGetElementCount(&$variant) };
             let mut arr = Vec::with_capacity(count as _);
@@ -625,18 +625,18 @@ impl TryInto<Value> for &Variant {
 
             Ok(Value::STRING(val))
         } else if vt == VT_DISPATCH {
-            let val = if let Ok(disp) = IDispatch::try_from(&self.value) {
+            let val = match IDispatch::try_from(&self.value) { Ok(disp) => {
                 Value::DISPATCH(disp)
-            } else {
+            } _ => {
                 Value::NULL
-            };
+            }};
             Ok(val)
         } else if vt == VT_UNKNOWN {
-            let val = if let Ok(unk) = IUnknown::try_from(&self.value) {
+            let val = match IUnknown::try_from(&self.value) { Ok(unk) => {
                 Value::UNKNOWN(unk)
-            } else {
+            } _ => {
                 Value::NULL
-            };
+            }};
             Ok(val)
         } else if vt == VT_ERROR {
             let val = unsafe {
@@ -714,11 +714,11 @@ impl TryInto<bool> for &Variant {
                 VT_UI2 => VarBoolFromUI2(self.get_data().uiVal)?,
                 VT_UI4 | VT_UINT => VarBoolFromUI4(self.get_data().ulVal)?,
                 VT_UI8 => VarBoolFromUI8(self.get_data().ullVal)?,
-                VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { //if let Some(ref disp) = *self.get_data().pdispVal {
+                VT_DISPATCH => match IDispatch::try_from(&self.value) { Ok(ref disp) => { //if let Some(ref disp) = *self.get_data().pdispVal {
                     VarBoolFromDisp(disp, 0)?
-                } else {
+                } _ => {
                     false.into()
-                },
+                }},
                 _ => return Err(Error::new(ERR_TYPE, "Error Variant Type")),
             }
         };
@@ -766,11 +766,11 @@ impl TryInto<String> for &Variant {
                     VT_CY => VarBstrFromCy(self.as_currency(), 0, 0)?, 
                     VT_DATE => VarBstrFromDate(self.get_data().date, 0, 0)?,
                     VT_DECIMAL => VarBstrFromDec(&self.as_decimal(), 0, 0)?, 
-                    VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { 
+                    VT_DISPATCH => match IDispatch::try_from(&self.value) { Ok(ref disp) => { 
                         VarBstrFromDisp(disp, 0, 0)?
-                    } else {
+                    } _ => {
                         BSTR::default()
-                    },
+                    }},
                     VT_I1 => VarBstrFromI1(self.get_data().cVal, 0, 0)?,
                     VT_I2 => VarBstrFromI2(self.get_data().iVal, 0, 0)?,
                     VT_I4 | VT_INT => VarBstrFromI4(self.get_data().lVal, 0, 0)?,
@@ -804,7 +804,7 @@ impl From<i8> for Variant {
 }
 
 macro_rules! variant_as_i1 {
-    ($func:ident, $value:expr) => {
+    ($func:ident, $value:expr_2021) => {
         {
             let pc = PSTR::null();
             $func($value, pc)?;
@@ -814,7 +814,7 @@ macro_rules! variant_as_i1 {
 }
 
 macro_rules! variant_atoi {
-    ($func:ident, $value:expr) => {
+    ($func:ident, $value:expr_2021) => {
         {
             let str = $value;
             let str: HSTRING = str.into();
@@ -824,7 +824,7 @@ macro_rules! variant_atoi {
 }
 
 macro_rules! variant_as_type {
-    ($f:ident, $T:ty, $value:expr) => {
+    ($f:ident, $T:ty, $value:expr_2021) => {
         {
             let mut v: [$T; 1] = [0 as _];
             $f($value, v.as_mut_ptr())?;
@@ -855,13 +855,13 @@ impl TryInto<i8> for &Variant {
                 VT_CY       => variant_as_i1!(VarI1FromCy, self.as_currency()), 
                 VT_DATE     => variant_as_i1!(VarI1FromDate, self.get_data().date),
                 VT_DECIMAL  => variant_as_i1!(VarI1FromDec, &self.as_decimal()),
-                VT_DISPATCH => if let Ok(ref disp) = IDispatch::try_from(&self.value) { 
+                VT_DISPATCH => match IDispatch::try_from(&self.value) { Ok(ref disp) => { 
                     let pc = PSTR::null();
                     VarI1FromDisp(disp, 0, pc)?;
                     *pc.0 as i8
-                } else {
+                } _ => {
                     0i8
-                },
+                }},
                 VT_I1   => self.get_data().bVal as i8,
                 VT_I2   => variant_as_i1!(VarI1FromI2, self.get_data().iVal),
                 VT_I4 | VT_INT  => variant_as_i1!(VarI1FromI4, self.get_data().lVal),
@@ -1386,11 +1386,11 @@ impl SafeArray {
             SafeArrayGetElement(self.array, indices.as_ptr(),v_ref as _)?
         };
 
-        if let Some(value) = result {
+        match result { Some(value) => {
             Ok(value)
-        } else {
+        } _ => {
             Err(Error::new(ERR_NULL_PTR, "NULL Interface"))
-        }
+        }}
     }
 
     /// Stores the data element at the specified location in the array.

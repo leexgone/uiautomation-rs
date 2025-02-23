@@ -220,3 +220,7 @@
 ## v0.16.1
 
 + Add `Control` derive.
+
+## v0.17.0
+
++ Migrating to Rust edition 2024.

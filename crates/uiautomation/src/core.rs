@@ -1802,11 +1802,11 @@ impl UIMatcher {
     }
 
     fn prepare(&self) -> Result<(UIElement, UITreeWalker)> {
-        let root = if let Some(ref from) = self.from {
+        let root = match self.from { Some(ref from) => {
             from.clone()
-        } else {
+        } _ => {
             self.automation.get_root_element()?
-        };
+        }};
         let walker = match self.mode {
             UIMatcherMode::Raw => self.automation.create_tree_walker()?,
             UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,

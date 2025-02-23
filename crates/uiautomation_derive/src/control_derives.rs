@@ -4,7 +4,7 @@ use quote::quote;
 pub(crate) fn impl_control(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
 
-    let gen = quote! {
+    let r#gen = quote! {
         impl TryFrom<UIElement> for #name {
             type Error = super::errors::Error;
 
@@ -52,5 +52,5 @@ pub(crate) fn impl_control(ast: &syn::DeriveInput) -> TokenStream {
         }
     };
 
-    gen.into()
+    r#gen.into()
 }

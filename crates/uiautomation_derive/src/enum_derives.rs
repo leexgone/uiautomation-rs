@@ -19,7 +19,7 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
         format_ident!("_{}_{}_", enum_name_upper, n.to_string().to_uppercase())
     }).collect();
 
-    let gen = quote! {
+    let r#gen = quote! {
         impl TryFrom<#enum_type> for #enum_name {
             type Error = crate::errors::Error;
         
@@ -42,7 +42,7 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
         }     
     };
 
-    gen.into()
+    r#gen.into()
 }
 
 fn get_repr_type(enum_item: &syn::ItemEnum) -> Option<Ident> {
@@ -67,15 +67,15 @@ fn get_repr_type(enum_item: &syn::ItemEnum) -> Option<Ident> {
 fn get_variants(enum_item: &ItemEnum) -> (Vec<Ident>, Vec<Expr>) {
     let mut prev_expr: Option<Expr> = None;
     enum_item.variants.iter().map(|v| {
-        let expr = if let Some((_, ref expr)) = v.discriminant {
+        let expr = match v.discriminant { Some((_, ref expr)) => {
             expr.clone()
-        } else {
-            if let Some(ref prev_expr) = prev_expr {
+        } _ => {
+            match prev_expr { Some(ref prev_expr) => {
                 parse_quote!(#prev_expr + 1)
-            } else {
+            } _ => {
                 parse_quote!(0)
-            }
-        };
+            }}
+        }};
         prev_expr = Some(expr.clone());
 
         (v.ident.clone(), expr)
@@ -85,7 +85,7 @@ fn get_variants(enum_item: &ItemEnum) -> (Vec<Ident>, Vec<Expr>) {
 pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
     let enum_name = &enum_item.ident;
 
-    let gen = quote! {
+    let r#gen = quote! {
         #enum_item
 
         impl TryFrom<#type_path> for #enum_name {
@@ -102,5 +102,5 @@ pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
         }        
     };
 
-    gen.into()
+    r#gen.into()
 }

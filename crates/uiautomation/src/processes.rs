@@ -187,7 +187,7 @@ impl Process {
 }
 
 macro_rules! close_handle {
-    ($handle: expr) => {
+    ($handle: expr_2021) => {
         if !$handle.is_invalid() {
             let _ = unsafe { CloseHandle($handle) };
             $handle = HANDLE::default();

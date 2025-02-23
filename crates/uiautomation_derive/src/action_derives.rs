@@ -3,7 +3,7 @@ use quote::quote;
 
 pub(crate) fn impl_invoke(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Invoke for #name {
             fn invoke(&self) -> Result<()> {
                 let pattern: UIInvokePattern = self.as_ref().get_pattern()?;
@@ -11,12 +11,12 @@ pub(crate) fn impl_invoke(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_selection_item(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl SelectionItem for #name {
             fn select(&self) -> Result<()> {
                 let pattern: UISelectionItemPattern = self.as_ref().get_pattern()?;
@@ -44,12 +44,12 @@ pub(crate) fn impl_selection_item(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_multiple_view(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl MultipleView for #name {
             fn get_supported_views(&self) -> Result<Vec<i32>> {
                 let pattern: UIMultipleViewPattern = self.as_ref().get_pattern()?;
@@ -72,12 +72,12 @@ pub(crate) fn impl_multiple_view(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_item_container(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl ItemContainer for #name {
             fn find_item_by_property(&self, start_after: UIElement, property_id: i32, value: Variant) -> Result<UIElement> {
                 let pattern: UIItemContainerPattern = self.as_ref().get_pattern()?;
@@ -85,12 +85,12 @@ pub(crate) fn impl_item_container(ast: &syn::DeriveInput) -> TokenStream {
             }        
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_scroll_item(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl ScrollItem for #name {
             fn scroll_into_view(&self) -> Result<()> {
                 let pattern: UIScrollItemPattern = self.as_ref().get_pattern()?;
@@ -98,12 +98,12 @@ pub(crate) fn impl_scroll_item(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Window for #name {
             fn close(&self) -> Result<()> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
@@ -171,12 +171,12 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_transform(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Transform for #name {
             fn can_move(&self) -> Result<bool> {
                 let pattern: UITransformPattern = self.as_ref().get_pattern()?;
@@ -239,12 +239,12 @@ pub(crate) fn impl_transform(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_value(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Value for #name {
             fn set_value(&self, value: &str) -> Result<()> {
                 let pattern: UIValuePattern = self.as_ref().get_pattern()?;
@@ -262,12 +262,12 @@ pub(crate) fn impl_value(ast: &syn::DeriveInput) -> TokenStream {
             }
         }        
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl ExpandCollapse for #name {
             fn expand(&self) -> Result<()> {
                 let pattern: UIExpandCollapsePattern = self.as_ref().get_pattern()?;
@@ -285,12 +285,12 @@ pub(crate) fn impl_expand_collapse(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_toggle(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Toggle for #name {
             fn get_toggle_state(&self) -> Result<super::types::ToggleState> {
                 let pattern: UITogglePattern = self.as_ref().get_pattern()?;
@@ -303,12 +303,12 @@ pub(crate) fn impl_toggle(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()    
+    r#gen.into()    
 }
 
 pub(crate) fn impl_grid(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Grid for #name {
             fn get_column_count(&self) -> Result<i32> {
                 let pattern: UIGridPattern = self.as_ref().get_pattern()?;
@@ -326,12 +326,12 @@ pub(crate) fn impl_grid(ast: &syn::DeriveInput) -> TokenStream {
             }
         }        
     };
-    gen.into()    
+    r#gen.into()    
 }
 
 pub(crate) fn impl_table(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Table for #name {
             fn get_row_headers(&self) -> Result<Vec<UIElement>> {
                 let pattern: UITablePattern = self.as_ref().get_pattern()?;
@@ -349,12 +349,12 @@ pub(crate) fn impl_table(ast: &syn::DeriveInput) -> TokenStream {
             }
         }        
     };
-    gen.into()    
+    r#gen.into()    
 }
 
 pub(crate) fn impl_scroll(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Scroll for #name {
             fn scroll(&self, horizontal_amount: super::types::ScrollAmount, vertical_amount: super::types::ScrollAmount) -> Result<()> {
                 let pattern: UIScrollPattern = self.as_ref().get_pattern()?;
@@ -397,12 +397,12 @@ pub(crate) fn impl_scroll(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()    
+    r#gen.into()    
 }
 
 pub(crate) fn impl_selection(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Selection for #name {
             fn get_selection(&self) -> Result<Vec<UIElement>> {
                 let pattern: UISelectionPattern = self.as_ref().get_pattern()?;
@@ -440,12 +440,12 @@ pub(crate) fn impl_selection(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_custom_navigation(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl CustomNavigation for #name {
             fn navigate(&self, direction: super::types::NavigateDirection) -> Result<UIElement> {
                 let pattern: UICustomNavigationPattern = self.as_ref().get_pattern()?;
@@ -453,12 +453,12 @@ pub(crate) fn impl_custom_navigation(ast: &syn::DeriveInput) -> TokenStream {
             }
         }        
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_grid_item(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl GridItem for #name {
             fn get_containing_grid(&self) -> Result<UIElement> {
                 let pattern: UIGridItemPattern = self.as_ref().get_pattern()?;
@@ -486,12 +486,12 @@ pub(crate) fn impl_grid_item(ast: &syn::DeriveInput) -> TokenStream {
             }
         }        
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_table_item(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl TableItem for #name {
             fn get_row_header_items(&self) -> Result<Vec<UIElement>> {
                 let pattern: UITableItemPattern = self.as_ref().get_pattern()?;
@@ -504,12 +504,12 @@ pub(crate) fn impl_table_item(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_text(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Text for #name {
             fn get_range_from_point(&self, pt: super::types::Point) -> Result<UITextRange> {
                 let pattern: UITextPattern = self.as_ref().get_pattern()?;
@@ -552,12 +552,12 @@ pub(crate) fn impl_text(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_range_value(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl RangeValue for #name {
             fn set_value(&self, value: f64) -> Result<()> {
                 let pattern: UIRangeValuePattern = self.as_ref().get_pattern()?;
@@ -595,12 +595,12 @@ pub(crate) fn impl_range_value(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }
 
 pub(crate) fn impl_dock(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let r#gen = quote! {
         impl Dock for #name {
             fn get_dock_position(&self) -> Result<super::types::DockPosition> {
                 let pattern: UIDockPattern = self.as_ref().get_pattern()?;
@@ -613,5 +613,5 @@ pub(crate) fn impl_dock(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    r#gen.into()
 }

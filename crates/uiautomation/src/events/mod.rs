@@ -167,17 +167,17 @@ impl AsRef<IUIAutomationEventHandler> for UIEventHandler {
 }
 
 impl Param<IUIAutomationEventHandler> for UIEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> { unsafe {
         // windows::core::ParamValue::Owned(self.handler)
         self.handler.param()
-    }
+    }}
 }
 
 impl Param<IUIAutomationEventHandler> for &UIEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> { unsafe {
         // windows::core::ParamValue::Borrowed(self.handler.as_raw())
         (&self.handler).param()
-    }
+    }}
 }
 
 /// A wrapper for windows `IUIAutomationPropertyChangedEventHandler` interface. 
@@ -225,15 +225,15 @@ impl AsRef<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventH
 }
 
 impl Param<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> { unsafe {
         self.handler.param()
-    }
+    }}
 }
 
 impl Param<IUIAutomationPropertyChangedEventHandler> for &UIPropertyChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> { unsafe {
         (&self.handler).param()
-    }
+    }}
 }
 
 /// A wrapper for windows `IUIAutomationStructureChangedEventHandler` interface. 
@@ -288,15 +288,15 @@ impl AsRef<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEvent
 }
 
 impl Param<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> { unsafe {
         self.handler.param()
-    }
+    }}
 }
 
 impl Param<IUIAutomationStructureChangedEventHandler> for &UIStructureChangeEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> { unsafe {
         (&self.handler).param()
-    }
+    }}
 }
 
 /// A wrapper for windows `IUIAutomationFocusChangedEventHandler` interface. 
@@ -344,15 +344,15 @@ impl AsRef<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler
 }
 
 impl Param<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> { unsafe {
         self.handler.param()
-    }
+    }}
 }
 
 impl Param<IUIAutomationFocusChangedEventHandler> for &UIFocusChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> {
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> { unsafe {
         (&self.handler).param()
-    }
+    }}
 }
 
 /// Defines a custom handler for `IUIAutomationEventHandler`.

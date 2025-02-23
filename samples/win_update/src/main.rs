@@ -28,15 +28,15 @@ fn main() {
 fn auto_update() -> Result<()> {
     let automation = UIAutomation::new()?;
 
-    if let Ok(start) = automation.create_matcher().match_name("开始").classname("ToggleButton").find_first() {     // 尝试Win11
+    match automation.create_matcher().match_name("开始").classname("ToggleButton").find_first() { Ok(start) => {     // 尝试Win11
         let button: ButtonControl = start.try_into()?;
         button.toggle()?;
-    } else if let Ok(start) = automation.create_matcher().match_name("开始").classname("Start").find_first() {      // 尝试Win10
+    } _ => { match automation.create_matcher().match_name("开始").classname("Start").find_first() { Ok(start) => {      // 尝试Win10
         let button: ButtonControl = start.try_into()?;
         button.invoke()?;
-    } else {
+    } _ => {
         return Err("无法定位开始按钮".into());
-    }
+    }}}}
 
     let matcher = automation.create_matcher().match_name("设置").classname("GridViewItem");
     let config = matcher.find_first()?;
@@ -75,22 +75,22 @@ fn auto_update() -> Result<()> {
         return Err("调用更新失败！".into())
     }
 
-    if let Ok(taskbar) = automation.create_matcher().name("Taskbar").control_type(PaneControl::TYPE).timeout(1000).find_first() {                   // Explore Patcher
+    match automation.create_matcher().name("Taskbar").control_type(PaneControl::TYPE).timeout(1000).find_first() { Ok(taskbar) => {                   // Explore Patcher
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    } else if let Ok(taskbar) = automation.create_matcher().name("任务栏").control_type(PaneControl::TYPE).timeout(1000).find_first() {             // Win11
+    } _ => { match automation.create_matcher().name("任务栏").control_type(PaneControl::TYPE).timeout(1000).find_first() { Ok(taskbar) => {             // Win11
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    } else if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).timeout(1000).find_first() { // Win10
+    } _ => { match automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).timeout(1000).find_first() { Ok(taskbar) => { // Win10
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    }
+    } _ => {}}}}}}
 
     Ok(())
 }

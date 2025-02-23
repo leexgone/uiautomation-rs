@@ -22,7 +22,7 @@ use super::types::Point;
 const KEYEVENTF_KEYDOWN: KEYBD_EVENT_FLAGS = KEYBD_EVENT_FLAGS(0);
 
 macro_rules! map {
-    ( $($key: expr => $value: expr), * ) => {
+    ( $($key: expr_2021 => $value: expr_2021), * ) => {
         {
             let mut map = std::collections::HashMap::new();
             $(
@@ -34,7 +34,7 @@ macro_rules! map {
 }
 
 macro_rules! set {
-    ( $($value: expr), * ) => {
+    ( $($value: expr_2021), * ) => {
         {
             let mut set = std::collections::HashSet::new();
             $(
