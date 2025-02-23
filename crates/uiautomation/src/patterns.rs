@@ -1,7 +1,6 @@
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
 use windows::core::Interface;
-use windows::Win32::Foundation::BOOL;
 use windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern;
 use windows::Win32::UI::Accessibility::IUIAutomationDockPattern;
@@ -42,6 +41,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationWindowPattern;
 use windows::Win32::UI::Accessibility::SynchronizedInputType;
 use windows::core::BSTR;
 use windows::core::IUnknown;
+use windows_core::BOOL;
 
 use crate::errors::Error;
 use crate::Result;

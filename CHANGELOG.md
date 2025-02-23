@@ -223,4 +223,5 @@
 
 ## v0.17.0
 
-+ Migrating to Rust edition 2024.
++ Migrating to `Rust edition 2024`.
++ Update to `windows v0.60.0`.

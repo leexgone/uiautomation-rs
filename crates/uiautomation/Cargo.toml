@@ -29,10 +29,10 @@ log = { version = "0.4.25", optional = true }
 uiautomation_derive = { version = "0.5.0", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
-version = "0.59.0"
+version = "0.60.1"
 
 [dependencies.windows]
-version = "0.59.0"
+version = "0.60.0"
 features = [
     "Win32_Foundation",
     "Win32_System_Variant",
