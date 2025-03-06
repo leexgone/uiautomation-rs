@@ -34,7 +34,6 @@ impl IUIAutomationEventHandler_Impl for AutomationEventHandler_Impl {
                 Ok(event_id) => self.handler.handle(&element, event_id).map_err(|e| e.into()),
                 Err(e) => Err(e.into())
             }
-            // self.handler.handle(&element, eventid.into()).map_err(|e| e.into())
         } else {
             Ok(())
         }
@@ -63,7 +62,6 @@ impl IUIAutomationPropertyChangedEventHandler_Impl for AutomationPropertyChanged
                 Ok(property_id) => self.handler.handle(&element, property_id, value).map_err(|e| e.into()),
                 Err(e) => Err(e.into()),
             }
-            // self.handler.handle(&element, propertyid.into(), value).map_err(|e| e.into())
         } else {
             Ok(())
         }

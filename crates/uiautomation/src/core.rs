@@ -1776,12 +1776,12 @@ impl UIMatcher {
         let mut elements: Vec<UIElement> = Vec::new();
         let start = Local::now().timestamp_millis();
         loop {
-                if self.debug {
-                    #[cfg(feature = "log")]
-                    log::debug!("Try to match element...");
-                    #[cfg(not(feature = "log"))]
-                    println!("Try to match element...")
-                }
+            if self.debug {
+                #[cfg(feature = "log")]
+                log::debug!("Try to match element...");
+                #[cfg(not(feature = "log"))]
+                println!("Try to match element...")
+            }
 
             let (root, walker) = self.prepare()?;
             self.search(&walker, &root, &mut elements, 1, first_only)?;
