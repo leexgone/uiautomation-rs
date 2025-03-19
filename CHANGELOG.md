@@ -229,3 +229,7 @@
 ## v0.17.1
 
 + Update deps.
+
+## v0.17.2
+
++ update to `windows v0.61.0`.

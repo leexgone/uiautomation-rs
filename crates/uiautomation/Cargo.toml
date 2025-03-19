@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation"
-version = "0.17.1"
+version = "0.17.2"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -26,13 +26,13 @@ log = ["dep:log"]
 
 chrono = "0.4.40"
 log = { version = "0.4.26", optional = true }
-uiautomation_derive = { version = "0.5.1", path = "../uiautomation_derive" }
+uiautomation_derive = { version = "0.5.2", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
-version = "0.60.1"
+version = "0.61.0"
 
 [dependencies.windows]
-version = "0.60.0"
+version = "0.61.1"
 features = [
     "Win32_Foundation",
     "Win32_System_Variant",
