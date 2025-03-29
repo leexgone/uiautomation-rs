@@ -92,7 +92,7 @@ impl InputItem {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-struct Input {
+pub struct Input {
     holdkeys: Vec<VIRTUAL_KEY>,
     items: Vec<InputItem>,
 }
@@ -133,7 +133,7 @@ impl Input {
         }
     }
 
-    fn create_inputs(&self) -> Result<Vec<INPUT>> {
+    pub fn create_inputs(&self) -> Result<Vec<INPUT>> {
         let mut inputs: Vec<INPUT> = Vec::new();
 
         for holdkey in &self.holdkeys {
@@ -385,16 +385,16 @@ impl Input {
     }
 }
 
-struct Parser {
+pub struct Parser {
     ignore_err: bool,
 }
 
 impl Parser {
-    fn new(ignore_err: bool) -> Self {
+    pub fn new(ignore_err: bool) -> Self {
         Self { ignore_err }
     }
 
-    fn parse_input(&self, expression: &str) -> Result<Vec<Input>> {
+    pub fn parse_input(&self, expression: &str) -> Result<Vec<Input>> {
         let mut inputs: Vec<Input> = Vec::new();
 
         let mut expr = expression.chars();
