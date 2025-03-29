@@ -233,3 +233,7 @@
 ## v0.17.2
 
 + update to `windows v0.61.0`.
+
+## v0.17.3
+
++ Allow using the input parser outside of `uiautomation-rs`. [#97](https://github.com/leexgone/uiautomation-rs/pull/97)
