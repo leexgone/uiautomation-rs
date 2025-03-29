@@ -76,48 +76,48 @@ fn init_hold_keys() -> HashSet<String> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum InputItem {
+pub enum InputItem {
     HoldKey(VIRTUAL_KEY),
     VirtualKey(VIRTUAL_KEY),
     Character(char),
 }
 
 impl InputItem {
-    fn is_holdkey(&self) -> bool {
+    pub fn is_holdkey(&self) -> bool {
         match self {
             Self::HoldKey(_) => true,
             _ => false,
         }
     }
 }
-
-#[derive(Debug, PartialEq, Eq)]
+/// Represents an input item, which can be a hold key, a virtual key, or a character.
+#[derive(Debug, PartialEq, Eq, Default)]
 pub struct Input {
     holdkeys: Vec<VIRTUAL_KEY>,
     items: Vec<InputItem>,
 }
 
 impl Input {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             holdkeys: Vec::new(),
             items: Vec::new(),
         }
     }
 
-    fn has_holdkey(&self) -> bool {
+    pub fn has_holdkey(&self) -> bool {
         !self.holdkeys.is_empty()
     }
 
-    fn has_items(&self) -> bool {
+    pub fn has_items(&self) -> bool {
         !self.items.is_empty()
     }
 
-    fn is_holdkey_only(&self) -> bool {
+    pub fn is_holdkey_only(&self) -> bool {
         !self.holdkeys.is_empty() && self.items.is_empty()
     }
 
-    fn push(&mut self, item: InputItem) {
+    pub fn push(&mut self, item: InputItem) {
         if let InputItem::HoldKey(key) = item {
             if !self.holdkeys.contains(&key) {
                 self.holdkeys.push(key);
@@ -127,12 +127,13 @@ impl Input {
         }
     }
 
-    fn push_all(&mut self, items: &Vec<InputItem>) {
+    pub fn push_all(&mut self, items: &Vec<InputItem>) {
         for item in items {
             self.push(*item);
         }
     }
 
+    /// Create multiple input items to the current input.
     pub fn create_inputs(&self) -> Result<Vec<INPUT>> {
         let mut inputs: Vec<INPUT> = Vec::new();
 
@@ -385,6 +386,7 @@ impl Input {
     }
 }
 
+#[derive(Debug)]
 pub struct Parser {
     ignore_err: bool,
 }
