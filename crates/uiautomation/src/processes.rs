@@ -20,6 +20,7 @@ use windows::core::PWSTR;
 use super::Error;
 use super::Result;
 use crate::errors::ERR_ALREADY_RUNNING;
+use crate::types::Handle;
 use super::errors::ERR_NONE;
 use super::errors::ERR_TIMEOUT;
 
@@ -184,10 +185,21 @@ impl Process {
 
         Ok(exit_code)
     }
+
+    /// Get the process handle.
+    pub fn get_handle(&self) -> Handle {
+        let h = windows::Win32::Foundation::HWND(self.proc_info.hProcess.0);
+        h.into()
+    }
+
+    /// Get the process ID.
+    pub fn get_id(&self) -> u32 {
+        self.proc_info.dwProcessId
+    }
 }
 
 macro_rules! close_handle {
-    ($handle: expr_2021) => {
+    ($handle: expr) => {
         if !$handle.is_invalid() {
             let _ = unsafe { CloseHandle($handle) };
             $handle = HANDLE::default();

@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
     use uiautomation::actions::Value;
+    use uiautomation::actions::Window;
     use uiautomation::controls::ControlType;
     use uiautomation::controls::DocumentControl;
+    use uiautomation::controls::WindowControl;
     use uiautomation::processes::Process;
     use uiautomation::types::TreeScope;
     use uiautomation::types::UIProperty;
@@ -86,6 +88,33 @@ Contact Email: procurement@globex.example.com\"";
             let raw_lines: Vec<&str> = text.split(&['\r', '\n']).collect();
             let new_lines: Vec<&str> = content.split(&['\r', '\n']).collect();
             assert_eq!(raw_lines, new_lines);
+        }
+    }
+
+    #[test]
+    fn test_bounding_rect() {
+        let p = Process::create("notepad.exe").unwrap();
+
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().classname("Notepad").timeout(10000);
+        if let Ok(notepad) = matcher.find_first() {
+            let rect = notepad.get_bounding_rectangle().unwrap();
+            println!("Bounding rectangle - Normal: {:?}", rect);
+
+            assert!(rect.get_right() > rect.get_left() || rect.get_bottom() > rect.get_top(), "Bounding rectangle is empty");
+
+            let window = WindowControl::try_from(notepad).unwrap();
+            window.minimize().unwrap();
+        }
+
+        if let Ok(notepad) = matcher.find_first() {
+            let rect = notepad.get_bounding_rectangle().unwrap();
+            println!("Bounding rectangle - Minimized: {:?}", rect);
+
+            assert!(rect.get_right() == rect.get_left() && rect.get_bottom() == rect.get_top(), "Bounding rectangle is not empty");
+
+            let window = WindowControl::try_from(notepad).unwrap();
+            window.close().unwrap();
         }
     }
 }

@@ -198,6 +198,8 @@ impl AsMut<RECT> for Rect {
     }
 }
 
+// TODO : change to HANDLE
+
 /// A Wrapper for windows `HWND`.
 #[derive(Default, Clone, Copy)]
 pub struct Handle(HWND);
