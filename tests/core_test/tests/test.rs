@@ -5,6 +5,7 @@ mod tests {
     use uiautomation::variants::Value;
     use uiautomation::variants::Variant;
     use uiautomation::UIAutomation;
+    use uiautomation::UIElement;
 
     #[test]
     fn test_runtime_id() {
@@ -37,5 +38,23 @@ mod tests {
             .expect("Failed to find element");
     
         println!("{}", element.get_name().unwrap());
+    }
+
+    #[test]
+    fn test_search_by_helptext() {
+        let automation = UIAutomation::new().unwrap();
+
+        let matcher = automation.create_matcher().contains_name("Microsoft Edge");  // Find Edge window
+        if let Ok(edge) = matcher.find_first() {
+            let matcher = automation.create_matcher().from(edge).depth(10).filter_fn(Box::new(|e: &UIElement| {
+                Ok(e.get_help_text()? == "搜索或输入 Web 地址") // Search by help text
+            }));
+
+            if let Ok(input) = matcher.find_first() {
+                println!("Found element with help text: {}", input.get_name().unwrap());
+            } else {
+                println!("Element not found");
+            }
+        }
     }
 }
