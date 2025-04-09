@@ -47,7 +47,8 @@ mod tests {
         let matcher = automation.create_matcher().contains_name("Microsoft Edge");  // Find Edge window
         if let Ok(edge) = matcher.find_first() {
             let matcher = automation.create_matcher().from(edge).depth(10).filter_fn(Box::new(|e: &UIElement| {
-                Ok(e.get_help_text()? == "搜索或输入 Web 地址") // Search by help text
+                // Search by help text. Change the search content according to the language you have localized.
+                Ok(e.get_help_text()? == "搜索或输入 Web 地址") 
             }));
 
             if let Ok(input) = matcher.find_first() {
