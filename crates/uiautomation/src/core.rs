@@ -1158,8 +1158,12 @@ impl UIElement {
     ///  When `ignore_parse_err` is `false`, the parser will throw an error if the input format is incorrect.
     ///  When `ignore_parse_err` is `true`, the parser will ignore parse error and try to allow `{` & `(` as regular inputs.
     ///
-    /// `interval` is the milliseconds between keys. `0` is the default value.
+    /// `interval` is the milliseconds between keys. 
     ///
+    /// When inputting long texts, if the parameter value is set too low, input loss may occur during the input process.
+    /// 
+    /// When inputting only texts without special keys, you should use `send_text()` instead.
+    /// 
     /// # Examples
     ///
     /// ```
@@ -1202,6 +1206,10 @@ impl UIElement {
     /// Simulates sending text to the element without any special keys.
     /// 
     /// This method will only output the literal content of the text.
+    /// 
+    /// `interval` is the milliseconds between keys. 
+    /// 
+    /// When inputting long texts, if the parameter value is set too low, input loss may occur during the input process.
     pub fn send_text(&self, text: &str, interval: u64) -> Result<()> {
         self.set_focus()?;
 

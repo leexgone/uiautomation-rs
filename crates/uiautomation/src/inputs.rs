@@ -525,7 +525,7 @@ impl Keyboard {
     /// Create a keyboard to simulate typing keys.
     pub fn new() -> Self {
         Self {
-            interval: 0,
+            interval: 50,
             holdkeys: Vec::new(),
             ignore_parse_err: false,
         }
@@ -533,7 +533,9 @@ impl Keyboard {
 
     /// Set the interval time between keys.
     /// 
-    /// `interval` is the time number of milliseconds, `0` is default value.
+    /// `interval` is the time number of milliseconds, `50` is default value.
+    /// 
+    /// When inputting long texts, if the `interval` value is set too low, input loss may occur during the input process.
     pub fn interval(mut self, interval: u64) -> Self {
         self.interval = interval;
         self

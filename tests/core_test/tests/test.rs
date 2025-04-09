@@ -1,8 +1,12 @@
 #[cfg(test)]
 mod tests {
+    use uiautomation::actions::Value;
+    use uiautomation::controls::ControlType;
+    use uiautomation::controls::DocumentControl;
+    use uiautomation::processes::Process;
     use uiautomation::types::TreeScope;
     use uiautomation::types::UIProperty;
-    use uiautomation::variants::Value;
+    use uiautomation::variants::Value as VariantValue;
     use uiautomation::variants::Variant;
     use uiautomation::UIAutomation;
     use uiautomation::UIElement;
@@ -28,7 +32,7 @@ mod tests {
         let condition = automation
             .create_property_condition(
                 UIProperty::RuntimeId,
-                Variant::from(Value::ArrayI4(runtime_id)),
+                Variant::from(VariantValue::ArrayI4(runtime_id)),
                 None,
             )
             .expect("Failed to create condition");
@@ -56,6 +60,32 @@ mod tests {
             } else {
                 println!("Element not found");
             }
+        }
+    }
+
+    #[test]
+    fn test_send_multilines() {
+        Process::create("notepad.exe").unwrap();
+
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().classname("Notepad").timeout(10000);
+        if let Ok(notepad) = matcher.find_first() {
+            let text = "let text = r\"Customer ID: 98765
+Name: Globex Corporation
+Order Total: $1,234.56
+Status: Pending Shipment
+Contact Email: procurement@globex.example.com\"";
+            // notepad.send_keys(&text, 50).unwrap();
+            notepad.send_text(&text, 50).unwrap();
+
+            let matcher = automation.create_matcher().from_ref(&notepad).control_type(ControlType::Document);
+            let document = matcher.find_first().unwrap();
+            let doc_ctrl = DocumentControl::try_from(document).unwrap();
+            let content = doc_ctrl.get_value().unwrap();
+
+            let raw_lines: Vec<&str> = text.split(&['\r', '\n']).collect();
+            let new_lines: Vec<&str> = content.split(&['\r', '\n']).collect();
+            assert_eq!(raw_lines, new_lines);
         }
     }
 }
