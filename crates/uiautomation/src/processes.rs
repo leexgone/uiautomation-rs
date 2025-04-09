@@ -188,8 +188,9 @@ impl Process {
 
     /// Get the process handle.
     pub fn get_handle(&self) -> Handle {
-        let h = windows::Win32::Foundation::HWND(self.proc_info.hProcess.0);
-        h.into()
+        // let h = windows::Win32::Foundation::HWND(self.proc_info.hProcess.0);
+        // h.into()
+        self.proc_info.hProcess.into()
     }
 
     /// Get the process ID.

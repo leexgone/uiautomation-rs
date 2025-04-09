@@ -96,7 +96,8 @@ Contact Email: procurement@globex.example.com\"";
         let p = Process::create("notepad.exe").unwrap();
 
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().classname("Notepad").timeout(10000);
+        let matcher = automation.create_matcher().classname("Notepad").process_id(p.get_id()).timeout(10000);
+
         if let Ok(notepad) = matcher.find_first() {
             let rect = notepad.get_bounding_rectangle().unwrap();
             println!("Bounding rectangle - Normal: {:?}", rect);
@@ -105,6 +106,8 @@ Contact Email: procurement@globex.example.com\"";
 
             let window = WindowControl::try_from(notepad).unwrap();
             window.minimize().unwrap();
+        } else {
+            panic!("Notepad not found");
         }
 
         if let Ok(notepad) = matcher.find_first() {

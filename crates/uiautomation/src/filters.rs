@@ -1,4 +1,12 @@
+use std::cell::RefCell;
 use std::fmt::Debug;
+
+use windows::Win32::Foundation::CloseHandle;
+use windows::Win32::System::Diagnostics::ToolHelp::CreateToolhelp32Snapshot;
+use windows::Win32::System::Diagnostics::ToolHelp::Process32First;
+use windows::Win32::System::Diagnostics::ToolHelp::Process32Next;
+use windows::Win32::System::Diagnostics::ToolHelp::PROCESSENTRY32;
+use windows::Win32::System::Diagnostics::ToolHelp::TH32CS_SNAPPROCESS;
 
 use crate::controls::ControlType;
 
@@ -119,5 +127,109 @@ pub struct FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
 impl<F> MatcherFilter for FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         (self.filter)(element)
+    }
+}
+
+#[derive(Debug)]
+pub struct ProcessIdFilter {
+    pub pid: u32,
+    pub sub_progress: bool,
+    progresses: RefCell<Option<Vec<u32>>>
+}
+
+impl Default for ProcessIdFilter {
+    fn default() -> Self {
+        Self { 
+            pid: Default::default(), 
+            sub_progress: true, 
+            progresses: Default::default() 
+        }
+    }
+}
+
+impl ProcessIdFilter {
+    pub fn new(pid: u32, sub_progress: bool) -> Self {
+        Self {
+            pid,
+            sub_progress,
+            progresses: RefCell::new(None)
+        }
+    }
+
+    fn contains(&self, pid: u32) -> Result<bool> {
+        if !self.is_valid() {
+            self.build_sub_ids()?;
+        }
+
+        let ids = self.progresses.borrow();
+        if let Some(ids) = ids.as_ref() {
+            Ok(ids.contains(&pid))
+        } else {
+            Ok(false)
+        }
+    }
+
+    fn is_valid(&self) -> bool {
+        if let Some(ids) = self.progresses.borrow().as_ref() {
+            ids.get(0) == Some(&self.pid)
+        } else {
+            false
+        }
+    }
+
+    fn build_sub_ids(&self) -> Result<()> {
+        let procs = self.get_sub_processes()?;
+
+        let mut sub_ids = vec![self.pid];
+        let mut found = true;
+        while found {
+            found = false;
+            for (pid, ppid) in procs.iter() {
+                if sub_ids.contains(ppid) && !sub_ids.contains(pid) {
+                    sub_ids.push(*pid);
+                    found = true;
+                }
+            }
+        }
+
+        let mut ids = self.progresses.borrow_mut();
+        *ids = Some(sub_ids);
+
+        Ok(())
+    }
+
+    fn get_sub_processes(&self) -> Result<Vec<(u32, u32)>> {
+        let mut ids = Vec::new();
+
+        unsafe  {
+            let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)?;
+
+            let mut proc_entry = PROCESSENTRY32::default();
+            proc_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as _;
+
+            let mut found = Process32First(snapshot, &mut proc_entry);
+            while found.is_ok() {
+                ids.push((proc_entry.th32ProcessID, proc_entry.th32ParentProcessID));
+
+                found = Process32Next(snapshot, &mut proc_entry);
+            }
+
+            CloseHandle(snapshot)?;
+        }
+
+        Ok(ids)
+    }
+}
+
+impl MatcherFilter for ProcessIdFilter {
+    fn judge(&self, element: &UIElement) -> Result<bool> {
+        let pid = element.get_process_id()?;
+        if self.pid == pid {
+            Ok(true)
+        } else if self.sub_progress {
+            self.contains(pid)
+        } else {
+            Ok(false)
+        }
     }
 }

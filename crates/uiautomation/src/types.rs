@@ -4,7 +4,8 @@ use std::fmt::Display;
 
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
-// use windows::core::Param;
+use windows::core::Free;
+use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
@@ -198,11 +199,21 @@ impl AsMut<RECT> for Rect {
     }
 }
 
-// TODO : change to HANDLE
-
-/// A Wrapper for windows `HWND`.
+/// A Wrapper for windows `HANDLE`.
 #[derive(Default, Clone, Copy)]
-pub struct Handle(HWND);
+pub struct Handle(HANDLE);
+
+impl Handle {
+    /// Checks if the handle is invalid.
+    pub fn is_invalid(&self) -> bool {
+        self.0.is_invalid()
+    }
+
+    /// Frees current handle.
+    pub fn free(&mut self) {
+        unsafe { self.0.free() };
+    }
+}
 
 impl Debug for Handle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -221,18 +232,30 @@ impl Display for Handle {
 
 impl From<HWND> for Handle {
     fn from(hwnd: HWND) -> Self {
-        Self(hwnd)
+        Self(hwnd.into())
     }
 }
 
 impl Into<HWND> for Handle {
     fn into(self) -> HWND {
+        HWND(self.0.0)
+    }
+}
+
+impl From<HANDLE> for Handle {
+    fn from(handle: HANDLE) -> Self {
+        Self(handle)
+    }
+}
+
+impl Into<HANDLE> for Handle {
+    fn into(self) -> HANDLE {
         self.0
     }
 }
 
-impl AsRef<HWND> for Handle {
-    fn as_ref(&self) -> &HWND {
+impl AsRef<HANDLE> for Handle {
+    fn as_ref(&self) -> &HANDLE {
         &self.0
     }
 }
@@ -248,7 +271,7 @@ impl From<isize> for Handle {
         let hwd: *mut c_void = unsafe {
             std::mem::transmute(value)
         };
-        Self(HWND(hwd))
+        Self(HANDLE(hwd))
     }
 }
 

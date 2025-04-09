@@ -35,6 +35,7 @@ use crate::events::UIFocusChangedEventHandler;
 use crate::events::UIPropertyChangedEventHandler;
 use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
+use crate::filters::ProcessIdFilter;
 use crate::inputs::Mouse;
 use crate::patterns::UIPatternType;
 use crate::types::ElementMode;
@@ -528,12 +529,12 @@ impl UIElement {
     }
 
     /// Retrieves the identifier of the process that hosts the element.
-    pub fn get_process_id(&self) -> Result<i32> {
+    pub fn get_process_id(&self) -> Result<u32> {
         let id = unsafe {
             self.element.CurrentProcessId()?
         };
 
-        Ok(id)
+        Ok(id as _)
     }
 
     /// Retrieves the cached ID of the process that hosts the element.
@@ -1600,7 +1601,6 @@ pub struct UIMatcher {
     mode: UIMatcherMode,
     depth: u32,
     from: Option<UIElement>,
-    // condition: Option<Box<dyn Condition>>,
     filters: Vec<Box<dyn MatcherFilter>>,
     timeout: u64,
     interval: u64,
@@ -1742,6 +1742,13 @@ impl UIMatcher {
         let condition = ControlTypeFilter {
             control_type
         };
+        self.filter(Box::new(condition))
+    }
+
+    /// Filters by process id, including sub processes.
+    pub fn process_id(self, pid: u32) -> Self {
+        let condition = ProcessIdFilter::new(pid, true);
+
         self.filter(Box::new(condition))
     }
 
