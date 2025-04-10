@@ -237,3 +237,7 @@
 ## v0.17.3
 
 + Allow using the input parser outside of `uiautomation-rs`. [#97](https://github.com/leexgone/uiautomation-rs/pull/97)
+
+## v0.18.0
+
++ Add `UIMatcher.process_id()` to support filter by process id.
