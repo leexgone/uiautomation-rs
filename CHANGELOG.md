@@ -241,3 +241,7 @@
 ## v0.18.0
 
 + Add `UIMatcher.process_id()` to support filter by process id.
+
+## v0.18.1
+
++ Add `UIElement.send_text_by_clipboard()` to support sending text by clipboard. [#103](https://github.com/leexgone/uiautomation-rs/issues/103)

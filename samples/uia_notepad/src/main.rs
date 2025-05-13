@@ -13,6 +13,7 @@ fn main() {
     if let Ok(notepad) = matcher.find_first() {
         println!("Found: {} - {}", notepad.get_name().unwrap(), notepad.get_classname().unwrap());
 
+        notepad.send_text_by_clipboard("This is from clipboard.\n").unwrap();
         notepad.send_keys("Hello, Rust UIAutomation!", 10).unwrap();
         notepad.send_text("\r\n{Win}D.", 10).unwrap();
 

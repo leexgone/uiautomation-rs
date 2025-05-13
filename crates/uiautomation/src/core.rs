@@ -3,6 +3,7 @@ use std::fmt::Display;
 use std::thread::sleep;
 use std::time::Duration;
 
+use arboard::Clipboard;
 use chrono::Local;
 use windows::core::Param;
 use windows::Win32::System::Com::CLSCTX_ALL;
@@ -1216,6 +1217,43 @@ impl UIElement {
 
         let kb = Keyboard::new();
         kb.interval(interval).send_text(text)
+    }
+
+    /// Simulates sending text to the element without any special keys.
+    /// This method will send text to the clipboard and paste it. The element must support `ctrl+v` to paste text.
+    pub fn send_text_by_clipboard(&self, text: &str) -> Result<()> {
+        let raw_text = {
+            let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
+            clipboard.get_text().map_err(|e| Error::from(format!("Failed to get clipboard text: {}", e)))?
+        };
+
+        self.set_focus()?;
+
+        {
+            let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
+            clipboard.set_text(text).map_err(|e| Error::from(format!("Failed to set clipboard text: {}", e)))?;
+        }
+
+        let paste_result = self.send_keys("{ctrl}v", 30);
+
+        let restore_result = if raw_text.is_empty() {
+            Ok(())
+        } else {
+            match Clipboard::new() {
+                Ok(mut clipboard) => {
+                    clipboard.set_text(raw_text).map_err(|e| Error::from(format!("Failed to restore clipboard text: {}", e)))
+                },
+                Err(e) => Err(Error::from(format!("Failed to open clipboard: {}", e)))
+            }
+        };
+
+        if paste_result.is_err() {
+            paste_result
+        } else if restore_result.is_err() {
+            restore_result
+        } else {
+            Ok(())
+        }
     }
 
     /// Simulates mouse left click event on the element.
