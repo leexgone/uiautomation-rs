@@ -1645,6 +1645,15 @@ pub struct UIMatcher {
     debug: bool
 }
 
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        #[cfg(feature = "log") ]
+        log::debug!($($arg)*);
+        #[cfg(not(feature = "log"))]
+        println!($($arg)*);
+    };
+}
+
 impl UIMatcher {
     /// Creates a matcher with `automation`.
     pub fn new(automation: UIAutomation) -> Self {
@@ -1829,11 +1838,14 @@ impl UIMatcher {
         let mut elements: Vec<UIElement> = Vec::new();
         let start = Local::now().timestamp_millis();
         loop {
+            // if self.debug {
+            //     #[cfg(feature = "log")]
+            //     log::debug!("Try to match element...");
+            //     #[cfg(not(feature = "log"))]
+            //     println!("Try to match element...")
+            // }
             if self.debug {
-                #[cfg(feature = "log")]
-                log::debug!("Try to match element...");
-                #[cfg(not(feature = "log"))]
-                println!("Try to match element...")
+                debug!("Try to match element...");
             }
 
             let (root, walker) = self.prepare()?;
@@ -1917,10 +1929,11 @@ impl UIMatcher {
         }
 
         if self.debug {
-            #[cfg(feature = "log") ]
-            log::debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
-            #[cfg(not(feature = "log"))]
-            println!("{:?} -> {} in filter {}", element, ret, failed_filter);
+            // #[cfg(feature = "log") ]
+            // log::debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
+            // #[cfg(not(feature = "log"))]
+            // println!("{:?} -> {} in filter {}", element, ret, failed_filter);
+            debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
         }
 
         Ok(ret)
@@ -2471,7 +2484,7 @@ mod tests {
     fn test_notepad() {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher();
-        if let Ok(window) = matcher.classname("Notepad").timeout(0).find_first() {
+        if let Ok(window) = matcher.classname("Notepad").timeout(0).debug(true).find_first() {
             println!("{}", window.get_name().unwrap());
 
             let menubar = automation.create_matcher() //.debug(true)

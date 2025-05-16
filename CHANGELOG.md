@@ -249,3 +249,7 @@
 ## v0.18.2
 
 + Remove `image-data` feature from `arboard` crate. [#105](https://github.com/leexgone/uiautomation-rs/issues/105)
+
+## v0.18.4
+
++ Update to `windows v0.61.1`.
