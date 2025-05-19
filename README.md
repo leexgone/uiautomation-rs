@@ -8,7 +8,7 @@ Start by adding the dependency of this crate to your Cargo.toml file. Make use o
 
 ## Features
 
-### Optional Features
+### Supported Features
 
 | Feature | Description | Default |
 | ------- | ----------- | ------- |
