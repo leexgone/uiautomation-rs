@@ -1,3 +1,4 @@
+#[cfg(feature = "process")]
 use std::cell::RefCell;
 use std::fmt::Debug;
 
