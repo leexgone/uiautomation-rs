@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation_derive"
-version = "0.5.3"
+version = "0.6.0"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -12,6 +12,13 @@ categories = ["development-tools::procedural-macro-helpers", "os::windows-apis"]
 
 [lib]
 proc-macro = true
+
+[features]
+default = [ "enum_derive" ]
+
+enum_derive = []
+action_derive = []
+control_derive = []
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"

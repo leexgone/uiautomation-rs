@@ -9,107 +9,109 @@ use super::UIElement;
 use super::errors::ERR_TYPE;
 use super::patterns::*;
 
-/// Defines enum for `windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID`.
-/// 
-/// Contains the named constants used to identify Microsoft UI Automation control types.
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-pub enum ControlType {
-    /// Identifies the Button control type.
-    Button = 50000i32,
-    /// Identifies the Calendar control type.
-    Calendar = 50001i32,
-    /// Identifies the CheckBox control type.
-    CheckBox = 50002i32,
-    /// Identifies the ComboBox control type.
-    ComboBox = 50003i32,
-    /// Identifies the Edit control type.
-    Edit = 50004i32,
-    /// Identifies the Hyperlink control type.
-    Hyperlink = 50005i32,
-    /// Identifies the Image control type.
-    Image = 50006i32,
-    /// Identifies the ListItem control type.
-    ListItem = 50007i32,
-    /// Identifies the List control type.
-    List = 50008i32,
-    /// Identifies the Menu control type.
-    Menu = 50009i32,
-    /// Identifies the MenuBar control type.
-    MenuBar = 50010i32,
-    /// Identifies the MenuItem control type.
-    MenuItem = 50011i32,
-    /// Identifies the ProgressBar control type.
-    ProgressBar = 50012i32,
-    /// Identifies the RadioButton control type.
-    RadioButton = 50013i32,
-    /// Identifies the ScrollBar control type.
-    ScrollBar = 50014i32,
-    /// Identifies the Slider control type.
-    Slider = 50015i32,
-    /// Identifies the Spinner control type.
-    Spinner = 50016i32,
-    /// Identifies the StatusBar control type.
-    StatusBar = 50017i32,
-    /// Identifies the Tab control type.
-    Tab = 50018i32,
-    /// Identifies the TabItem control type.
-    TabItem = 50019i32,
-    /// Identifies the Text control type.
-    Text = 50020i32,
-    /// Identifies the ToolBar control type.
-    ToolBar = 50021i32,
-    /// Identifies the ToolTip control type.
-    ToolTip = 50022i32,
-    /// Identifies the Tree control type.
-    Tree = 50023i32,
-    /// Identifies the TreeItem control type.
-    TreeItem = 50024i32,
-    /// Identifies the Custom control type. For more information, see Custom Properties, Events, and Control Patterns.
-    Custom = 50025i32,
-    /// Identifies the Group control type.
-    Group = 50026i32,
-    /// Identifies the Thumb control type.
-    Thumb = 50027i32,
-    /// Identifies the DataGrid control type.
-    DataGrid = 50028i32,
-    /// Identifies the DataItem control type.
-    DataItem = 50029i32,
-    /// Identifies the Document control type.
-    Document = 50030i32,
-    /// Identifies the SplitButton control type.
-    SplitButton = 50031i32,
-    /// Identifies the Window control type.
-    Window = 50032i32,
-    /// Identifies the Pane control type.
-    Pane = 50033i32,
-    /// Identifies the Header control type.
-    Header = 50034i32,
-    /// Identifies the HeaderItem control type.
-    HeaderItem = 50035i32,
-    /// Identifies the Table control type.
-    Table = 50036i32,
-    /// Identifies the TitleBar control type.
-    TitleBar = 50037i32,
-    /// Identifies the Separator control type.
-    Separator = 50038i32,
-    /// Identifies the SemanticZoom control type. Supported starting with Windows 8.
-    SemanticZoom = 50039i32,
-    /// Identifies the AppBar control type. Supported starting with Windows 8.1.
-    AppBar = 50040i32    
-}
+pub type ControlType = super::types::ControlType;
 
-impl From<windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID> for ControlType {
-    fn from(value: windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
+// /// Defines enum for `windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID`.
+// /// 
+// /// Contains the named constants used to identify Microsoft UI Automation control types.
+// #[repr(i32)]
+// #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+// pub enum ControlType {
+//     /// Identifies the Button control type.
+//     Button = 50000i32,
+//     /// Identifies the Calendar control type.
+//     Calendar = 50001i32,
+//     /// Identifies the CheckBox control type.
+//     CheckBox = 50002i32,
+//     /// Identifies the ComboBox control type.
+//     ComboBox = 50003i32,
+//     /// Identifies the Edit control type.
+//     Edit = 50004i32,
+//     /// Identifies the Hyperlink control type.
+//     Hyperlink = 50005i32,
+//     /// Identifies the Image control type.
+//     Image = 50006i32,
+//     /// Identifies the ListItem control type.
+//     ListItem = 50007i32,
+//     /// Identifies the List control type.
+//     List = 50008i32,
+//     /// Identifies the Menu control type.
+//     Menu = 50009i32,
+//     /// Identifies the MenuBar control type.
+//     MenuBar = 50010i32,
+//     /// Identifies the MenuItem control type.
+//     MenuItem = 50011i32,
+//     /// Identifies the ProgressBar control type.
+//     ProgressBar = 50012i32,
+//     /// Identifies the RadioButton control type.
+//     RadioButton = 50013i32,
+//     /// Identifies the ScrollBar control type.
+//     ScrollBar = 50014i32,
+//     /// Identifies the Slider control type.
+//     Slider = 50015i32,
+//     /// Identifies the Spinner control type.
+//     Spinner = 50016i32,
+//     /// Identifies the StatusBar control type.
+//     StatusBar = 50017i32,
+//     /// Identifies the Tab control type.
+//     Tab = 50018i32,
+//     /// Identifies the TabItem control type.
+//     TabItem = 50019i32,
+//     /// Identifies the Text control type.
+//     Text = 50020i32,
+//     /// Identifies the ToolBar control type.
+//     ToolBar = 50021i32,
+//     /// Identifies the ToolTip control type.
+//     ToolTip = 50022i32,
+//     /// Identifies the Tree control type.
+//     Tree = 50023i32,
+//     /// Identifies the TreeItem control type.
+//     TreeItem = 50024i32,
+//     /// Identifies the Custom control type. For more information, see Custom Properties, Events, and Control Patterns.
+//     Custom = 50025i32,
+//     /// Identifies the Group control type.
+//     Group = 50026i32,
+//     /// Identifies the Thumb control type.
+//     Thumb = 50027i32,
+//     /// Identifies the DataGrid control type.
+//     DataGrid = 50028i32,
+//     /// Identifies the DataItem control type.
+//     DataItem = 50029i32,
+//     /// Identifies the Document control type.
+//     Document = 50030i32,
+//     /// Identifies the SplitButton control type.
+//     SplitButton = 50031i32,
+//     /// Identifies the Window control type.
+//     Window = 50032i32,
+//     /// Identifies the Pane control type.
+//     Pane = 50033i32,
+//     /// Identifies the Header control type.
+//     Header = 50034i32,
+//     /// Identifies the HeaderItem control type.
+//     HeaderItem = 50035i32,
+//     /// Identifies the Table control type.
+//     Table = 50036i32,
+//     /// Identifies the TitleBar control type.
+//     TitleBar = 50037i32,
+//     /// Identifies the Separator control type.
+//     Separator = 50038i32,
+//     /// Identifies the SemanticZoom control type. Supported starting with Windows 8.
+//     SemanticZoom = 50039i32,
+//     /// Identifies the AppBar control type. Supported starting with Windows 8.1.
+//     AppBar = 50040i32    
+// }
 
-impl Into<windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID> for ControlType {
-    fn into(self) -> windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID {
-        windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID(self as _)
-    }
-}
+// impl From<windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID> for ControlType {
+//     fn from(value: windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID) -> Self {
+//         value.0.try_into().unwrap()
+//     }
+// }
+
+// impl Into<windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID> for ControlType {
+//     fn into(self) -> windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID {
+//         windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID(self as _)
+//     }
+// }
 
 /// `Control` is the trait for ui element control.
 pub trait Control {

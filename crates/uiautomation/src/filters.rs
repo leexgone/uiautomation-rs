@@ -1,14 +1,20 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
 
-use windows::Win32::Foundation::CloseHandle;
-use windows::Win32::System::Diagnostics::ToolHelp::CreateToolhelp32Snapshot;
-use windows::Win32::System::Diagnostics::ToolHelp::Process32First;
-use windows::Win32::System::Diagnostics::ToolHelp::Process32Next;
-use windows::Win32::System::Diagnostics::ToolHelp::PROCESSENTRY32;
-use windows::Win32::System::Diagnostics::ToolHelp::TH32CS_SNAPPROCESS;
+// use windows::Win32::Foundation::CloseHandle;
+// use windows::Win32::System::Diagnostics::ToolHelp::CreateToolhelp32Snapshot;
+// use windows::Win32::System::Diagnostics::ToolHelp::Process32First;
+// use windows::Win32::System::Diagnostics::ToolHelp::Process32Next;
+// use windows::Win32::System::Diagnostics::ToolHelp::PROCESSENTRY32;
+// use windows::Win32::System::Diagnostics::ToolHelp::TH32CS_SNAPPROCESS;
+#[cfg(feature = "process")]
+use windows::Win32::System::Diagnostics::ToolHelp::{
+    CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS
+};
 
-use crate::controls::ControlType;
+// use crate::controls::ControlType;
+
+use super::types::ControlType;
 
 use super::core::UIElement;
 use super::errors::Result;
@@ -130,6 +136,7 @@ impl<F> MatcherFilter for FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
     }
 }
 
+#[cfg(feature = "process")]
 #[derive(Debug)]
 pub struct ProcessIdFilter {
     pub pid: u32,
@@ -137,6 +144,7 @@ pub struct ProcessIdFilter {
     progresses: RefCell<Option<Vec<u32>>>
 }
 
+#[cfg(feature = "process")]
 impl Default for ProcessIdFilter {
     fn default() -> Self {
         Self { 
@@ -147,6 +155,7 @@ impl Default for ProcessIdFilter {
     }
 }
 
+#[cfg(feature = "process")]
 impl ProcessIdFilter {
     pub fn new(pid: u32, sub_progress: bool) -> Self {
         Self {
@@ -214,13 +223,14 @@ impl ProcessIdFilter {
                 found = Process32Next(snapshot, &mut proc_entry);
             }
 
-            CloseHandle(snapshot)?;
+            windows::Win32::Foundation::CloseHandle(snapshot)?;
         }
 
         Ok(ids)
     }
 }
 
+#[cfg(feature = "process")]
 impl MatcherFilter for ProcessIdFilter {
     fn judge(&self, element: &UIElement) -> Result<bool> {
         let pid = element.get_process_id()?;

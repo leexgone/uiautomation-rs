@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation"
-version = "0.18.4"
+version = "0.19.0"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -21,7 +21,16 @@ targets = [
 all-features = true
 
 [features]
-default = []
+default = [ "input", "control" ]
+all = [ "process", "dialog", "input", "pattern", "control", "event", "log" ]
+
+process = [ "windows/Win32_System_Threading", "windows/Win32_Security", "windows/Win32_System_Diagnostics_ToolHelp" ]
+dialog = [ "windows/Win32_UI_Input_KeyboardAndMouse", "windows/Win32_UI_WindowsAndMessaging" ]
+input = [ "windows/Win32_UI_Input_KeyboardAndMouse", "arboard" ]
+pattern = []
+control = [ "pattern", "uiautomation_derive/action_derive", "uiautomation_derive/control_derive", "windows/Win32_UI_WindowsAndMessaging" ]
+event = []
+
 log = ["dep:log"]
 
 [dependencies]
@@ -29,7 +38,7 @@ log = ["dep:log"]
 chrono = "0.4.41"
 log = { version = "0.4.27", optional = true }
 # arboard = "3.5.0"
-uiautomation_derive = { version = "0.5.3", path = "../uiautomation_derive" }
+uiautomation_derive = { version = "0.6.0", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
 version = "0.61.1"
@@ -42,12 +51,12 @@ features = [
     "Win32_System_Com",
     "Win32_System_Ole",
     "Win32_UI_Accessibility",
-    "Win32_UI_Input_KeyboardAndMouse",
-    "Win32_UI_WindowsAndMessaging",
-    "Win32_System_Threading",
-    "Win32_Security",
-    "Win32_UI_Shell_PropertiesSystem",
-    "Win32_System_Diagnostics_ToolHelp",
+    # "Win32_UI_Input_KeyboardAndMouse",
+    # "Win32_UI_WindowsAndMessaging",
+    # "Win32_System_Threading",
+    # "Win32_Security",
+    # "Win32_UI_Shell_PropertiesSystem",
+    # "Win32_System_Diagnostics_ToolHelp",
     "UI_UIAutomation",
 ]
 
@@ -55,3 +64,4 @@ features = [
 version = "3.5.0"
 default-features = false
 features = []
+optional = true

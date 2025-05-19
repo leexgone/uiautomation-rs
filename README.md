@@ -8,13 +8,25 @@ Start by adding the dependency of this crate to your Cargo.toml file. Make use o
 
 ## Features
 
-### Default Features
-
-+ NONE
-
 ### Optional Features
 
-+ `log`: Use log crate to print logging message.
+| Feature | Description | Default |
+| ------- | ----------- | ------- |
+| `process` | Support process operations and filter by process id | False |
+| `dialog` | Enable message boxes to show message | False |
+| `input` | Support keyboard inputs | True |
+| `pattern` | Support Microsoft UI Automation control patterns | - |
+| `control` | Enable to wrapper ui element as control to simplify operations | True |
+| `log` | Use log crate to print debug message | False |
+| `all` | Enable all the above features | False |
+
+> `pattern` is a feature that `control` depends on.
+
+### Default Features
+
++ `input`, `control`, `pattern`(introduced by the `control` dependency)
+
+> In order to be compatible with the version before `v0.19.0`, you should add `process` and `dialog` features.
 
 ## Examples
 

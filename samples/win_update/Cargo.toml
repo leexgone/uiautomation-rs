@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 
-uiautomation = { path = "../../crates/uiautomation" }
+uiautomation = { path = "../../crates/uiautomation", features = ["dialog"] }
 
 [[bin]]
 

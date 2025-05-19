@@ -2,13 +2,21 @@ pub mod errors;
 pub mod types;
 pub mod variants;
 pub mod core;
-pub mod patterns;
 pub mod filters;
-pub mod controls;
-pub mod actions;
-pub mod inputs;
+
+#[cfg(feature = "process")]
 pub mod processes;
+#[cfg(feature = "dialog")]
 pub mod dialogs;
+#[cfg(feature = "input")]
+pub mod inputs;
+#[cfg(feature = "pattern")]
+pub mod patterns;
+#[cfg(feature = "control")]
+pub mod actions;
+#[cfg(feature = "control")]
+pub mod controls;
+#[cfg(feature = "event")]
 pub mod events;
 
 pub use self::errors::Error;

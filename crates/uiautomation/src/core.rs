@@ -3,7 +3,6 @@ use std::fmt::Display;
 use std::thread::sleep;
 use std::time::Duration;
 
-use arboard::Clipboard;
 use chrono::Local;
 use windows::core::Param;
 use windows::Win32::System::Com::CLSCTX_ALL;
@@ -27,18 +26,17 @@ use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::core::IUnknown;
 use windows::core::Interface;
-use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
+// use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 
-use crate::controls::ControlType;
-use crate::events::UIEventHandler;
-use crate::events::UIEventType;
-use crate::events::UIFocusChangedEventHandler;
-use crate::events::UIPropertyChangedEventHandler;
-use crate::events::UIStructureChangeEventHandler;
+// use crate::controls::ControlType;
+// use crate::events::UIEventHandler;
+// use crate::events::UIEventType;
+// use crate::events::UIFocusChangedEventHandler;
+// use crate::events::UIPropertyChangedEventHandler;
+// use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
-use crate::filters::ProcessIdFilter;
-use crate::inputs::Mouse;
-use crate::patterns::UIPatternType;
+// use crate::patterns::UIPatternType;
+use crate::types::ControlType;
 use crate::types::ElementMode;
 use crate::types::HeadingLevel;
 use crate::types::OrientationType;
@@ -55,12 +53,20 @@ use super::errors::ERR_NOTFOUND;
 use super::errors::ERR_TIMEOUT;
 use super::errors::Error;
 use super::errors::Result;
-use super::inputs::Keyboard;
-use super::patterns::UIPattern;
+// use super::patterns::UIPattern;
 use super::types::Handle;
 use super::types::Rect;
 use super::types::Point;
 use super::variants::Variant;
+
+#[cfg(feature = "input")]
+use arboard::Clipboard;
+#[cfg(feature = "input")]
+use crate::inputs::Mouse;
+#[cfg(feature = "input")]
+use super::inputs::Keyboard;
+#[cfg(feature = "event")]
+use super::events::*;
 
 /// A wrapper for windows `IUIAutomation` interface.
 ///
@@ -323,6 +329,7 @@ impl UIAutomation {
     }
 
     /// Registers a method that handles Microsoft UI Automation events.
+    #[cfg(feature = "event")]
     pub fn add_automation_event_handler(&self, event_type: UIEventType, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIEventHandler) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
@@ -332,6 +339,7 @@ impl UIAutomation {
     }
 
     /// Removes the specified UI Automation event handler.
+    #[cfg(feature = "event")]
     pub fn remove_automation_event_handler(&self, event_type: UIEventType, element: &UIElement, handler: &UIEventHandler) -> Result<()> {
         unsafe {
             self.automation.RemoveAutomationEventHandler(event_type.into(), element, handler)?
@@ -340,9 +348,10 @@ impl UIAutomation {
     }
 
     /// Registers a method that handles and array of property-changed events.
+    #[cfg(feature = "event")]
     pub fn add_property_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIPropertyChangedEventHandler, properties: &[UIProperty]) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
-        let prop_arr: Vec<UIA_PROPERTY_ID> = properties.iter().map(|p| (*p).into()).collect();
+        let prop_arr: Vec<windows::Win32::UI::Accessibility::UIA_PROPERTY_ID> = properties.iter().map(|p| (*p).into()).collect();
         unsafe {
             self.automation.AddPropertyChangedEventHandlerNativeArray(element, scope.into(), cache_request, handler, &prop_arr)?
         };
@@ -350,6 +359,7 @@ impl UIAutomation {
     }
 
     /// Removes a property-changed event handler.
+    #[cfg(feature = "event")]
     pub fn remove_property_changed_event_handler(&self, element: &UIElement, handler: &UIPropertyChangedEventHandler) -> Result<()> {
         unsafe {
             self.automation.RemovePropertyChangedEventHandler(element, handler)?
@@ -358,6 +368,7 @@ impl UIAutomation {
     }
 
     /// Registers a method that handles structure-changed events.
+    #[cfg(feature = "event")]
     pub fn add_structure_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIStructureChangeEventHandler) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
@@ -367,6 +378,7 @@ impl UIAutomation {
     }
 
     /// Removes a structure-changed event handler.
+    #[cfg(feature = "event")]
     pub fn remove_structure_changed_event_handler(&self, element: &UIElement, handler: &UIStructureChangeEventHandler) -> Result<()> {
         unsafe {
             self.automation.RemoveStructureChangedEventHandler(element, handler)?
@@ -375,6 +387,7 @@ impl UIAutomation {
     }
 
     /// Registers a method that handles focus-changed events.
+    #[cfg(feature = "event")]
     pub fn add_focus_changed_event_handler(&self, cache_request: Option<&UICacheRequest>, handler: &UIFocusChangedEventHandler) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
@@ -384,6 +397,7 @@ impl UIAutomation {
     }
 
     /// Removes a focus-changed event handler.
+    #[cfg(feature = "event")]
     pub fn remove_focus_changed_event_handler(&self, handler: &UIFocusChangedEventHandler) -> Result<()> {
         unsafe {
             self.automation.RemoveFocusChangedEventHandler(handler)?
@@ -569,7 +583,7 @@ impl UIElement {
             self.element.CurrentControlType()?
         };
 
-        Ok(ControlType::from(control_type))
+        ControlType::try_from(control_type)
     }
 
     /// Retrieves the cached control type of the element.
@@ -577,7 +591,7 @@ impl UIElement {
         let control_type = unsafe {
             self.element.CachedControlType()?
         };
-        Ok(control_type.into())
+        control_type.try_into()
     }
 
     /// Retrieves a localized description of the control type of the element.
@@ -1046,7 +1060,8 @@ impl UIElement {
     }
 
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
-    pub fn get_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
+    #[cfg(feature = "pattern")]
+    pub fn get_pattern<T: super::patterns::UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
             self.element.GetCurrentPattern(T::TYPE.into())?
         };
@@ -1055,7 +1070,8 @@ impl UIElement {
     }
 
     /// Retrieves the cached control pattern interface of the specified pattern `<T>` from this UI Automation element.
-    pub fn get_cached_pattern<T: UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
+    #[cfg(feature = "pattern")]
+    pub fn get_cached_pattern<T: super::patterns::UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
         let pattern = unsafe {
             self.element.GetCachedPattern(T::TYPE.into())?
         };
@@ -1175,6 +1191,7 @@ impl UIElement {
     /// let root = automation.get_root_element().unwrap();
     /// root.send_keys("{Win}D", 0).unwrap();
     /// ```
+    #[cfg(feature = "input")]
     pub fn send_keys(&self, keys: &str, interval: u64) -> Result<()> {
         self.set_focus()?;
 
@@ -1195,6 +1212,7 @@ impl UIElement {
     /// let root = automation.get_root_element().unwrap();
     /// root.hold_send_keys("{Win}", "P", 0).unwrap();
     /// ```
+    #[cfg(feature = "input")]
     pub fn hold_send_keys(&self, holdkeys: &str, keys: &str, interval: u64) -> Result<()> {
         self.set_focus()?;
 
@@ -1212,6 +1230,7 @@ impl UIElement {
     /// `interval` is the milliseconds between keys. 
     /// 
     /// When inputting long texts, if the parameter value is set too low, input loss may occur during the input process.
+    #[cfg(feature = "input")]
     pub fn send_text(&self, text: &str, interval: u64) -> Result<()> {
         self.set_focus()?;
 
@@ -1221,6 +1240,7 @@ impl UIElement {
 
     /// Simulates sending text to the element without any special keys.
     /// This method will send text to the clipboard and paste it. The element must support `ctrl+v` to paste text.
+    #[cfg(feature = "input")]
     pub fn send_text_by_clipboard(&self, text: &str) -> Result<()> {
         let raw_text = {
             let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
@@ -1257,6 +1277,7 @@ impl UIElement {
     }
 
     /// Simulates mouse left click event on the element.
+    #[cfg(feature = "input")]
     pub fn click(&self) -> Result<()> {
         self.try_focus();
 
@@ -1268,6 +1289,7 @@ impl UIElement {
     /// Simulates mouse left click event with holdkeys on the element.
     ///
     /// The holdkey is quoted by `{}`, for example: `{Ctrl}`, `{Ctrl}{Shift}`.
+    #[cfg(feature = "input")]
     pub fn hold_click(&self, holdkeys: &str) -> Result<()> {
         let point = self.get_click_point()?;
         let mouse = Mouse::default().holdkeys(holdkeys);
@@ -1275,6 +1297,7 @@ impl UIElement {
     }
 
     /// Simulates mouse double click event on the element.
+    #[cfg(feature = "input")]
     pub fn double_click(&self) -> Result<()> {
         self.try_focus();
 
@@ -1284,6 +1307,7 @@ impl UIElement {
     }
 
     /// Simulates mouse right click event on the element.
+    #[cfg(feature = "input")]
     pub fn right_click(&self) -> Result<()> {
         self.try_focus();
 
@@ -1377,7 +1401,8 @@ pub struct UICacheRequest {
 
 impl UICacheRequest {
     /// Adds a control pattern to the cache request.
-    pub fn add_pattern(&self, pattern: UIPatternType) -> Result<()> {
+    #[cfg(feature = "pattern")]
+    pub fn add_pattern(&self, pattern: super::patterns::UIPatternType) -> Result<()> {
         unsafe {
             self.request.AddPattern(pattern.into())?
         };
@@ -1793,8 +1818,9 @@ impl UIMatcher {
     }
 
     /// Filters by process id, including sub processes.
+    #[cfg(feature = "process")]
     pub fn process_id(self, pid: u32) -> Self {
-        let condition = ProcessIdFilter::new(pid, true);
+        let condition = super::filters::ProcessIdFilter::new(pid, true);
 
         self.filter(Box::new(condition))
     }
@@ -2398,11 +2424,12 @@ mod tests {
     use std::time::Duration;
 
     use windows::Win32::UI::Accessibility::*;
-    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+    // use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
+    use crate::types::ControlType;
     use crate::UIAutomation;
     use crate::UIElement;
-    use crate::controls::ControlType;
+    // use crate::controls::ControlType;
     use crate::filters::MatcherFilter;
     use crate::types::TreeScope;
 
@@ -2450,6 +2477,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "input")]
     fn test_zh_input() {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
@@ -2460,7 +2488,10 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "input")]
     fn test_menu_click() {
+        use crate::types::ControlType;
+
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
@@ -2545,29 +2576,29 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_window_rect_prop() {
-        let window = unsafe { GetForegroundWindow() };
-        if window.is_invalid() {
-            return;
-        }
+    // #[test]
+    // fn test_window_rect_prop() {
+    //     let window = unsafe { GetForegroundWindow() };
+    //     if window.is_invalid() {
+    //         return;
+    //     }
 
-        let automation = UIAutomation::new().unwrap();
-        let element = automation.element_from_handle(window.into()).unwrap();
-        let rect = element.get_bounding_rectangle().unwrap();
-        println!("Window Rect = {}", rect);
+    //     let automation = UIAutomation::new().unwrap();
+    //     let element = automation.element_from_handle(window.into()).unwrap();
+    //     let rect = element.get_bounding_rectangle().unwrap();
+    //     println!("Window Rect = {}", rect);
 
-        let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
-        println!("Window Rect Prop = {}", val.to_string());
-        assert!(val.is_array());
+    //     let val = element.get_property_value(crate::types::UIProperty::BoundingRectangle).unwrap();
+    //     println!("Window Rect Prop = {}", val.to_string());
+    //     assert!(val.is_array());
 
-        let arr = val.get_array().unwrap();
-        let l: f64 = arr.get_element(0).unwrap();
-        let t: f64 = arr.get_element(1).unwrap();
-        let r: f64 = arr.get_element(2).unwrap();
-        let b: f64 = arr.get_element(3).unwrap();
-        println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
-    }
+    //     let arr = val.get_array().unwrap();
+    //     let l: f64 = arr.get_element(0).unwrap();
+    //     let t: f64 = arr.get_element(1).unwrap();
+    //     let r: f64 = arr.get_element(2).unwrap();
+    //     let b: f64 = arr.get_element(3).unwrap();
+    //     println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
+    // }
 
     #[test]
     fn test_create() {

@@ -120,4 +120,28 @@ Contact Email: procurement@globex.example.com\"";
             window.close().unwrap();
         }
     }
+
+    #[test]
+    fn test_window_rect_prop() {
+        let window = unsafe { windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow() };
+        if window.is_invalid() {
+            return;
+        }
+
+        let automation = UIAutomation::new().unwrap();
+        let element = automation.element_from_handle(window.into()).unwrap();
+        let rect = element.get_bounding_rectangle().unwrap();
+        println!("Window Rect = {}", rect);
+
+        let val = element.get_property_value(uiautomation::types::UIProperty::BoundingRectangle).unwrap();
+        println!("Window Rect Prop = {}", val.to_string());
+        assert!(val.is_array());
+
+        let arr = val.get_array().unwrap();
+        let l: f64 = arr.get_element(0).unwrap();
+        let t: f64 = arr.get_element(1).unwrap();
+        let r: f64 = arr.get_element(2).unwrap();
+        let b: f64 = arr.get_element(3).unwrap();
+        println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
+    }
 }
