@@ -253,3 +253,7 @@
 ## v0.18.4
 
 + Update to `windows v0.61.1`.
+
+## v0.19.0
+
++ Refactor to support more features.
