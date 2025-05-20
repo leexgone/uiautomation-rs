@@ -17,6 +17,7 @@ Start by adding the dependency of this crate to your Cargo.toml file. Make use o
 | `input` | Support keyboard inputs | True |
 | `pattern` | Support Microsoft UI Automation control patterns | - |
 | `control` | Enable to wrapper ui element as control to simplify operations | True |
+| `event` | Support Microsoft UI Automation events | False |
 | `log` | Use log crate to print debug message | False |
 | `all` | Enable all the above features | False |
 
@@ -26,7 +27,7 @@ Start by adding the dependency of this crate to your Cargo.toml file. Make use o
 
 + `input`, `control`, `pattern`(introduced by the `control` dependency)
 
-> In order to be compatible with the version before `v0.19.0`, you should add `process` and `dialog` features.
+> In order to be compatible with the version before `v0.19.0`, you should add `process`, `dialog` and `event` features.
 
 ## Examples
 

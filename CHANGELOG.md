@@ -257,3 +257,7 @@
 ## v0.19.0
 
 + Refactor to support more features.
+
+## v0.19.1
+
++ Update `README.md`.
