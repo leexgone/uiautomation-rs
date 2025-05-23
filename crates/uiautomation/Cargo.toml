@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation"
-version = "0.19.1"
+version = "0.19.2"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -58,7 +58,7 @@ features = [
     # "Win32_UI_Shell_PropertiesSystem",
     # "Win32_System_Diagnostics_ToolHelp",
     "UI_UIAutomation",
-    "Win32_System_DataExchange",
+    # "Win32_System_DataExchange",
 ]
 
 [dependencies.arboard]
