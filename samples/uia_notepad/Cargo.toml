@@ -7,7 +7,7 @@ edition = "2024"
 
 [dependencies]
 
-uiautomation = { path = "../../crates/uiautomation", features = [ "log" ] }
+uiautomation = { path = "../../crates/uiautomation", features = [ "process", "log" ] }
 
 # [dependencies.windows]
 # version = "0.41.0"

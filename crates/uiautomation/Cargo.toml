@@ -58,6 +58,7 @@ features = [
     # "Win32_UI_Shell_PropertiesSystem",
     # "Win32_System_Diagnostics_ToolHelp",
     "UI_UIAutomation",
+    "Win32_System_DataExchange",
 ]
 
 [dependencies.arboard]

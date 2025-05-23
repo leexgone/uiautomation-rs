@@ -24,6 +24,8 @@ pub const ERR_FORMAT: i32 = 6;
 pub const ERR_INVALID_OBJECT: i32 = 7;
 /// Error already running.
 pub const ERR_ALREADY_RUNNING: i32 = 8;
+/// Error occurs when the clipboard is invalid.
+pub const ERR_CLIPBOARD: i32 = 9;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
