@@ -265,3 +265,7 @@
 ## v0.19.2
 
 + Add more key names. [#106](https://github.com/leexgone/uiautomation-rs/pull/106)
+
+## v0.20.0
+
++ Refactor `process`.

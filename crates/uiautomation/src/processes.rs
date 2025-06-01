@@ -72,9 +72,10 @@ impl Process {
     /// assert!(p.is_ok());
     /// ```
     pub fn create(command: &str) -> Result<Self> {
-        let mut process = Self::new(command);
-        process.run()?;
-        Ok(process)
+        // let mut process = Self::new(command);
+        // process.run()?;
+        // Ok(process)
+        Self::new(command).run()
     }
 
     #[inline]
@@ -122,7 +123,15 @@ impl Process {
     }
 
     /// Run the current process.
-    pub fn run(&mut self) -> Result<()> {
+    /// 
+    /// # Examples:
+    /// ```
+    /// use uiautomation::processes::Process;
+    /// 
+    /// let ping = Process::new("ping.exe localhost -n 1").current_directory("C:/").run().unwrap();
+    /// ping.wait().unwrap();
+    /// ```
+    pub fn run(mut self) -> Result<Self> {
         if !self.proc_info.hProcess.is_invalid() {
             Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
         } else {
@@ -148,7 +157,7 @@ impl Process {
                 unsafe { WaitForInputIdle(self.proc_info.hProcess, timeout) };
             }
     
-            Ok(())
+            Ok(self)
         }
     }
 
@@ -244,17 +253,16 @@ mod tests {
 
     #[test]
     fn run_ping() {
-        let mut ping = Process::new("ping.exe localhost -n 1").current_directory("C:/");
-        ping.run().unwrap();
+        let ping = Process::new("ping.exe localhost -n 1").current_directory("C:/").run().unwrap();
         ping.wait().unwrap();
     }
 
     #[test]
     fn run_calc() {
-        let mut calc = Process::default()
+        Process::default()
             .application("C:\\Windows\\System32\\calc.exe")
             .current_directory("C:\\")
-            .wait_for_idle(5000);
-        calc.run().unwrap();
+            .wait_for_idle(5000)
+            .run().unwrap();
     }
 }
