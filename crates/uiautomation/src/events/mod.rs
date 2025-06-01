@@ -168,14 +168,12 @@ impl AsRef<IUIAutomationEventHandler> for UIEventHandler {
 
 impl Param<IUIAutomationEventHandler> for UIEventHandler {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> { unsafe {
-        // windows::core::ParamValue::Owned(self.handler)
         self.handler.param()
     }}
 }
 
 impl Param<IUIAutomationEventHandler> for &UIEventHandler {
     unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> { unsafe {
-        // windows::core::ParamValue::Borrowed(self.handler.as_raw())
         (&self.handler).param()
     }}
 }
