@@ -1,13 +1,18 @@
 use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
+use windows::Win32::Foundation::GlobalFree;
+use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::HGLOBAL;
 use windows::Win32::System::DataExchange::CloseClipboard;
 use windows::Win32::System::DataExchange::EmptyClipboard;
 use windows::Win32::System::DataExchange::GetClipboardData;
 use windows::Win32::System::DataExchange::IsClipboardFormatAvailable;
 use windows::Win32::System::DataExchange::OpenClipboard;
+use windows::Win32::System::Memory::GlobalAlloc;
 use windows::Win32::System::Memory::GlobalLock;
 use windows::Win32::System::Memory::GlobalUnlock;
+use windows::Win32::System::Memory::GMEM_FIXED;
+use windows::Win32::System::Memory::GMEM_ZEROINIT;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow;
 use windows_core::PWSTR;
 
@@ -180,5 +185,44 @@ impl Clipboard {
 impl Drop for Clipboard {
     fn drop(&mut self) {
         let _ = unsafe { CloseClipboard() };
+    }
+}
+
+#[derive(Debug)]
+pub struct GlobalData {
+    data: HGLOBAL,
+    owned: bool
+}
+
+impl GlobalData {
+    // pub fn new(data: HGLOBAL) -> Self {
+    //     Self { data, shared: false }
+    // }
+    pub fn alloc(size: usize) -> Result<Self> {
+        let data = unsafe {
+            GlobalAlloc(GMEM_FIXED | GMEM_ZEROINIT, size)?
+        };
+        Ok(Self { data, owned: true })
+    }
+}
+
+impl From<HGLOBAL> for GlobalData {
+    fn from(data: HGLOBAL) -> Self {
+        Self { data, owned: false }
+    }
+}
+
+impl From<HANDLE> for GlobalData {
+    fn from(data: HANDLE) -> Self {
+        let data: HGLOBAL = unsafe { std::mem::transmute(data) };
+        data.into()
+    }
+}
+
+impl Drop for GlobalData {
+    fn drop(&mut self) {
+        if self.owned {
+            unsafe { GlobalFree(Some(self.data)).unwrap() };
+        }
     }
 }
