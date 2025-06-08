@@ -6,6 +6,8 @@ mod enum_derives;
 mod action_derives;
 #[cfg(feature = "control_derive")]
 mod control_derives;
+#[cfg(feature = "pattern_derive")]
+mod pattern_derivers;
 
 use proc_macro::TokenStream;
 use syn::ItemEnum;
@@ -17,6 +19,8 @@ use self::enum_derives::*;
 use self::action_derives::*;
 #[cfg(feature = "control_derive")]
 use self::control_derives::*;
+#[cfg(feature = "pattern_derive")]
+use self::pattern_derivers::*;
 
 #[cfg(feature = "action_derive")]
 #[proc_macro_derive(Invoke)]
@@ -185,18 +189,46 @@ pub fn derive_enum_convert(input: TokenStream) -> TokenStream {
     impl_enum_convert(enum_item)
 }
 
-#[proc_macro_attribute]
-pub fn map_as(args: TokenStream, item: TokenStream) -> TokenStream {
-    let enum_item: ItemEnum = syn::parse(item).expect("#[map_as()] must be used on enums only");
-    let type_path: Path = syn::parse(args).expect("#[maps_as() requires type path");
-
-    impl_map_as(type_path, enum_item)
-}
-
 #[cfg(feature = "control_derive")]
 #[proc_macro_derive(Control)]
 pub fn derive_control(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
     impl_control(&ast)
+}
+
+#[proc_macro_attribute]
+pub fn map_as(args: TokenStream, item: TokenStream) -> TokenStream {
+    let type_path: Path = syn::parse(args).expect("#[maps_as() requires type path");
+    let enum_item: ItemEnum = syn::parse(item).expect("#[map_as()] must be used on enums only");
+
+    impl_map_as(type_path, enum_item)
+}
+
+#[cfg(feature = "pattern_derive")]
+#[proc_macro_attribute]
+pub fn pattern_as(attr: TokenStream, item: TokenStream) -> TokenStream {
+    use syn::punctuated::Punctuated;
+    use syn::ItemStruct;
+    use syn::Token;
+
+    let struct_item: ItemStruct = syn::parse(item).expect("#[pattern_as()] must be used on struct only");
+
+    let parser = Punctuated::<syn::Path, Token![,]>::parse_terminated;
+    let args = syn::parse_macro_input!(attr with parser);
+    // let args: Vec<_> = types.into_iter().collect();
+    // if args.len() != 2 {
+    //     syn::Error::new(
+    //         proc_macro2::Span::call_site(), 
+    //         "#[pattern_as()] requires both pattern type and interface"
+    //     ).to_compile_error()
+    //     .into()
+    // } else {
+    //     todo!()
+    // }
+    let mut arg_itr = args.into_iter();
+    let type_item = arg_itr.next().expect("#[pattern_as()] requires pattern type");
+    let pattern_item = arg_itr.next().expect("#[pattern_as()] requires pattern interface");
+
+    impl_pattern_as(struct_item, type_item, pattern_item)
 }

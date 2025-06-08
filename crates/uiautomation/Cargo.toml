@@ -27,7 +27,7 @@ all = [ "process", "dialog", "input", "pattern", "control", "event", "log" ]
 process = [ "windows/Win32_System_Threading", "windows/Win32_Security", "windows/Win32_System_Diagnostics_ToolHelp" ]
 dialog = [ "windows/Win32_UI_Input_KeyboardAndMouse", "windows/Win32_UI_WindowsAndMessaging" ]
 input = [ "windows/Win32_UI_Input_KeyboardAndMouse", "arboard" ]
-pattern = []
+pattern = [ "uiautomation_derive/pattern_derive" ]
 control = [ "pattern", "uiautomation_derive/action_derive", "uiautomation_derive/control_derive", "windows/Win32_UI_WindowsAndMessaging" ]
 event = []
 
@@ -38,7 +38,7 @@ log = ["dep:log"]
 chrono = "0.4.41"
 log = { version = "0.4.27", optional = true }
 # arboard = "3.5.0"
-uiautomation_derive = { version = "0.6.0", path = "../uiautomation_derive" }
+uiautomation_derive = { version = "0.7.0", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
 version = "0.61.2"

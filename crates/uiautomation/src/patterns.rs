@@ -1,3 +1,4 @@
+use uiautomation_derive::pattern_as;
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
 use windows::core::Interface;
@@ -150,6 +151,7 @@ pub trait UIPattern {
 }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Invoke, windows::Win32::UI::Accessibility::IUIAutomationInvokePattern)]
 pub struct UIInvokePattern {
     pattern: IUIAutomationInvokePattern
 }
@@ -163,42 +165,44 @@ impl UIInvokePattern {
     }
 }
 
-impl UIPattern for UIInvokePattern {
-    const TYPE: UIPatternType = UIPatternType::Invoke;
-}
+// impl UIPattern for UIInvokePattern {
+//     const TYPE: UIPatternType = UIPatternType::Invoke;
+// }
 
-impl TryFrom<IUnknown> for UIInvokePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIInvokePattern {
+//     type Error = Error;
 
-    fn try_from(pattern: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationInvokePattern = pattern.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(pattern: IUnknown) -> core::result::Result<Self, Self::Error> {
+//         let pattern: IUIAutomationInvokePattern = pattern.cast()?;
+//         // Ok(Self {
+//         //     pattern
+//         // })
+//         Ok(pattern.into())
+//     }
+// }
 
-impl From<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn from(pattern: IUIAutomationInvokePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationInvokePattern> for UIInvokePattern {
+//     fn from(pattern: IUIAutomationInvokePattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn into(self) -> IUIAutomationInvokePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationInvokePattern> for UIInvokePattern {
+//     fn into(self) -> IUIAutomationInvokePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationInvokePattern> for UIInvokePattern {
-    fn as_ref(&self) -> &IUIAutomationInvokePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationInvokePattern> for UIInvokePattern {
+//     fn as_ref(&self) -> &IUIAutomationInvokePattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Annotation, windows::Win32::UI::Accessibility::IUIAutomationAnnotationPattern)]
 pub struct UIAnnotationPattern {
     pattern: IUIAutomationAnnotationPattern
 }
@@ -277,42 +281,43 @@ impl UIAnnotationPattern {
     }
 }
 
-impl UIPattern for UIAnnotationPattern {
-    const TYPE: UIPatternType = UIPatternType::Annotation;
-}
+// impl UIPattern for UIAnnotationPattern {
+//     const TYPE: UIPatternType = UIPatternType::Annotation;
+// }
 
-impl TryFrom<IUnknown> for UIAnnotationPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIAnnotationPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationAnnotationPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+//         let pattern: IUIAutomationAnnotationPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
-    fn from(pattern: IUIAutomationAnnotationPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
+//     fn from(pattern: IUIAutomationAnnotationPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
-    fn into(self) -> IUIAutomationAnnotationPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
+//     fn into(self) -> IUIAutomationAnnotationPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
-    fn as_ref(&self) -> &IUIAutomationAnnotationPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationAnnotationPattern> for UIAnnotationPattern {
+//     fn as_ref(&self) -> &IUIAutomationAnnotationPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::CustomNavigation, windows::Win32::UI::Accessibility::IUIAutomationCustomNavigationPattern)]
 pub struct UICustomNavigationPattern {
     pattern: IUIAutomationCustomNavigationPattern
 }
@@ -326,42 +331,43 @@ impl UICustomNavigationPattern {
     }
 }
 
-impl UIPattern for UICustomNavigationPattern {
-    const TYPE: UIPatternType = UIPatternType::CustomNavigation;
-}
+// impl UIPattern for UICustomNavigationPattern {
+//     const TYPE: UIPatternType = UIPatternType::CustomNavigation;
+// }
 
-impl TryFrom<IUnknown> for UICustomNavigationPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UICustomNavigationPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationCustomNavigationPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+//         let pattern: IUIAutomationCustomNavigationPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
-    fn from(pattern: IUIAutomationCustomNavigationPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
+//     fn from(pattern: IUIAutomationCustomNavigationPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
-    fn into(self) -> IUIAutomationCustomNavigationPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
+//     fn into(self) -> IUIAutomationCustomNavigationPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
-    fn as_ref(&self) -> &IUIAutomationCustomNavigationPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationCustomNavigationPattern> for UICustomNavigationPattern {
+//     fn as_ref(&self) -> &IUIAutomationCustomNavigationPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Dock, windows::Win32::UI::Accessibility::IUIAutomationDockPattern)]
 pub struct UIDockPattern {
     pattern: IUIAutomationDockPattern
 }
@@ -391,42 +397,43 @@ impl UIDockPattern {
     }
 }
 
-impl UIPattern for UIDockPattern {
-    const TYPE: UIPatternType = UIPatternType::Dock;
-}
+// impl UIPattern for UIDockPattern {
+//     const TYPE: UIPatternType = UIPatternType::Dock;
+// }
 
-impl TryFrom<IUnknown> for UIDockPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIDockPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationDockPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+//         let pattern: IUIAutomationDockPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationDockPattern> for UIDockPattern {
-    fn from(pattern: IUIAutomationDockPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationDockPattern> for UIDockPattern {
+//     fn from(pattern: IUIAutomationDockPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationDockPattern> for UIDockPattern {
-    fn into(self) -> IUIAutomationDockPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationDockPattern> for UIDockPattern {
+//     fn into(self) -> IUIAutomationDockPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationDockPattern> for UIDockPattern {
-    fn as_ref(&self) -> &IUIAutomationDockPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationDockPattern> for UIDockPattern {
+//     fn as_ref(&self) -> &IUIAutomationDockPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Drag, windows::Win32::UI::Accessibility::IUIAutomationDragPattern)]
 pub struct UIDragPattern {
     pattern: IUIAutomationDragPattern
 }
@@ -501,42 +508,43 @@ impl UIDragPattern {
     }
 }
 
-impl UIPattern for UIDragPattern {
-    const TYPE: UIPatternType = UIPatternType::Drag;
-}
+// impl UIPattern for UIDragPattern {
+//     const TYPE: UIPatternType = UIPatternType::Drag;
+// }
 
-impl TryFrom<IUnknown> for UIDragPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIDragPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+//         let pattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationDragPattern> for UIDragPattern {
-    fn from(pattern: IUIAutomationDragPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationDragPattern> for UIDragPattern {
+//     fn from(pattern: IUIAutomationDragPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationDragPattern> for UIDragPattern {
-    fn into(self) -> IUIAutomationDragPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationDragPattern> for UIDragPattern {
+//     fn into(self) -> IUIAutomationDragPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationDragPattern> for UIDragPattern {
-    fn as_ref(&self) -> &IUIAutomationDragPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationDragPattern> for UIDragPattern {
+//     fn as_ref(&self) -> &IUIAutomationDragPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::DropTarget, windows::Win32::UI::Accessibility::IUIAutomationDropTargetPattern)]
 pub struct UIDropTargetPattern {
     pattern: IUIAutomationDropTargetPattern
 }
@@ -575,42 +583,43 @@ impl UIDropTargetPattern {
     }
 }
 
-impl UIPattern for UIDropTargetPattern {
-    const TYPE: UIPatternType = UIPatternType::DropTarget;
-}
+// impl UIPattern for UIDropTargetPattern {
+//     const TYPE: UIPatternType = UIPatternType::DropTarget;
+// }
 
-impl TryFrom<IUnknown> for UIDropTargetPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIDropTargetPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
-        let pattern: IUIAutomationDropTargetPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> core::result::Result<Self, Self::Error> {
+//         let pattern: IUIAutomationDropTargetPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
-    fn from(pattern: IUIAutomationDropTargetPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
+//     fn from(pattern: IUIAutomationDropTargetPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
-    fn into(self) -> IUIAutomationDropTargetPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
+//     fn into(self) -> IUIAutomationDropTargetPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
-    fn as_ref(&self) -> &IUIAutomationDropTargetPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationDropTargetPattern> for UIDropTargetPattern {
+//     fn as_ref(&self) -> &IUIAutomationDropTargetPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::ExpandCollapse, windows::Win32::UI::Accessibility::IUIAutomationExpandCollapsePattern)]
 pub struct UIExpandCollapsePattern {
     pattern: IUIAutomationExpandCollapsePattern
 }
@@ -645,42 +654,43 @@ impl UIExpandCollapsePattern {
     }
 }
 
-impl UIPattern for UIExpandCollapsePattern {
-    const TYPE: UIPatternType = UIPatternType::ExpandCollapse;
-}
+// impl UIPattern for UIExpandCollapsePattern {
+//     const TYPE: UIPatternType = UIPatternType::ExpandCollapse;
+// }
 
-impl TryFrom<IUnknown> for UIExpandCollapsePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIExpandCollapsePattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationExpandCollapsePattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationExpandCollapsePattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
-    fn from(pattern: IUIAutomationExpandCollapsePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
+//     fn from(pattern: IUIAutomationExpandCollapsePattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
-    fn into(self) -> IUIAutomationExpandCollapsePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
+//     fn into(self) -> IUIAutomationExpandCollapsePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
-    fn as_ref(&self) -> &IUIAutomationExpandCollapsePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationExpandCollapsePattern> for UIExpandCollapsePattern {
+//     fn as_ref(&self) -> &IUIAutomationExpandCollapsePattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Grid, windows::Win32::UI::Accessibility::IUIAutomationGridPattern)]
 pub struct UIGridPattern {
     pattern: IUIAutomationGridPattern
 }
@@ -718,42 +728,43 @@ impl UIGridPattern {
     }
 }
 
-impl UIPattern for UIGridPattern {
-    const TYPE: UIPatternType = UIPatternType::Grid;
-}
+// impl UIPattern for UIGridPattern {
+//     const TYPE: UIPatternType = UIPatternType::Grid;
+// }
 
-impl TryFrom<IUnknown> for UIGridPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIGridPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationGridPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationGridPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationGridPattern> for UIGridPattern {
-    fn from(pattern: IUIAutomationGridPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationGridPattern> for UIGridPattern {
+//     fn from(pattern: IUIAutomationGridPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationGridPattern> for UIGridPattern {
-    fn into(self) -> IUIAutomationGridPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationGridPattern> for UIGridPattern {
+//     fn into(self) -> IUIAutomationGridPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationGridPattern> for UIGridPattern {
-    fn as_ref(&self) -> &IUIAutomationGridPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationGridPattern> for UIGridPattern {
+//     fn as_ref(&self) -> &IUIAutomationGridPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::GridItem, windows::Win32::UI::Accessibility::IUIAutomationGridItemPattern)]
 pub struct UIGridItemPattern {
     pattern: IUIAutomationGridItemPattern
 }
@@ -822,43 +833,44 @@ impl UIGridItemPattern {
     }
 }
 
-impl UIPattern for UIGridItemPattern {
-    const TYPE: UIPatternType = UIPatternType::GridItem;
-}
+// impl UIPattern for UIGridItemPattern {
+//     const TYPE: UIPatternType = UIPatternType::GridItem;
+// }
 
-impl TryFrom<IUnknown> for UIGridItemPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIGridItemPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationGridItemPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationGridItemPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationGridItemPattern> for UIGridItemPattern {
-    fn from(pattern: IUIAutomationGridItemPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationGridItemPattern> for UIGridItemPattern {
+//     fn from(pattern: IUIAutomationGridItemPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationGridItemPattern> for UIGridItemPattern {
-    fn into(self) -> IUIAutomationGridItemPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationGridItemPattern> for UIGridItemPattern {
+//     fn into(self) -> IUIAutomationGridItemPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationGridItemPattern> for UIGridItemPattern {
-    fn as_ref(&self) -> &IUIAutomationGridItemPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationGridItemPattern> for UIGridItemPattern {
+//     fn as_ref(&self) -> &IUIAutomationGridItemPattern {
+//         &self.pattern
+//     }
+// }
 
 /// A wrapper for `IUIAutomationItemContainerPattern`.
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::ItemContainer, windows::Win32::UI::Accessibility::IUIAutomationItemContainerPattern)]
 pub struct UIItemContainerPattern {
     pattern: IUIAutomationItemContainerPattern
 }
@@ -874,42 +886,43 @@ impl UIItemContainerPattern {
     }
 }
 
-impl UIPattern for UIItemContainerPattern {
-    const TYPE: UIPatternType = UIPatternType::ItemContainer;
-}
+// impl UIPattern for UIItemContainerPattern {
+//     const TYPE: UIPatternType = UIPatternType::ItemContainer;
+// }
 
-impl TryFrom<IUnknown> for UIItemContainerPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIItemContainerPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationItemContainerPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationItemContainerPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
-    fn from(pattern: IUIAutomationItemContainerPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
+//     fn from(pattern: IUIAutomationItemContainerPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
-    fn into(self) -> IUIAutomationItemContainerPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
+//     fn into(self) -> IUIAutomationItemContainerPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
-    fn as_ref(&self) -> &IUIAutomationItemContainerPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationItemContainerPattern> for UIItemContainerPattern {
+//     fn as_ref(&self) -> &IUIAutomationItemContainerPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::LegacyIAccessible, windows::Win32::UI::Accessibility::IUIAutomationLegacyIAccessiblePattern)]
 pub struct UILegacyIAccessiblePattern {
     pattern: IUIAutomationLegacyIAccessiblePattern,
 }
@@ -1023,38 +1036,39 @@ impl UILegacyIAccessiblePattern {
     }
 }
 
-impl UIPattern for UILegacyIAccessiblePattern {
-    const TYPE: UIPatternType = UIPatternType::LegacyIAccessible;
-}
+// impl UIPattern for UILegacyIAccessiblePattern {
+//     const TYPE: UIPatternType = UIPatternType::LegacyIAccessible;
+// }
 
-impl TryFrom<IUnknown> for UILegacyIAccessiblePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UILegacyIAccessiblePattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationLegacyIAccessiblePattern = value.cast()?;
-        Ok(Self { pattern })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationLegacyIAccessiblePattern = value.cast()?;
+//         Ok(Self { pattern })
+//     }
+// }
 
-impl From<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
-    fn from(pattern: IUIAutomationLegacyIAccessiblePattern) -> Self {
-        Self { pattern }
-    }
-}
+// impl From<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
+//     fn from(pattern: IUIAutomationLegacyIAccessiblePattern) -> Self {
+//         Self { pattern }
+//     }
+// }
 
-impl Into<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
-    fn into(self) -> IUIAutomationLegacyIAccessiblePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
+//     fn into(self) -> IUIAutomationLegacyIAccessiblePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
-    fn as_ref(&self) -> &IUIAutomationLegacyIAccessiblePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationLegacyIAccessiblePattern> for UILegacyIAccessiblePattern {
+//     fn as_ref(&self) -> &IUIAutomationLegacyIAccessiblePattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::MultipleView, windows::Win32::UI::Accessibility::IUIAutomationMultipleViewPattern)]
 pub struct UIMultipleViewPattern {
     pattern: IUIAutomationMultipleViewPattern
 }
@@ -1104,42 +1118,43 @@ impl UIMultipleViewPattern {
     }
 }
 
-impl UIPattern for UIMultipleViewPattern {
-    const TYPE: UIPatternType = UIPatternType::MultipleView;
-}
+// impl UIPattern for UIMultipleViewPattern {
+//     const TYPE: UIPatternType = UIPatternType::MultipleView;
+// }
 
-impl TryFrom<IUnknown> for UIMultipleViewPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIMultipleViewPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationMultipleViewPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationMultipleViewPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
-    fn from(pattern: IUIAutomationMultipleViewPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
+//     fn from(pattern: IUIAutomationMultipleViewPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
-    fn into(self) -> IUIAutomationMultipleViewPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
+//     fn into(self) -> IUIAutomationMultipleViewPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
-    fn as_ref(&self) -> &IUIAutomationMultipleViewPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationMultipleViewPattern> for UIMultipleViewPattern {
+//     fn as_ref(&self) -> &IUIAutomationMultipleViewPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::RangeValue, windows::Win32::UI::Accessibility::IUIAutomationRangeValuePattern)]
 pub struct UIRangeValuePattern {
     pattern: IUIAutomationRangeValuePattern
 }
@@ -1226,42 +1241,43 @@ impl UIRangeValuePattern {
     }
 }
 
-impl UIPattern for UIRangeValuePattern {
-    const TYPE: UIPatternType = UIPatternType::RangeValue;
-}
+// impl UIPattern for UIRangeValuePattern {
+//     const TYPE: UIPatternType = UIPatternType::RangeValue;
+// }
 
-impl TryFrom<IUnknown> for UIRangeValuePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIRangeValuePattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationRangeValuePattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationRangeValuePattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
-    fn from(pattern: IUIAutomationRangeValuePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
+//     fn from(pattern: IUIAutomationRangeValuePattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
-    fn into(self) -> IUIAutomationRangeValuePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
+//     fn into(self) -> IUIAutomationRangeValuePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
-    fn as_ref(&self) -> &IUIAutomationRangeValuePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationRangeValuePattern> for UIRangeValuePattern {
+//     fn as_ref(&self) -> &IUIAutomationRangeValuePattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Scroll, windows::Win32::UI::Accessibility::IUIAutomationScrollPattern)]
 pub struct UIScrollPattern {
     pattern: IUIAutomationScrollPattern
 }
@@ -1356,42 +1372,43 @@ impl UIScrollPattern {
     }
 }
 
-impl UIPattern for UIScrollPattern {
-    const TYPE: UIPatternType = UIPatternType::Scroll;
-}
+// impl UIPattern for UIScrollPattern {
+//     const TYPE: UIPatternType = UIPatternType::Scroll;
+// }
 
-impl TryFrom<IUnknown> for UIScrollPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIScrollPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationScrollPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationScrollPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationScrollPattern> for UIScrollPattern {
-    fn from(pattern: IUIAutomationScrollPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationScrollPattern> for UIScrollPattern {
+//     fn from(pattern: IUIAutomationScrollPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationScrollPattern> for UIScrollPattern {
-    fn into(self) -> IUIAutomationScrollPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationScrollPattern> for UIScrollPattern {
+//     fn into(self) -> IUIAutomationScrollPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationScrollPattern> for UIScrollPattern {
-    fn as_ref(&self) -> &IUIAutomationScrollPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationScrollPattern> for UIScrollPattern {
+//     fn as_ref(&self) -> &IUIAutomationScrollPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::ScrollItem, windows::Win32::UI::Accessibility::IUIAutomationScrollItemPattern)]
 pub struct UIScrollItemPattern {
     pattern: IUIAutomationScrollItemPattern
 }
@@ -1404,34 +1421,35 @@ impl UIScrollItemPattern {
     }
 }
 
-impl UIPattern for UIScrollItemPattern {
-    const TYPE: UIPatternType = UIPatternType::ScrollItem;
-}
+// impl UIPattern for UIScrollItemPattern {
+//     const TYPE: UIPatternType = UIPatternType::ScrollItem;
+// }
 
-impl TryFrom<IUnknown> for UIScrollItemPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIScrollItemPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationScrollItemPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationScrollItemPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl Into<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
-    fn into(self) -> IUIAutomationScrollItemPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
+//     fn into(self) -> IUIAutomationScrollItemPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
-    fn as_ref(&self) -> &IUIAutomationScrollItemPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationScrollItemPattern> for UIScrollItemPattern {
+//     fn as_ref(&self) -> &IUIAutomationScrollItemPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Selection, windows::Win32::UI::Accessibility::IUIAutomationSelectionPattern)]
 pub struct UISelectionPattern {
     pattern: IUIAutomationSelectionPattern
 }
@@ -1548,42 +1566,43 @@ impl UISelectionPattern {
     }
 }
 
-impl UIPattern for UISelectionPattern {
-    const TYPE: UIPatternType = UIPatternType::Selection;
-}
+// impl UIPattern for UISelectionPattern {
+//     const TYPE: UIPatternType = UIPatternType::Selection;
+// }
 
-impl TryFrom<IUnknown> for UISelectionPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UISelectionPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationSelectionPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationSelectionPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationSelectionPattern> for UISelectionPattern {
-    fn from(pattern: IUIAutomationSelectionPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationSelectionPattern> for UISelectionPattern {
+//     fn from(pattern: IUIAutomationSelectionPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationSelectionPattern> for UISelectionPattern {
-    fn into(self) -> IUIAutomationSelectionPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationSelectionPattern> for UISelectionPattern {
+//     fn into(self) -> IUIAutomationSelectionPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationSelectionPattern> for UISelectionPattern {
-    fn as_ref(&self) -> &IUIAutomationSelectionPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationSelectionPattern> for UISelectionPattern {
+//     fn as_ref(&self) -> &IUIAutomationSelectionPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::SelectionItem, windows::Win32::UI::Accessibility::IUIAutomationSelectionItemPattern)]
 pub struct UISelectionItemPattern {
     pattern: IUIAutomationSelectionItemPattern
 }
@@ -1636,42 +1655,43 @@ impl UISelectionItemPattern {
     }
 }
 
-impl UIPattern for UISelectionItemPattern {
-    const TYPE: UIPatternType = UIPatternType::SelectionItem;
-}
+// impl UIPattern for UISelectionItemPattern {
+//     const TYPE: UIPatternType = UIPatternType::SelectionItem;
+// }
 
-impl TryFrom<IUnknown> for UISelectionItemPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UISelectionItemPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationSelectionItemPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationSelectionItemPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationSelectionItemPattern> for UISelectionItemPattern {
-    fn from(pattern: IUIAutomationSelectionItemPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationSelectionItemPattern> for UISelectionItemPattern {
+//     fn from(pattern: IUIAutomationSelectionItemPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationSelectionItemPattern> for UISelectionItemPattern {
-    fn into(self) -> IUIAutomationSelectionItemPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationSelectionItemPattern> for UISelectionItemPattern {
+//     fn into(self) -> IUIAutomationSelectionItemPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationSelectionItemPattern> for UISelectionItemPattern {
-    fn as_ref(&self) -> &IUIAutomationSelectionItemPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationSelectionItemPattern> for UISelectionItemPattern {
+//     fn as_ref(&self) -> &IUIAutomationSelectionItemPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Spreadsheet, windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetPattern)]
 pub struct UISpreadsheetPattern {
     pattern: IUIAutomationSpreadsheetPattern
 }
@@ -1686,42 +1706,43 @@ impl UISpreadsheetPattern {
     }
 }
 
-impl UIPattern for UISpreadsheetPattern {
-    const TYPE: UIPatternType = UIPatternType::Spreadsheet;
-}
+// impl UIPattern for UISpreadsheetPattern {
+//     const TYPE: UIPatternType = UIPatternType::Spreadsheet;
+// }
 
-impl TryFrom<IUnknown> for UISpreadsheetPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UISpreadsheetPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationSpreadsheetPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationSpreadsheetPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
-    fn from(pattern: IUIAutomationSpreadsheetPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
+//     fn from(pattern: IUIAutomationSpreadsheetPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
-    fn into(self) -> IUIAutomationSpreadsheetPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
+//     fn into(self) -> IUIAutomationSpreadsheetPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
-    fn as_ref(&self) -> &IUIAutomationSpreadsheetPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationSpreadsheetPattern> for UISpreadsheetPattern {
+//     fn as_ref(&self) -> &IUIAutomationSpreadsheetPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::SpreadsheetItem, windows::Win32::UI::Accessibility::IUIAutomationSpreadsheetItemPattern)]
 pub struct UISpreadsheetItemPattern {
     pattern: IUIAutomationSpreadsheetItemPattern
 }
@@ -1776,42 +1797,43 @@ impl UISpreadsheetItemPattern {
     }
 }
 
-impl UIPattern for UISpreadsheetItemPattern {
-    const TYPE: UIPatternType = UIPatternType::SpreadsheetItem;
-}
+// impl UIPattern for UISpreadsheetItemPattern {
+//     const TYPE: UIPatternType = UIPatternType::SpreadsheetItem;
+// }
 
-impl TryFrom<IUnknown> for UISpreadsheetItemPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UISpreadsheetItemPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationSpreadsheetItemPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationSpreadsheetItemPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
-    fn from(pattern: IUIAutomationSpreadsheetItemPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
+//     fn from(pattern: IUIAutomationSpreadsheetItemPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
-    fn into(self) -> IUIAutomationSpreadsheetItemPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
+//     fn into(self) -> IUIAutomationSpreadsheetItemPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
-    fn as_ref(&self) -> &IUIAutomationSpreadsheetItemPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationSpreadsheetItemPattern> for UISpreadsheetItemPattern {
+//     fn as_ref(&self) -> &IUIAutomationSpreadsheetItemPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Styles, windows::Win32::UI::Accessibility::IUIAutomationStylesPattern)]
 pub struct UIStylesPattern {
     pattern: IUIAutomationStylesPattern
 }
@@ -1914,42 +1936,43 @@ impl UIStylesPattern {
     }
 }
 
-impl UIPattern for UIStylesPattern {
-    const TYPE: UIPatternType = UIPatternType::Styles;
-}
+// impl UIPattern for UIStylesPattern {
+//     const TYPE: UIPatternType = UIPatternType::Styles;
+// }
 
-impl TryFrom<IUnknown> for UIStylesPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIStylesPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationStylesPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationStylesPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationStylesPattern> for UIStylesPattern {
-    fn from(pattern: IUIAutomationStylesPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationStylesPattern> for UIStylesPattern {
+//     fn from(pattern: IUIAutomationStylesPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationStylesPattern> for UIStylesPattern {
-    fn into(self) -> IUIAutomationStylesPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationStylesPattern> for UIStylesPattern {
+//     fn into(self) -> IUIAutomationStylesPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationStylesPattern> for UIStylesPattern {
-    fn as_ref(&self) -> &IUIAutomationStylesPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationStylesPattern> for UIStylesPattern {
+//     fn as_ref(&self) -> &IUIAutomationStylesPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::SynchronizedInput, windows::Win32::UI::Accessibility::IUIAutomationSynchronizedInputPattern)]
 pub struct UISynchronizedInputPattern {
     pattern: IUIAutomationSynchronizedInputPattern
 }
@@ -1968,42 +1991,43 @@ impl UISynchronizedInputPattern {
     }
 }
 
-impl UIPattern for UISynchronizedInputPattern {
-    const TYPE: UIPatternType = UIPatternType::SynchronizedInput;
-}
+// impl UIPattern for UISynchronizedInputPattern {
+//     const TYPE: UIPatternType = UIPatternType::SynchronizedInput;
+// }
 
-impl TryFrom<IUnknown> for UISynchronizedInputPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UISynchronizedInputPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationSynchronizedInputPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationSynchronizedInputPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
-    fn from(pattern: IUIAutomationSynchronizedInputPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
+//     fn from(pattern: IUIAutomationSynchronizedInputPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
-    fn into(self) -> IUIAutomationSynchronizedInputPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
+//     fn into(self) -> IUIAutomationSynchronizedInputPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
-    fn as_ref(&self) -> &IUIAutomationSynchronizedInputPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationSynchronizedInputPattern> for UISynchronizedInputPattern {
+//     fn as_ref(&self) -> &IUIAutomationSynchronizedInputPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Table, windows::Win32::UI::Accessibility::IUIAutomationTablePattern)]
 pub struct UITablePattern {
     pattern: IUIAutomationTablePattern
 }
@@ -2058,42 +2082,43 @@ impl UITablePattern {
     }
 }
 
-impl UIPattern for UITablePattern {
-    const TYPE: UIPatternType = UIPatternType::Table;
-}
+// impl UIPattern for UITablePattern {
+//     const TYPE: UIPatternType = UIPatternType::Table;
+// }
 
-impl TryFrom<IUnknown> for UITablePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITablePattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTablePattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTablePattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTablePattern> for UITablePattern {
-    fn from(pattern: IUIAutomationTablePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTablePattern> for UITablePattern {
+//     fn from(pattern: IUIAutomationTablePattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTablePattern> for UITablePattern {
-    fn into(self) -> IUIAutomationTablePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTablePattern> for UITablePattern {
+//     fn into(self) -> IUIAutomationTablePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTablePattern> for UITablePattern {
-    fn as_ref(&self) -> &IUIAutomationTablePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTablePattern> for UITablePattern {
+//     fn as_ref(&self) -> &IUIAutomationTablePattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::TableItem, windows::Win32::UI::Accessibility::IUIAutomationTableItemPattern)]
 pub struct UITableItemPattern {
     pattern: IUIAutomationTableItemPattern
 }
@@ -2132,42 +2157,43 @@ impl UITableItemPattern {
     }
 }
 
-impl UIPattern for UITableItemPattern {
-    const TYPE: UIPatternType = UIPatternType::TableItem;
-}
+// impl UIPattern for UITableItemPattern {
+//     const TYPE: UIPatternType = UIPatternType::TableItem;
+// }
 
-impl TryFrom<IUnknown> for UITableItemPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITableItemPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTableItemPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTableItemPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTableItemPattern> for UITableItemPattern {
-    fn from(pattern: IUIAutomationTableItemPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTableItemPattern> for UITableItemPattern {
+//     fn from(pattern: IUIAutomationTableItemPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTableItemPattern> for UITableItemPattern {
-    fn into(self) -> IUIAutomationTableItemPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTableItemPattern> for UITableItemPattern {
+//     fn into(self) -> IUIAutomationTableItemPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTableItemPattern> for UITableItemPattern {
-    fn as_ref(&self) -> &IUIAutomationTableItemPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTableItemPattern> for UITableItemPattern {
+//     fn as_ref(&self) -> &IUIAutomationTableItemPattern {
+//         &self.pattern
+//     }
+// }
 
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::TextChild, windows::Win32::UI::Accessibility::IUIAutomationTextChildPattern)]
 pub struct UITextChildPattern {
     pattern: IUIAutomationTextChildPattern
 }
@@ -2190,43 +2216,44 @@ impl UITextChildPattern {
     }
 }
 
-impl UIPattern for UITextChildPattern {
-    const TYPE: UIPatternType = UIPatternType::TextChild;
-}
+// impl UIPattern for UITextChildPattern {
+//     const TYPE: UIPatternType = UIPatternType::TextChild;
+// }
 
-impl TryFrom<IUnknown> for UITextChildPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITextChildPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTextChildPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTextChildPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTextChildPattern> for UITextChildPattern {
-    fn from(pattern: IUIAutomationTextChildPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTextChildPattern> for UITextChildPattern {
+//     fn from(pattern: IUIAutomationTextChildPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTextChildPattern> for UITextChildPattern {
-    fn into(self) -> IUIAutomationTextChildPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTextChildPattern> for UITextChildPattern {
+//     fn into(self) -> IUIAutomationTextChildPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTextChildPattern> for UITextChildPattern {
-    fn as_ref(&self) -> &IUIAutomationTextChildPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTextChildPattern> for UITextChildPattern {
+//     fn as_ref(&self) -> &IUIAutomationTextChildPattern {
+//         &self.pattern
+//     }
+// }
 
 /// A Wrapper for `IUIAutomationTextPattern` and `IUIAutomationTextPattern2`
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Text, windows::Win32::UI::Accessibility::IUIAutomationTextPattern)]
 pub struct UITextPattern {
     pattern: IUIAutomationTextPattern
 }
@@ -2304,46 +2331,47 @@ impl UITextPattern {
     }
 }
 
-impl UIPattern for UITextPattern {
-    const TYPE: UIPatternType = UIPatternType::Text;
-}
+// impl UIPattern for UITextPattern {
+//     const TYPE: UIPatternType = UIPatternType::Text;
+// }
 
-impl TryFrom<IUnknown> for UITextPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITextPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTextPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTextPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTextPattern> for UITextPattern {
-    fn from(pattern: IUIAutomationTextPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTextPattern> for UITextPattern {
+//     fn from(pattern: IUIAutomationTextPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTextPattern> for UITextPattern {
-    fn into(self) -> IUIAutomationTextPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTextPattern> for UITextPattern {
+//     fn into(self) -> IUIAutomationTextPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTextPattern> for UITextPattern {
-    fn as_ref(&self) -> &IUIAutomationTextPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTextPattern> for UITextPattern {
+//     fn as_ref(&self) -> &IUIAutomationTextPattern {
+//         &self.pattern
+//     }
+// }
 
 /// A Wrapper for `IUIAutomationTextEditPattern`.
 /// 
 /// This type inherits from `UITextPattern`.
 /// 
 #[derive(Debug, Clone)]
+// #[pattern_as(UIPatternType::TextEdit, windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern)]
 pub struct UITextEditPattern {
     text: UITextPattern,
     pattern: IUIAutomationTextEditPattern
@@ -2409,6 +2437,7 @@ impl AsRef<UITextPattern> for UITextEditPattern {
         &self.text
     }
 }
+
 /// A wrapper for `IUIAutomationTextRange`, `IUIAutomationTextRange2` and `IUIAutomationTextRange3`.
 #[derive(Debug, Clone)]
 pub struct UITextRange {
@@ -2565,6 +2594,7 @@ impl AsRef<IUIAutomationTextRange> for UITextRange {
 
 /// A wrapper for `IUIAutomationTogglePattern`
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Toggle, windows::Win32::UI::Accessibility::IUIAutomationTogglePattern)]
 pub struct UITogglePattern {
     pattern: IUIAutomationTogglePattern
 }
@@ -2593,43 +2623,44 @@ impl UITogglePattern {
     }
 }
 
-impl UIPattern for UITogglePattern {
-    const TYPE: UIPatternType = UIPatternType::Toggle;
-}
+// impl UIPattern for UITogglePattern {
+//     const TYPE: UIPatternType = UIPatternType::Toggle;
+// }
 
-impl TryFrom<IUnknown> for UITogglePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITogglePattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTogglePattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTogglePattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTogglePattern> for UITogglePattern {
-    fn from(pattern: IUIAutomationTogglePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTogglePattern> for UITogglePattern {
+//     fn from(pattern: IUIAutomationTogglePattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTogglePattern> for UITogglePattern {
-    fn into(self) -> IUIAutomationTogglePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTogglePattern> for UITogglePattern {
+//     fn into(self) -> IUIAutomationTogglePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTogglePattern> for UITogglePattern {
-    fn as_ref(&self) -> &IUIAutomationTogglePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTogglePattern> for UITogglePattern {
+//     fn as_ref(&self) -> &IUIAutomationTogglePattern {
+//         &self.pattern
+//     }
+// }
 
 /// A wrapper for `IUIAutomationTransformPattern` and `IUIAutomationTransformPattern2`
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Transform, windows::Win32::UI::Accessibility::IUIAutomationTransformPattern)]
 pub struct UITransformPattern {
     pattern: IUIAutomationTransformPattern
 }
@@ -2768,43 +2799,44 @@ impl UITransformPattern {
     }
 }
 
-impl UIPattern for UITransformPattern {
-    const TYPE: UIPatternType = UIPatternType::Transform;
-}
+// impl UIPattern for UITransformPattern {
+//     const TYPE: UIPatternType = UIPatternType::Transform;
+// }
 
-impl TryFrom<IUnknown> for UITransformPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITransformPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTransformPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTransformPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTransformPattern> for UITransformPattern {
-    fn from(pattern: IUIAutomationTransformPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTransformPattern> for UITransformPattern {
+//     fn from(pattern: IUIAutomationTransformPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTransformPattern> for UITransformPattern {
-    fn into(self) -> IUIAutomationTransformPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTransformPattern> for UITransformPattern {
+//     fn into(self) -> IUIAutomationTransformPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTransformPattern> for UITransformPattern {
-    fn as_ref(&self) -> &IUIAutomationTransformPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTransformPattern> for UITransformPattern {
+//     fn as_ref(&self) -> &IUIAutomationTransformPattern {
+//         &self.pattern
+//     }
+// }
 
 /// A wrapper for `IUIAutomationValuePattern`.
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Value, windows::Win32::UI::Accessibility::IUIAutomationValuePattern)]
 pub struct UIValuePattern {
     pattern: IUIAutomationValuePattern
 }
@@ -2847,43 +2879,44 @@ impl UIValuePattern {
 
 }
 
-impl UIPattern for UIValuePattern {
-    const TYPE: UIPatternType = UIPatternType::Value;
-}
+// impl UIPattern for UIValuePattern {
+//     const TYPE: UIPatternType = UIPatternType::Value;
+// }
 
-impl TryFrom<IUnknown> for UIValuePattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIValuePattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationValuePattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationValuePattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationValuePattern> for UIValuePattern {
-    fn from(pattern: IUIAutomationValuePattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationValuePattern> for UIValuePattern {
+//     fn from(pattern: IUIAutomationValuePattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationValuePattern> for UIValuePattern {
-    fn into(self) -> IUIAutomationValuePattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationValuePattern> for UIValuePattern {
+//     fn into(self) -> IUIAutomationValuePattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationValuePattern> for UIValuePattern {
-    fn as_ref(&self) -> &IUIAutomationValuePattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationValuePattern> for UIValuePattern {
+//     fn as_ref(&self) -> &IUIAutomationValuePattern {
+//         &self.pattern
+//     }
+// }
 
 /// A wrapper for `IUIAutomationVirtualizedItemPattern`.
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::VirtualizedItem, windows::Win32::UI::Accessibility::IUIAutomationVirtualizedItemPattern)]
 pub struct UIVirtualizedItemPattern {
     pattern: IUIAutomationVirtualizedItemPattern
 }
@@ -2896,43 +2929,44 @@ impl UIVirtualizedItemPattern {
     }
 }
 
-impl UIPattern for UIVirtualizedItemPattern {
-    const TYPE: UIPatternType = UIPatternType::VirtualizedItem;
-}
+// impl UIPattern for UIVirtualizedItemPattern {
+//     const TYPE: UIPatternType = UIPatternType::VirtualizedItem;
+// }
 
-impl TryFrom<IUnknown> for UIVirtualizedItemPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIVirtualizedItemPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationVirtualizedItemPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationVirtualizedItemPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
-    fn from(pattern: IUIAutomationVirtualizedItemPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
+//     fn from(pattern: IUIAutomationVirtualizedItemPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
-    fn into(self) -> IUIAutomationVirtualizedItemPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
+//     fn into(self) -> IUIAutomationVirtualizedItemPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
-    fn as_ref(&self) -> &IUIAutomationVirtualizedItemPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationVirtualizedItemPattern> for UIVirtualizedItemPattern {
+//     fn as_ref(&self) -> &IUIAutomationVirtualizedItemPattern {
+//         &self.pattern
+//     }
+// }
 
 /// A wrapper for `IUIAutomationWindowPattern`.
 #[derive(Debug, Clone)]
+#[pattern_as(UIPatternType::Window, windows::Win32::UI::Accessibility::IUIAutomationWindowPattern)]
 pub struct UIWindowPattern {
     pattern: IUIAutomationWindowPattern
 }
@@ -3049,40 +3083,40 @@ impl UIWindowPattern {
     }
 }
 
-impl UIPattern for UIWindowPattern {
-    const TYPE: UIPatternType = UIPatternType::Window;
-}
+// impl UIPattern for UIWindowPattern {
+//     const TYPE: UIPatternType = UIPatternType::Window;
+// }
 
-impl TryFrom<IUnknown> for UIWindowPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UIWindowPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationWindowPattern = value.cast()?;
-        Ok(Self {
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationWindowPattern = value.cast()?;
+//         Ok(Self {
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationWindowPattern> for UIWindowPattern {
-    fn from(pattern: IUIAutomationWindowPattern) -> Self {
-        Self {
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationWindowPattern> for UIWindowPattern {
+//     fn from(pattern: IUIAutomationWindowPattern) -> Self {
+//         Self {
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationWindowPattern> for UIWindowPattern {
-    fn into(self) -> IUIAutomationWindowPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationWindowPattern> for UIWindowPattern {
+//     fn into(self) -> IUIAutomationWindowPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationWindowPattern> for UIWindowPattern {
-    fn as_ref(&self) -> &IUIAutomationWindowPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationWindowPattern> for UIWindowPattern {
+//     fn as_ref(&self) -> &IUIAutomationWindowPattern {
+//         &self.pattern
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
