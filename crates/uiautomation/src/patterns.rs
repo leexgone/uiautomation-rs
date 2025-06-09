@@ -44,7 +44,6 @@ use windows::core::BSTR;
 use windows::core::IUnknown;
 use windows_core::BOOL;
 
-use crate::errors::Error;
 use crate::Result;
 use crate::UIElement;
 use crate::types::AnnotationType;
@@ -1532,7 +1531,7 @@ impl UITextPattern {
 /// This type inherits from `UITextPattern`.
 /// 
 #[derive(Debug, Clone)]
-// #[pattern_as(UIPatternType::TextEdit, windows::Win32::UI::Accessibility::IUIAutomationTextEditPattern)]
+#[pattern_as(UIPatternType::TextEdit)]
 pub struct UITextEditPattern {
     text: UITextPattern,
     pattern: IUIAutomationTextEditPattern
@@ -1554,50 +1553,50 @@ impl UITextEditPattern {
     }
 }
 
-impl UIPattern for UITextEditPattern {
-    const TYPE: UIPatternType = UIPatternType::TextEdit;
-}
+// impl UIPattern for UITextEditPattern {
+//     const TYPE: UIPatternType = UIPatternType::TextEdit;
+// }
 
-impl TryFrom<IUnknown> for UITextEditPattern {
-    type Error = Error;
+// impl TryFrom<IUnknown> for UITextEditPattern {
+//     type Error = Error;
 
-    fn try_from(value: IUnknown) -> Result<Self> {
-        let pattern: IUIAutomationTextEditPattern = value.cast()?;
-        let text = UITextPattern::try_from(value)?;
-        Ok(Self {
-            text,
-            pattern
-        })
-    }
-}
+//     fn try_from(value: IUnknown) -> Result<Self> {
+//         let pattern: IUIAutomationTextEditPattern = value.cast()?;
+//         let text = UITextPattern::try_from(value)?;
+//         Ok(Self {
+//             text,
+//             pattern
+//         })
+//     }
+// }
 
-impl From<IUIAutomationTextEditPattern> for UITextEditPattern {
-    fn from(pattern: IUIAutomationTextEditPattern) -> Self {
-        let text: IUIAutomationTextPattern = pattern.cast().unwrap();
-        Self {
-            text: text.into(),
-            pattern
-        }
-    }
-}
+// impl From<IUIAutomationTextEditPattern> for UITextEditPattern {
+//     fn from(pattern: IUIAutomationTextEditPattern) -> Self {
+//         let text: IUnknown = pattern.cast().unwrap();
+//         Self {
+//             text: text.try_into().unwrap(),
+//             pattern
+//         }
+//     }
+// }
 
-impl Into<IUIAutomationTextEditPattern> for UITextEditPattern {
-    fn into(self) -> IUIAutomationTextEditPattern {
-        self.pattern
-    }
-}
+// impl Into<IUIAutomationTextEditPattern> for UITextEditPattern {
+//     fn into(self) -> IUIAutomationTextEditPattern {
+//         self.pattern
+//     }
+// }
 
-impl AsRef<IUIAutomationTextEditPattern> for UITextEditPattern {
-    fn as_ref(&self) -> &IUIAutomationTextEditPattern {
-        &self.pattern
-    }
-}
+// impl AsRef<IUIAutomationTextEditPattern> for UITextEditPattern {
+//     fn as_ref(&self) -> &IUIAutomationTextEditPattern {
+//         &self.pattern
+//     }
+// }
 
-impl AsRef<UITextPattern> for UITextEditPattern {
-    fn as_ref(&self) -> &UITextPattern {
-        &self.text
-    }
-}
+// impl AsRef<UITextPattern> for UITextEditPattern {
+//     fn as_ref(&self) -> &UITextPattern {
+//         &self.text
+//     }
+// }
 
 /// A wrapper for `IUIAutomationTextRange`, `IUIAutomationTextRange2` and `IUIAutomationTextRange3`.
 #[derive(Debug, Clone)]

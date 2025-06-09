@@ -6,26 +6,10 @@ use syn::Path;
 use syn::Type;
 
 pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path) -> TokenStream {
-    // let enum_name = &enum_item.ident;
-
-    // quote! {
-    //     #enum_item
-
-    //     impl TryFrom<#type_path> for #enum_name {
-    //         type Error = super::errors::Error;
-    //         fn try_from(value: #type_path) -> super::errors::Result<Self> {
-    //             value.0.try_into()
-    //         }
-    //     }
-
-    //     impl Into<#type_path> for #enum_name {
-    //         fn into(self) -> #type_path {
-    //             #type_path(self as _)
-    //         }
-    //     }        
-    // }.into()
     let struct_name = &struct_item.ident;
     let pattern_type = get_pattern_type(&struct_item).expect("#[pattern_as()] can't find pattern type in struct");
+
+    let (inherit_names, inherit_types) = get_pattern_inherits(&struct_item);
     
     quote! {
         #struct_item
@@ -36,8 +20,10 @@ pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path) -> Token
 
         impl From<#pattern_type> for #struct_name {
             fn from(pattern: #pattern_type) -> Self {
+                #(let #inherit_names: windows::core::IUnknown = pattern.cast().unwrap();)*
                 Self {
-                    pattern
+                    pattern,
+                    #(#inherit_names: #inherit_names.try_into().unwrap(),)*
                 }
             }
         }
@@ -61,7 +47,21 @@ pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path) -> Token
                 let pattern: #pattern_type = pattern.cast()?;
                 Ok(pattern.into())
             }
-        }        
+        }     
+
+        #(
+            impl AsRef<#inherit_types> for #struct_name {
+                fn as_ref(&self) -> &#inherit_types {
+                    &self.#inherit_names
+                }
+            }
+
+            impl Into<#inherit_types> for #struct_name {
+                fn into(self) -> #inherit_types {
+                    self.#inherit_names
+                }
+            }
+        )*   
     }.into()
 }
 
@@ -80,5 +80,23 @@ fn get_pattern_type<'a>(struct_item: &'a ItemStruct) -> Option<&'a Type> {
         })
     } else {
         None
+    }
+}
+
+fn get_pattern_inherits<'a>(struct_item: &'a ItemStruct) -> (Vec<&'a proc_macro2::Ident>, Vec<&'a Type>) {
+    if let Fields::Named(fields) = &struct_item.fields {
+        fields.named.iter().filter_map(|field| {
+            if let Some(ref field_name) = field.ident {
+                if field_name != "pattern" {
+                    Some((field_name, &field.ty))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }).unzip()
+    } else {
+        (Vec::new(), Vec::new())
     }
 }
