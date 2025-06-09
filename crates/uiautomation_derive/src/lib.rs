@@ -228,7 +228,14 @@ pub fn pattern_as(attr: TokenStream, item: TokenStream) -> TokenStream {
     // }
     let mut arg_itr = args.into_iter();
     let type_item = arg_itr.next().expect("#[pattern_as()] requires pattern type");
-    let pattern_item = arg_itr.next().expect("#[pattern_as()] requires pattern interface");
+    // let pattern_item = arg_itr.next().expect("#[pattern_as()] requires pattern interface");
+    if arg_itr.next().is_some() {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(), 
+            "#[pattern_as()] support only single parameter"
+        ).to_compile_error()
+        .into();
+    }
 
-    impl_pattern_as(struct_item, type_item, pattern_item)
+    impl_pattern_as(struct_item, type_item)
 }

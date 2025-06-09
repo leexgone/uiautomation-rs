@@ -1,9 +1,11 @@
 use proc_macro::TokenStream;
 use quote::quote;
+use syn::Fields;
 use syn::ItemStruct;
 use syn::Path;
+use syn::Type;
 
-pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path, pattern_item: Path) -> TokenStream {
+pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path) -> TokenStream {
     // let enum_name = &enum_item.ident;
 
     // quote! {
@@ -23,6 +25,7 @@ pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path, pattern_
     //     }        
     // }.into()
     let struct_name = &struct_item.ident;
+    let pattern_type = get_pattern_type(&struct_item).expect("#[pattern_as()] can't find pattern type in struct");
     
     quote! {
         #struct_item
@@ -31,22 +34,22 @@ pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path, pattern_
             const TYPE: UIPatternType = #type_item;
         }
 
-        impl From<#pattern_item> for #struct_name {
-            fn from(pattern: #pattern_item) -> Self {
+        impl From<#pattern_type> for #struct_name {
+            fn from(pattern: #pattern_type) -> Self {
                 Self {
                     pattern
                 }
             }
         }
 
-        impl Into<#pattern_item> for #struct_name {
-            fn into(self) -> #pattern_item {
+        impl Into<#pattern_type> for #struct_name {
+            fn into(self) -> #pattern_type {
                 self.pattern
             }
         }
 
-        impl AsRef<#pattern_item> for #struct_name {
-            fn as_ref(&self) -> &#pattern_item {
+        impl AsRef<#pattern_type> for #struct_name {
+            fn as_ref(&self) -> &#pattern_type {
                 &self.pattern
             }
         }
@@ -55,12 +58,27 @@ pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path, pattern_
             type Error = super::errors::Error;
 
             fn try_from(pattern: IUnknown) -> core::result::Result<Self, Self::Error> {
-                let pattern: #pattern_item = pattern.cast()?;
-                // Ok(Self {
-                //     pattern
-                // })
+                let pattern: #pattern_type = pattern.cast()?;
                 Ok(pattern.into())
             }
         }        
     }.into()
+}
+
+fn get_pattern_type<'a>(struct_item: &'a ItemStruct) -> Option<&'a Type> {
+    if let Fields::Named(fields) = &struct_item.fields {
+        fields.named.iter().find_map(|field| {
+            if let Some(ref field_name) = field.ident {
+                if field_name == "pattern" {
+                    Some(&field.ty)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+    } else {
+        None
+    }
 }
