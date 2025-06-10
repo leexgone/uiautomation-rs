@@ -15,6 +15,7 @@
 | `process` | 支持进程操作和按进程标识过滤 | 否 |
 | `dialog` | 支持消息对话框显示消息 | 否 |
 | `input` | 支持键盘输入 | 是 |
+| `clipboard` | 支持粘贴板操作 | 否 |
 | `pattern` | 支持UI自动化中的控件模式 | - |
 | `control` | 支持将界面元组封装为控件以简化操作 | 是 |
 | `event` | 支持侦听事件 | 否 |
@@ -27,7 +28,7 @@
 
 + `input`, `control`, `pattern`(由`control`特性依赖引入)
 
-> 如果需要跟`v0.19.0`之前的程序版本兼容，可以在默认特性的基础上引入`process`、`dialog`和`event`特性。
+> 如果需要跟`v0.19.0`之前的程序版本兼容，可以在默认特性的基础上引入`process`、`dialog`、`event`和`clipboard`特性。
 
 ## 示例程序
 

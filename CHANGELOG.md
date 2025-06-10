@@ -269,3 +269,7 @@
 ## v0.20.0
 
 + Refactor `process`.
+
+## v0.21.0
+
++ Add `clipboard` feature, support windows clipboard.

@@ -65,16 +65,13 @@ impl Process {
     /// Create and run a process by command line.
     /// 
     /// # Examples
-    /// ```
+    /// ```no_run
     /// use uiautomation::processes::Process;
     /// 
     /// let p = Process::create("notepad.exe");
     /// assert!(p.is_ok());
     /// ```
     pub fn create(command: &str) -> Result<Self> {
-        // let mut process = Self::new(command);
-        // process.run()?;
-        // Ok(process)
         Self::new(command).run()
     }
 

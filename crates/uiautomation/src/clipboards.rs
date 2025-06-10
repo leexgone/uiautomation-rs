@@ -210,6 +210,8 @@ impl Clipboard {
         Ok(())
     }
 
+    /// Creates a snapshot of the current clipboard contents.
+    /// The snapshot contains all data formats available in the clipboard.
     pub fn snapshot(&self) -> Result<Snapshot> {
         let mut datas = Vec::new();
 
@@ -247,6 +249,8 @@ impl Clipboard {
         Ok(Snapshot { datas })
     }
 
+    /// Restores the clipboard contents from a snapshot.
+    /// The snapshot should be created using the `snapshot()` method.
     pub fn restore(&self, snapshot: Snapshot) -> Result<()> {
         unsafe { EmptyClipboard()? };
         for (format, mut data) in snapshot.datas.into_iter() {
