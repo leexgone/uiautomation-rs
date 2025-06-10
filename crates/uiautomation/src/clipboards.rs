@@ -5,11 +5,14 @@ use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::HGLOBAL;
 use windows::Win32::System::DataExchange::CloseClipboard;
 use windows::Win32::System::DataExchange::EmptyClipboard;
+use windows::Win32::System::DataExchange::EnumClipboardFormats;
 use windows::Win32::System::DataExchange::GetClipboardData;
 use windows::Win32::System::DataExchange::IsClipboardFormatAvailable;
 use windows::Win32::System::DataExchange::OpenClipboard;
+use windows::Win32::System::DataExchange::SetClipboardData;
 use windows::Win32::System::Memory::GlobalAlloc;
 use windows::Win32::System::Memory::GlobalLock;
+use windows::Win32::System::Memory::GlobalSize;
 use windows::Win32::System::Memory::GlobalUnlock;
 use windows::Win32::System::Memory::GMEM_FIXED;
 use windows::Win32::System::Memory::GMEM_ZEROINIT;
@@ -77,7 +80,18 @@ pub enum ClipboardFormat {
     WAVE = 12u16,
 }
 
+const HANDLE_FORMATS: [ClipboardFormat; 10] = [ClipboardFormat::BITMAP, ClipboardFormat::DSPBITMAP, ClipboardFormat::ENHMETAFILE,
+    ClipboardFormat::DSPENHMETAFILE, ClipboardFormat::DSPMETAFILEPICT, ClipboardFormat::DSPTEXT, ClipboardFormat::HDROP, ClipboardFormat::METAFILEPICT,
+    ClipboardFormat::PALETTE, ClipboardFormat::PENDATA];
+
 /// Windows clipboard wrapper.
+/// 
+/// ```
+/// let clipboard = uiautomation::clipboards::Clipboard::open().unwrap();
+/// clipboard.set_text("hello").unwrap();
+/// let text = clipboard.get_text().unwrap();
+/// assert_eq!(text, "hello");
+/// ```
 #[derive(Debug)]
 pub struct Clipboard {
 }
@@ -168,17 +182,79 @@ impl Clipboard {
             if data.is_invalid() {
                 String::default()
             } else {
-                let memory: HGLOBAL = std::mem::transmute(data);
-                let buffer = GlobalLock(memory);
-                let str = PWSTR::from_raw(buffer as _);
-                let ret = str.to_string();
-                GlobalUnlock(memory)?;
-
-                ret?
+                let memory = GlobalData::from(data);
+                let data = memory.lock();
+                let str = PWSTR::from_raw(data.data as _);
+                str.to_string()?
             }
         };
 
         Ok(text)
+    }
+
+    /// Sets clipboard data in a string format.
+    pub fn set_text(&self, text: &str) -> Result<()> {
+        let data: Vec<u16> = text.encode_utf16().chain(std::iter::once(0u16)).collect();
+        let data = PWSTR::from_raw(data.as_ptr() as *mut u16);
+        let data_len = unsafe { data.len() } + 1;   // sizeof `u16`
+        let mut memory = GlobalData::alloc(data_len * 2)?;
+        let lock_data = memory.lock();
+        unsafe {
+            std::ptr::copy(data.as_ptr(), lock_data.data as _, data_len);
+
+            EmptyClipboard()?;
+            SetClipboardData(ClipboardFormat::UNICODETEXT as _, memory.handle())?;
+        }
+        memory.forget();    // move ownership into clipboard if succeed.
+
+        Ok(())
+    }
+
+    pub fn snapshot(&self) -> Result<Snapshot> {
+        let mut datas = Vec::new();
+
+        let mut format = 0u32;
+        let mut has_text = false;
+        let mut has_image = false;
+        loop {
+            format = unsafe { EnumClipboardFormats(format) };
+
+            if format == 0 {
+                break;
+            } else if HANDLE_FORMATS.iter().find(|t| format == **t as _).is_some() {  // ignore bitmap and other format which is stored by handle
+                continue;
+            } else if format == ClipboardFormat::DIB as _ || format == ClipboardFormat::DIBV5 as _ {    // image data
+                if has_image {
+                    continue;
+                } else {
+                    has_image = true;
+                }
+            } else if format == ClipboardFormat::TEXT as _ || format == ClipboardFormat::UNICODETEXT as _ || format == ClipboardFormat::OEMTEXT as _ {    // text data
+                if has_text {
+                    continue;
+                } else {
+                    has_text = true;
+                }
+            }
+
+            let data = unsafe { GetClipboardData(format)? };
+            let data = GlobalData::from(data);
+            let data = data.clone();
+
+            datas.push((format, data));
+        }
+
+        Ok(Snapshot { datas })
+    }
+
+    pub fn restore(&self, snapshot: Snapshot) -> Result<()> {
+        unsafe { EmptyClipboard()? };
+        for (format, mut data) in snapshot.datas.into_iter() {
+            unsafe { SetClipboardData(format, data.handle())? };
+            data.forget();
+        }
+
+        Ok(())
     }
 }
 
@@ -188,27 +264,62 @@ impl Drop for Clipboard {
     }
 }
 
-#[derive(Debug)]
-pub struct GlobalData {
-    data: HGLOBAL,
+#[derive(Debug, Default)]
+pub(crate) struct GlobalData {
+    memory: HGLOBAL,
     owned: bool
 }
 
 impl GlobalData {
-    // pub fn new(data: HGLOBAL) -> Self {
-    //     Self { data, shared: false }
-    // }
     pub fn alloc(size: usize) -> Result<Self> {
         let data = unsafe {
             GlobalAlloc(GMEM_FIXED | GMEM_ZEROINIT, size)?
         };
-        Ok(Self { data, owned: true })
+        Ok(Self { memory: data, owned: true })
+    }
+
+    // pub fn get(&self) -> HGLOBAL {
+    //     self.memory
+    // }
+
+    pub fn handle(&self) -> Option<HANDLE> {
+        if self.memory.is_invalid() {
+            None
+        } else {
+            Some(unsafe { std::mem::transmute(self.memory) })
+        }
+    }
+
+    pub fn size(&self) -> usize {
+        unsafe {
+            GlobalSize(self.memory)
+        }
+    }
+
+    pub fn lock(&self) -> GlobalGuard {
+        let data = unsafe { GlobalLock(self.memory)};
+        GlobalGuard{
+            memory: self.memory,
+            data
+        }
+    }
+
+    pub fn forget(&mut self) {
+        self.owned = false;
     }
 }
 
 impl From<HGLOBAL> for GlobalData {
     fn from(data: HGLOBAL) -> Self {
-        Self { data, owned: false }
+        Self { memory: data, owned: false }
+    }
+}
+
+impl Into<HGLOBAL> for GlobalData {
+    fn into(self) -> HGLOBAL {
+        let mut gd = self;
+        gd.owned = false;
+        gd.memory
     }
 }
 
@@ -219,10 +330,58 @@ impl From<HANDLE> for GlobalData {
     }
 }
 
-impl Drop for GlobalData {
-    fn drop(&mut self) {
-        if self.owned {
-            unsafe { GlobalFree(Some(self.data)).unwrap() };
+impl AsRef<HGLOBAL> for GlobalData {
+    fn as_ref(&self) -> &HGLOBAL {
+        &self.memory
+    }
+}
+
+impl AsMut<HGLOBAL> for GlobalData {
+    fn as_mut(&mut self) -> &mut HGLOBAL {
+        &mut self.memory
+    }
+}
+
+impl Clone for GlobalData {
+    fn clone(&self) -> Self {
+        if self.memory.is_invalid() {
+            Self {
+                memory: self.memory,
+                owned: false
+            }
+        } else {
+            let len = self.size();
+            let data = GlobalData::alloc(len).unwrap();
+            let src = self.lock();
+            let dst = data.lock();
+            unsafe { std::ptr::copy(src.data as _, dst.data as _, len) };
+
+            data
         }
     }
+}
+
+impl Drop for GlobalData {
+    fn drop(&mut self) {
+        if self.owned && !self.memory.is_invalid() { 
+            unsafe { GlobalFree(Some(self.memory)).unwrap() };
+            self.owned = false
+        }
+    }
+}
+
+pub(crate) struct GlobalGuard{
+    memory: HGLOBAL,
+    pub data: *mut core::ffi::c_void
+}
+
+impl Drop for GlobalGuard {
+    fn drop(&mut self) {
+        unsafe { GlobalUnlock(self.memory).unwrap() }
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Snapshot {
+    datas: Vec<(u32, GlobalData)>
 }

@@ -18,6 +18,7 @@ pub mod actions;
 pub mod controls;
 #[cfg(feature = "event")]
 pub mod events;
+#[cfg(feature = "clipboard")]
 pub mod clipboards;
 
 pub use self::errors::Error;

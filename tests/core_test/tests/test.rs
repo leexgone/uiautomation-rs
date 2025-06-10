@@ -2,6 +2,7 @@
 mod tests {
     use uiautomation::actions::Value;
     use uiautomation::actions::Window;
+    use uiautomation::clipboards::Clipboard;
     use uiautomation::controls::ControlType;
     use uiautomation::controls::DocumentControl;
     use uiautomation::controls::WindowControl;
@@ -143,5 +144,33 @@ Contact Email: procurement@globex.example.com\"";
         let r: f64 = arr.get_element(2).unwrap();
         let b: f64 = arr.get_element(3).unwrap();
         println!("Window Rect Array = [{}, {}, {}, {}]", l, t, r, b);
+    }
+
+    #[test]
+    fn test_clipboard() {
+        let clipboard = Clipboard::open().unwrap();
+
+        clipboard.set_text("hello").unwrap();
+        assert_eq!(clipboard.get_text().unwrap(), "hello");
+        assert!(clipboard.is_format_available(uiautomation::clipboards::ClipboardFormat::UNICODETEXT).unwrap());
+        assert!(!clipboard.is_format_available(uiautomation::clipboards::ClipboardFormat::TEXT).unwrap());
+        assert!(!clipboard.is_format_available(uiautomation::clipboards::ClipboardFormat::BITMAP).unwrap());
+    }
+
+    #[test]
+    fn test_clipboard_snap() {
+        let snapshot = {
+            let clipboard = Clipboard::open().unwrap();
+            let snapshot = clipboard.snapshot().unwrap();
+
+            clipboard.set_text("Hello").unwrap();
+
+            snapshot
+        };
+
+        let clipboard = Clipboard::open().unwrap();
+        assert_eq!(clipboard.get_text().unwrap(), "Hello");
+
+        clipboard.restore(snapshot).unwrap();
     }
 }

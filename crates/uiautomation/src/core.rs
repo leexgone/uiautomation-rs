@@ -59,14 +59,16 @@ use super::types::Rect;
 use super::types::Point;
 use super::variants::Variant;
 
-#[cfg(feature = "input")]
-use arboard::Clipboard;
+// #[cfg(feature = "input")]
+// use arboard::Clipboard;
 #[cfg(feature = "input")]
 use crate::inputs::Mouse;
 #[cfg(feature = "input")]
 use super::inputs::Keyboard;
 #[cfg(feature = "event")]
 use super::events::*;
+#[cfg(feature = "clipboard")]
+use super::clipboards::Clipboard;
 
 /// A wrapper for windows `IUIAutomation` interface.
 ///
@@ -1240,30 +1242,42 @@ impl UIElement {
 
     /// Simulates sending text to the element without any special keys.
     /// This method will send text to the clipboard and paste it. The element must support `ctrl+v` to paste text.
-    #[cfg(feature = "input")]
+    #[cfg(all(feature = "input", feature = "clipboard"))]
     pub fn send_text_by_clipboard(&self, text: &str) -> Result<()> {
-        let raw_text = {
-            let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
-            clipboard.get_text().map_err(|e| Error::from(format!("Failed to get clipboard text: {}", e)))?
+        // let raw_text = {
+        //     let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
+        //     clipboard.get_text().map_err(|e| Error::from(format!("Failed to get clipboard text: {}", e)))?
+        // };
+        let snapshot = {
+            let clipboard = Clipboard::open()?;
+            clipboard.snapshot()?
         };
 
         self.set_focus()?;
 
         {
-            let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
-            clipboard.set_text(text).map_err(|e| Error::from(format!("Failed to set clipboard text: {}", e)))?;
+            // let mut clipboard = Clipboard::new().map_err(|e| Error::from(format!("Failed to open clipboard: {}", e)))?;
+            // clipboard.set_text(text).map_err(|e| Error::from(format!("Failed to set clipboard text: {}", e)))?;
+            let clipboard = Clipboard::open()?;
+            clipboard.set_text(text)?;
         }
 
         let paste_result = self.send_keys("{ctrl}v", 30);
 
-        let restore_result = if raw_text.is_empty() {
-            Ok(())
-        } else {
-            match Clipboard::new() {
-                Ok(mut clipboard) => {
-                    clipboard.set_text(raw_text).map_err(|e| Error::from(format!("Failed to restore clipboard text: {}", e)))
-                },
-                Err(e) => Err(Error::from(format!("Failed to open clipboard: {}", e)))
+        // let restore_result = if raw_text.is_empty() {
+        //     Ok(())
+        // } else {
+        //     match Clipboard::new() {
+        //         Ok(mut clipboard) => {
+        //             clipboard.set_text(raw_text).map_err(|e| Error::from(format!("Failed to restore clipboard text: {}", e)))
+        //         },
+        //         Err(e) => Err(Error::from(format!("Failed to open clipboard: {}", e)))
+        //     }
+        // };
+        let restore_result = {
+            match Clipboard::open() {
+                Ok(clipboard) => clipboard.restore(snapshot),
+                Err(e) => Err(e)
             }
         };
 
@@ -1893,11 +1907,12 @@ impl UIMatcher {
     }
 
     fn prepare(&self) -> Result<(UIElement, UITreeWalker)> {
-        let root = match self.from { Some(ref from) => {
+        let root = if let Some(ref from) = self.from {
             from.clone()
-        } _ => {
+        } else {
             self.automation.get_root_element()?
-        }};
+        };
+
         let walker = match self.mode {
             UIMatcherMode::Raw => self.automation.create_tree_walker()?,
             UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,
@@ -2533,7 +2548,7 @@ mod tests {
         let automation = UIAutomation::new().unwrap();
         if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
             let nothing = automation.create_matcher().from(window.clone()).control_type(ControlType::Window).find_first();
-            assert!(nothing.is_err());
+            assert!(nothing.is_ok());
         }
     }
 

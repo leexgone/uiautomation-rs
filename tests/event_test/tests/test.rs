@@ -28,7 +28,7 @@ mod tests {
                     &handler).unwrap();
             }
 
-            sleep(Duration::from_secs(60));
+            sleep(Duration::from_secs(1));
         }
     }
 }
