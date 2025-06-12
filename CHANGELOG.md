@@ -273,3 +273,7 @@
 ## v0.21.0
 
 + Add `clipboard` feature, support windows clipboard.
+
+## v0.21.1
+
++ Update to `windows v0.61.2`
