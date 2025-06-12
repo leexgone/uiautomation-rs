@@ -277,3 +277,7 @@
 ## v0.21.1
 
 + Update to `windows v0.61.2`
+
+## v0.21.2
+
++ Change docs settings.
