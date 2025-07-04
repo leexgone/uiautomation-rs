@@ -173,4 +173,30 @@ Contact Email: procurement@globex.example.com\"";
 
         clipboard.restore(snapshot).unwrap();
     }
+
+    #[test]
+    fn test_search_by_runtime_id() {
+        let notepad_id = {
+            let proc = Process::new("notepad.exe").wait_for_idle(1000).run().unwrap();
+
+            let automation = UIAutomation::new().unwrap();
+            let matcher = automation.create_matcher().process_id(proc.get_id()).classname("Notepad");
+            let notepad = matcher.find_first().unwrap();
+            notepad.get_runtime_id().unwrap()
+        };
+
+        println!("Notepad Runtime ID: {:?}", notepad_id);
+
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher()
+            .filter_fn(Box::new(move |e: &UIElement| {
+                e.get_runtime_id().map_or(Ok(false), |id| Ok(id == notepad_id))
+            }));
+        let notepad = matcher.find_first().unwrap();
+
+        println!("Found Notepad by Runtime ID: {}", notepad.get_name().unwrap());
+
+        let notepad = WindowControl::try_from(notepad).unwrap();
+        notepad.close().unwrap();
+    }
 }
