@@ -89,6 +89,20 @@ Contact Email: procurement@globex.example.com\"";
             let raw_lines: Vec<&str> = text.split(&['\r', '\n']).collect();
             let new_lines: Vec<&str> = content.split(&['\r', '\n']).collect();
             assert_eq!(raw_lines, new_lines);
+
+            close_notepad(&automation, notepad);
+        }
+    }
+
+    fn close_notepad(automation: &UIAutomation, notepad: UIElement) {
+        let notepad = WindowControl::try_from(notepad).unwrap();
+        notepad.close().unwrap();
+
+        let matcher = automation.create_matcher().from_ref(notepad.as_ref()).name("不保存").timeout(1000);
+        if let Ok(ignore) = matcher.find_first() {
+            ignore.click().unwrap();
+        } else {
+            println!("Notepad close dialog not found, maybe already closed.");
         }
     }
 

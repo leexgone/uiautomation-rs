@@ -1186,7 +1186,7 @@ impl UIElement {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use uiautomation::core::UIAutomation;
     ///
     /// let automation = UIAutomation::new().unwrap();
@@ -1207,7 +1207,7 @@ impl UIElement {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use uiautomation::core::UIAutomation;
     ///
     /// let automation = UIAutomation::new().unwrap();

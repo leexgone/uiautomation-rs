@@ -770,7 +770,7 @@ impl Mouse {
     /// 
     /// let mouse = Mouse::new().move_time(800);
     /// mouse.move_to(Point::new(10, 20)).unwrap();
-    /// mouse.move_to(Point::new(1000,800)).unwrap();
+    /// mouse.move_to(Point::new(1000,400)).unwrap();
     /// ```
     pub fn move_to(&self, target: Point) -> Result<()> {
         if self.move_time > 0 {
@@ -801,7 +801,7 @@ impl Mouse {
     /// Simulates a mouse click event.
     /// 
     /// # Examples
-    /// ```
+    /// ```no_run
     /// use uiautomation::inputs::Mouse;
     /// 
     /// let mouse = Mouse::new();
@@ -824,7 +824,7 @@ impl Mouse {
     /// Simulates a mouse double click event.
     /// 
     /// # Examples
-    /// ```
+    /// ```no_run
     /// use uiautomation::inputs::Mouse;
     /// 
     /// let mouse = Mouse::new();
@@ -854,7 +854,7 @@ impl Mouse {
     /// Simulates a right mouse click event.
     /// 
     /// # Examples
-    /// ```
+    /// ```no_run
     /// use uiautomation::inputs::Mouse;
     /// 
     /// let mouse = Mouse::new();
@@ -992,9 +992,13 @@ mod tests {
     }
 
     #[test]
-    fn show_desktop() {
+    fn switch_desktop() {
         let kb = Keyboard::default().interval(50);
         kb.send_keys("{win}D").unwrap();
+
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        
+        kb.send_keys("{ALT}{TAB}").unwrap();
     }
 
     #[test]

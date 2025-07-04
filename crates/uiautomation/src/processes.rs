@@ -62,7 +62,7 @@ impl WSTR {
 }
 
 impl Process {
-    /// Create and run a process by command line.
+    /// Create and run a process by command line. This process will wait for idle state for 0.5s before returning.
     /// 
     /// # Examples
     /// ```no_run
@@ -71,7 +71,19 @@ impl Process {
     /// let p = Process::create("notepad.exe");
     /// assert!(p.is_ok());
     /// ```
-    pub fn create(command: &str) -> Result<Self> {
+    pub fn create<S: Into<String>>(command: S) -> Result<Self> {
+        Self::new(command).wait_for_idle(500).run()
+    }
+
+    /// Start a process by command line. This process will not wait for idle state.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// use uiautomation::processes::Process;
+    /// let p = Process::start("copy README.md README.md.bak");
+    /// assert!(p.is_ok());
+    /// ```
+    pub fn start<S: Into<String>>(command: S) -> Result<Self> {
         Self::new(command).run()
     }
 
@@ -240,12 +252,24 @@ impl Default for Process {
 
 #[cfg(test)]
 mod tests {
+    use crate::actions::Window;
+    use crate::controls::WindowControl;
     use crate::processes::Process;
+    use crate::UIAutomation;
 
     #[test]
-    fn run_notepad() {
+    fn create_notepad() {
         let proc_notepad = Process::create("notepad.exe");
         assert!(proc_notepad.is_ok());
+        // println!("Notepad started.");
+
+        let notepad = proc_notepad.unwrap();
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher().process_id(notepad.get_id()).classname("Notepad");
+        if let Ok(notepad) = matcher.find_first() {
+            let notepad = WindowControl::try_from(notepad).unwrap();
+            notepad.close().unwrap();
+        }
     }
 
     #[test]
@@ -255,11 +279,24 @@ mod tests {
     }
 
     #[test]
-    fn run_calc() {
-        Process::default()
-            .application("C:\\Windows\\System32\\calc.exe")
+    fn run_notepad() {
+        let proc = Process::default()
+            .application("C:\\Windows\\System32\\notepad.exe")
             .current_directory("C:\\")
             .wait_for_idle(5000)
             .run().unwrap();
+
+        let automation = UIAutomation::new().unwrap();
+        let matcher = automation.create_matcher()
+            .process_id(proc.get_id())
+            .classname("Notepad")
+            .timeout(1000);
+        if let Ok(notepad) = matcher.find_first() {
+            println!("Found Notepad: {}", notepad.get_name().unwrap());
+            let notepad = WindowControl::try_from(notepad).unwrap();
+            notepad.close().unwrap();
+        } else {
+            println!("Notepad not found.");
+        }
     }
 }
