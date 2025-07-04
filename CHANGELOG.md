@@ -285,3 +285,7 @@
 ## v0.21.3
 
 + Update to `windows v0.61.3`
+
+## v0.21.4
+
++ Do not try to `focus` before any `click` operation. [#109](https://github.com/leexgone/uiautomation-rs/issues/109)

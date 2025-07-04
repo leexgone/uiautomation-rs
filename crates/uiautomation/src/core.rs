@@ -1293,7 +1293,7 @@ impl UIElement {
     /// Simulates mouse left click event on the element.
     #[cfg(feature = "input")]
     pub fn click(&self) -> Result<()> {
-        self.try_focus();
+        // self.try_focus();
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
@@ -1313,7 +1313,7 @@ impl UIElement {
     /// Simulates mouse double click event on the element.
     #[cfg(feature = "input")]
     pub fn double_click(&self) -> Result<()> {
-        self.try_focus();
+        // self.try_focus();
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
@@ -1323,7 +1323,7 @@ impl UIElement {
     /// Simulates mouse right click event on the element.
     #[cfg(feature = "input")]
     pub fn right_click(&self) -> Result<()> {
-        self.try_focus();
+        // self.try_focus();
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
