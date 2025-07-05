@@ -368,7 +368,7 @@ impl Clone for GlobalData {
 impl Drop for GlobalData {
     fn drop(&mut self) {
         if self.owned && !self.memory.is_invalid() { 
-            unsafe { GlobalFree(Some(self.memory)).unwrap() };
+            let _ = unsafe { GlobalFree(Some(self.memory)) };
             self.owned = false
         }
     }
@@ -381,7 +381,7 @@ pub(crate) struct GlobalGuard{
 
 impl Drop for GlobalGuard {
     fn drop(&mut self) {
-        unsafe { GlobalUnlock(self.memory).unwrap() }
+        let _ = unsafe { GlobalUnlock(self.memory) };
     }
 }
 
