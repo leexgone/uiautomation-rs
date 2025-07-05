@@ -289,3 +289,7 @@
 ## v0.21.4
 
 + Do not try to `focus` before any `click` operation. [#109](https://github.com/leexgone/uiautomation-rs/issues/109)
+
+## v0.21.5
+
++ Fix clipboard crashes. [#111](https://github.com/leexgone/uiautomation-rs/issues/111)
