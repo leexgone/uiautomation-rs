@@ -137,6 +137,15 @@ impl Input {
 
     /// Create multiple input items to the current input.
     pub fn create_inputs(&self) -> Result<Vec<INPUT>> {
+        self.create_inputs_internal(false)
+    }
+
+    /// like create_inputs but always create unicode inputs. This is more robust but might not simulate key presses like from a real keyboard.
+    pub fn create_unicode_inputs(&self) -> Result<Vec<INPUT>> {
+        self.create_inputs_internal(true)
+    }
+
+    fn create_inputs_internal(&self, force_unicode: bool) -> Result<Vec<INPUT>> {
         let mut inputs: Vec<INPUT> = Vec::new();
 
         for holdkey in &self.holdkeys {
@@ -154,7 +163,7 @@ impl Input {
                     let mut buffer = [0; 2];
                     let chars = ch.encode_utf16(&mut buffer);
                     for ch_u16 in chars {
-                        let keys = Self::create_char_key(*ch_u16, self.has_holdkey());
+                        let keys = Self::create_char_key(*ch_u16, self.has_holdkey(), force_unicode);
                         inputs.extend(keys);
                     }
                 },
@@ -185,9 +194,9 @@ impl Input {
         }
     }
 
-    fn create_char_key(ch: u16, hold_mode: bool) -> Vec<INPUT> {
+    fn create_char_key(ch: u16, hold_mode: bool, force_unicode: bool) -> Vec<INPUT> {
         // let code = ch as i32;
-        let vk: i16 = if ch < 256 {
+        let vk: i16 = if !force_unicode && (ch < 256) {
             unsafe { VkKeyScanW(ch) }
         } else {
             -1
