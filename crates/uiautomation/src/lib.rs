@@ -3,6 +3,7 @@ pub mod types;
 pub mod variants;
 pub mod core;
 pub mod filters;
+pub(crate) mod logs;
 
 #[cfg(feature = "process")]
 pub mod processes;

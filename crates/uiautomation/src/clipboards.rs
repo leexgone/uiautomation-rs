@@ -14,12 +14,15 @@ use windows::Win32::System::Memory::GlobalAlloc;
 use windows::Win32::System::Memory::GlobalLock;
 use windows::Win32::System::Memory::GlobalSize;
 use windows::Win32::System::Memory::GlobalUnlock;
-use windows::Win32::System::Memory::GMEM_FIXED;
-use windows::Win32::System::Memory::GMEM_ZEROINIT;
+use windows::Win32::System::Memory::GHND;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow;
+use windows::Win32::UI::WindowsAndMessaging::GetDesktopWindow;
+use windows_core::HRESULT;
 use windows_core::PWSTR;
 
+use crate::log_error;
 use crate::types::Handle;
+use crate::Error;
 use crate::Result;
 
 #[repr(u16)]
@@ -80,9 +83,11 @@ pub enum ClipboardFormat {
     WAVE = 12u16,
 }
 
-const HANDLE_FORMATS: [ClipboardFormat; 10] = [ClipboardFormat::BITMAP, ClipboardFormat::DSPBITMAP, ClipboardFormat::ENHMETAFILE,
-    ClipboardFormat::DSPENHMETAFILE, ClipboardFormat::DSPMETAFILEPICT, ClipboardFormat::DSPTEXT, ClipboardFormat::HDROP, ClipboardFormat::METAFILEPICT,
-    ClipboardFormat::PALETTE, ClipboardFormat::PENDATA];
+// const HANDLE_FORMATS: [ClipboardFormat; 10] = [ClipboardFormat::BITMAP, ClipboardFormat::DSPBITMAP, ClipboardFormat::ENHMETAFILE,
+//     ClipboardFormat::DSPENHMETAFILE, ClipboardFormat::DSPMETAFILEPICT, ClipboardFormat::DSPTEXT, ClipboardFormat::HDROP, ClipboardFormat::METAFILEPICT,
+//     ClipboardFormat::PALETTE, ClipboardFormat::PENDATA];
+const SNAPABLE_FORMATS: [ClipboardFormat; 8] = [ClipboardFormat::TEXT, ClipboardFormat::UNICODETEXT, ClipboardFormat::OEMTEXT, ClipboardFormat::DIB, ClipboardFormat::DIBV5,
+    ClipboardFormat::RIFF, ClipboardFormat::TIFF, ClipboardFormat::WAVE];
 
 /// Windows clipboard wrapper.
 /// 
@@ -132,7 +137,11 @@ impl Clipboard {
     /// This method will try to open the clipboard multiple times if it fails.
     pub fn open() -> Result<Self> {
         let window = {
-            let wnd = unsafe { GetActiveWindow() };
+            let mut wnd = unsafe { GetActiveWindow() };
+            if wnd.is_invalid() {
+                wnd = unsafe { GetDesktopWindow() };
+            }
+
             if wnd.is_invalid() {
                 None
             } else {
@@ -183,7 +192,7 @@ impl Clipboard {
                 String::default()
             } else {
                 let memory = GlobalData::from(data);
-                let data = memory.lock();
+                let data = memory.lock()?;
                 let str = PWSTR::from_raw(data.data as _);
                 str.to_string()?
             }
@@ -198,21 +207,26 @@ impl Clipboard {
         let data = PWSTR::from_raw(data.as_ptr() as *mut u16);
         let data_len = unsafe { data.len() } + 1;   // sizeof `u16`
         let mut memory = GlobalData::alloc(data_len * 2)?;
-        let lock_data = memory.lock();
-        unsafe {
+        let ret = unsafe {
+            let lock_data = memory.lock()?;
             std::ptr::copy(data.as_ptr(), lock_data.data as _, data_len);
 
             EmptyClipboard()?;
-            SetClipboardData(ClipboardFormat::UNICODETEXT as _, memory.handle())?;
+            SetClipboardData(ClipboardFormat::UNICODETEXT as _, memory.handle())?
+        };
+        if ret.is_invalid() {
+            Err(Error::last_os_error())
+        } else {
+            memory.forget();    // move ownership into clipboard if succeed.
+            Ok(())
         }
-        memory.forget();    // move ownership into clipboard if succeed.
-
-        Ok(())
     }
 
     /// Creates a snapshot of the current clipboard contents.
-    /// The snapshot contains all data formats available in the clipboard.
-    pub fn snapshot(&self) -> Result<Snapshot> {
+    /// The snapshot will try all data formats available in the clipboard when `try_all_formats` is true.
+    /// If `try_all_formats` is false, it will only snapshot the standard formats defined.
+    /// Some formats may not be supported, so the snapshot may not contain all formats.
+    pub fn snapshot(&self, try_all_formats: bool) -> Result<Snapshot> {
         let mut datas = Vec::new();
 
         let mut format = 0u32;
@@ -223,27 +237,28 @@ impl Clipboard {
 
             if format == 0 {
                 break;
-            } else if HANDLE_FORMATS.iter().find(|t| format == **t as _).is_some() {  // ignore bitmap and other format which is stored by handle
-                continue;
-            } else if format == ClipboardFormat::DIB as _ || format == ClipboardFormat::DIBV5 as _ {    // image data
-                if has_image {
-                    continue;
-                } else {
-                    has_image = true;
+            } else if SNAPABLE_FORMATS.iter().any(|f| format == *f as _)    // only snapshot specified standard formats
+                    || (try_all_formats && format >= 0xC000 && format <= 0xFFFF) {   // try registered formats if `try_all_formats` is true
+                if format == ClipboardFormat::DIB as _ || format == ClipboardFormat::DIBV5 as _ {    // image data
+                    if has_image {
+                        continue;
+                    } else {
+                        has_image = true;
+                    }
+                } else if format == ClipboardFormat::TEXT as _ || format == ClipboardFormat::UNICODETEXT as _ || format == ClipboardFormat::OEMTEXT as _ {    // text data
+                    if has_text {
+                        continue;
+                    } else {
+                        has_text = true;
+                    }
                 }
-            } else if format == ClipboardFormat::TEXT as _ || format == ClipboardFormat::UNICODETEXT as _ || format == ClipboardFormat::OEMTEXT as _ {    // text data
-                if has_text {
-                    continue;
-                } else {
-                    has_text = true;
+
+                let data = unsafe { GetClipboardData(format)? };
+                let data = GlobalData::from(data);
+                if let Ok(data) = data.try_clone() {
+                    datas.push((format, data));
                 }
             }
-
-            let data = unsafe { GetClipboardData(format)? };
-            let data = GlobalData::from(data);
-            let data = data.clone();
-
-            datas.push((format, data));
         }
 
         Ok(Snapshot { datas })
@@ -254,8 +269,10 @@ impl Clipboard {
     pub fn restore(&self, snapshot: Snapshot) -> Result<()> {
         unsafe { EmptyClipboard()? };
         for (format, mut data) in snapshot.datas.into_iter() {
-            unsafe { SetClipboardData(format, data.handle())? };
-            data.forget();
+            let ret = unsafe { SetClipboardData(format, data.handle())? };
+            if !ret.is_invalid() {
+                data.forget();
+            }
         }
 
         Ok(())
@@ -264,7 +281,11 @@ impl Clipboard {
 
 impl Drop for Clipboard {
     fn drop(&mut self) {
-        let _ = unsafe { CloseClipboard() };
+        if let Err(e) = unsafe { CloseClipboard() } {
+            // if e.code() != HRESULT(0) {
+                log_error!("Failed to close clipboard: {}", e);
+            // }
+        }
     }
 }
 
@@ -277,7 +298,7 @@ pub(crate) struct GlobalData {
 impl GlobalData {
     pub fn alloc(size: usize) -> Result<Self> {
         let data = unsafe {
-            GlobalAlloc(GMEM_FIXED | GMEM_ZEROINIT, size)?
+            GlobalAlloc(GHND, size)?
         };
         Ok(Self { memory: data, owned: true })
     }
@@ -300,16 +321,37 @@ impl GlobalData {
         }
     }
 
-    pub fn lock(&self) -> GlobalGuard {
-        let data = unsafe { GlobalLock(self.memory)};
-        GlobalGuard{
-            memory: self.memory,
-            data
+    pub fn lock(&self) -> Result<GlobalGuard> {
+        let data = unsafe { GlobalLock(self.memory) };
+        if data.is_null() {
+            Err(Error::last_os_error())
+        } else {
+            Ok(GlobalGuard {
+                memory: self.memory,
+                data: data as *mut core::ffi::c_void
+            })
         }
     }
 
     pub fn forget(&mut self) {
         self.owned = false;
+    }
+
+    pub fn try_clone(&self) -> Result<Self> {
+        if self.memory.is_invalid() {
+            Ok(Self {
+                memory: self.memory,
+                owned: false
+            })
+        } else {
+            let src = self.lock()?;
+            let len = self.size();
+            let data = GlobalData::alloc(len)?;
+            let dst = data.lock()?;
+            unsafe { std::ptr::copy(src.data as _, dst.data as _, len) };
+
+            Ok(data)
+        }
     }
 }
 
@@ -346,24 +388,24 @@ impl AsMut<HGLOBAL> for GlobalData {
     }
 }
 
-impl Clone for GlobalData {
-    fn clone(&self) -> Self {
-        if self.memory.is_invalid() {
-            Self {
-                memory: self.memory,
-                owned: false
-            }
-        } else {
-            let len = self.size();
-            let data = GlobalData::alloc(len).unwrap();
-            let src = self.lock();
-            let dst = data.lock();
-            unsafe { std::ptr::copy(src.data as _, dst.data as _, len) };
+// impl Clone for GlobalData {
+//     fn clone(&self) -> Self {
+//         if self.memory.is_invalid() {
+//             Self {
+//                 memory: self.memory,
+//                 owned: false
+//             }
+//         } else {
+//             let len = self.size();
+//             let data = GlobalData::alloc(len).unwrap();
+//             let src = self.lock().unwrap();
+//             let dst = data.lock().unwrap();
+//             unsafe { std::ptr::copy(src.data as _, dst.data as _, len) };
 
-            data
-        }
-    }
-}
+//             data
+//         }
+//     }
+// }
 
 impl Drop for GlobalData {
     fn drop(&mut self) {
@@ -381,7 +423,11 @@ pub(crate) struct GlobalGuard{
 
 impl Drop for GlobalGuard {
     fn drop(&mut self) {
-        let _ = unsafe { GlobalUnlock(self.memory) };
+        if let Err(e) = unsafe { GlobalUnlock(self.memory) } {
+            if e.code() != HRESULT(0) {
+                log_error!("Failed to unlock global memory: {}", e);
+            }
+        }
     }
 }
 

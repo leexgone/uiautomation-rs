@@ -35,6 +35,7 @@ use windows::core::Interface;
 // use crate::events::UIPropertyChangedEventHandler;
 // use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
+use crate::log_debug;
 // use crate::patterns::UIPatternType;
 use crate::types::ControlType;
 use crate::types::ElementMode;
@@ -1242,6 +1243,8 @@ impl UIElement {
 
     /// Simulates sending text to the element without any special keys.
     /// This method will send text to the clipboard and paste it. The element must support `ctrl+v` to paste text.
+    /// This method will try to snapshot the clipboard before sending text, and restore it after sending text.
+    /// Some formats may not be supported, so the snapshot may not contain all formats.
     #[cfg(all(feature = "input", feature = "clipboard"))]
     pub fn send_text_by_clipboard(&self, text: &str) -> Result<()> {
         // let raw_text = {
@@ -1250,7 +1253,7 @@ impl UIElement {
         // };
         let snapshot = {
             let clipboard = Clipboard::open()?;
-            clipboard.snapshot()?
+            clipboard.snapshot(false)?
         };
 
         self.set_focus()?;
@@ -1684,15 +1687,6 @@ pub struct UIMatcher {
     debug: bool
 }
 
-macro_rules! debug {
-    ($($arg:tt)*) => {
-        #[cfg(feature = "log") ]
-        log::debug!($($arg)*);
-        #[cfg(not(feature = "log"))]
-        println!($($arg)*);
-    };
-}
-
 impl UIMatcher {
     /// Creates a matcher with `automation`.
     pub fn new(automation: UIAutomation) -> Self {
@@ -1885,7 +1879,7 @@ impl UIMatcher {
             //     println!("Try to match element...")
             // }
             if self.debug {
-                debug!("Try to match element...");
+                log_debug!("Try to match element...");
             }
 
             let (root, walker) = self.prepare()?;
@@ -1974,7 +1968,7 @@ impl UIMatcher {
             // log::debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
             // #[cfg(not(feature = "log"))]
             // println!("{:?} -> {} in filter {}", element, ret, failed_filter);
-            debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
+            log_debug!("{:?} -> {} in filter {}", element, ret, failed_filter);
         }
 
         Ok(ret)
