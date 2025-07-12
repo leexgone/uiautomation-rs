@@ -297,3 +297,7 @@
 ## v0.21.6
 
 + add unicode input creation. @elsnerpaul [#113](https://github.com/leexgone/uiautomation-rs/pull/113)
+
+## v0.22.0
+
++ Fix clipboard crashes after many usages. [#114](https://github.com/leexgone/uiautomation-rs/issues/114)

@@ -175,7 +175,7 @@ Contact Email: procurement@globex.example.com\"";
     fn test_clipboard_snap() {
         let snapshot = {
             let clipboard = Clipboard::open().unwrap();
-            let snapshot = clipboard.snapshot().unwrap();
+            let snapshot = clipboard.snapshot(true).unwrap();
 
             clipboard.set_text("Hello").unwrap();
 
@@ -186,6 +186,18 @@ Contact Email: procurement@globex.example.com\"";
         assert_eq!(clipboard.get_text().unwrap(), "Hello");
 
         clipboard.restore(snapshot).unwrap();
+    }
+
+    #[test]
+    fn test_clipboard_1000() {
+        for i in 0..1000 {
+            let clip = Clipboard::open().unwrap();
+            let text = format!("Test {}", i);
+            if let Err(e) = clip.set_text(&text) {
+                panic!("Failed to set clipboard text('{}'): {}", text, e);
+            }
+            drop(clip);
+        }
     }
 
     #[test]
