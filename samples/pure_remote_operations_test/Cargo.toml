@@ -1,9 +1,9 @@
 [package]
-name = "docker_container_test"
+name = "pure_remote_operations_test"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 uiautomation = { path = "../../crates/uiautomation", features = ["remote_operations", "process"] }
-windows = { version = "0.61", features = ["UI_UIAutomation_Core"] }
+windows = { version = "0.61", features = ["UI_UIAutomation_Core", "Win32_Foundation", "Win32_System_Threading"] }
 tokio = { version = "1.0", features = ["full"] } 

@@ -1,7 +1,0 @@
-[package]
-name = "uia_remote_operations"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-uiautomation = { path = "../../crates/uiautomation", features = ["process", "remote_operations"] } 

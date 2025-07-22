@@ -1314,59 +1314,7 @@ pub enum ControlType {
     AppBar = 50040i32    
 }
 
-/// `RemoteOperationStatus` represents the execution status of a remote operation.
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-pub enum RemoteOperationStatus {
-    /// The operation completed successfully.
-    Success = 0,
-    /// The operation failed due to an invalid argument.
-    InvalidArgument = 1,
-    /// The operation failed due to a timeout.
-    Timeout = 2,
-    /// The operation failed due to an accessibility error.
-    AccessibilityError = 3,
-    /// The operation failed due to a communication error.
-    CommunicationError = 4,
-    /// The operation failed due to an unknown error.
-    UnknownError = 5,
-}
 
-/// `RemoteOperationMode` specifies how remote operations should be executed.
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-pub enum RemoteOperationMode {
-    /// Execute operations individually (classic mode).
-    Individual = 0,
-    /// Execute operations as a batch to reduce cross-process calls.
-    Batch = 1,
-    /// Automatically choose the best mode based on the operation count.
-    Auto = 2,
-}
-
-/// `RemoteOperationExtensibilityLevel` specifies the level of extensibility for remote operations.
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-pub enum RemoteOperationExtensibilityLevel {
-    /// Basic level with core functionality only.
-    Basic = 0,
-    /// Standard level with extended functionality.
-    Standard = 1,
-    /// Full level with all available functionality.
-    Full = 2,
-}
-
-/// `RemoteOperationCallbackBehavior` specifies how callbacks should be handled in remote operations.
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
-pub enum RemoteOperationCallbackBehavior {
-    /// Execute callbacks synchronously.
-    Synchronous = 0,
-    /// Execute callbacks asynchronously.
-    Asynchronous = 1,
-    /// Queue callbacks for later execution.
-    Queued = 2,
-}
 
 #[cfg(test)]
 mod tests {
