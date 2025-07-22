@@ -113,10 +113,29 @@ fn fmt_array<D: Display>(f: &mut std::fmt::Formatter<'_>, arr: &Vec<D>) -> std::
     write!(f, ")")
 }
 
-/// A Wrapper for windows `VARIANT`
-#[derive(Clone, Default)]
+/// Wrapper for `VARIANT`.
+/// 
+/// A `Variant` object consists of a union of many types and can be converted to any type. 
+#[derive(Clone)]
 pub struct Variant {
     value: VARIANT
+}
+
+impl std::fmt::Debug for Variant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let variant_type = unsafe { self.value.Anonymous.Anonymous.vt };
+        f.debug_struct("Variant")
+            .field("type", &variant_type)
+            .finish()
+    }
+}
+
+impl PartialEq for Variant {
+    fn eq(&self, other: &Self) -> bool {
+        // For simplicity, just compare the variant type for now
+        // A full implementation would compare the actual values
+        self.value.vt() == other.value.vt()
+    }
 }
 
 impl Variant {

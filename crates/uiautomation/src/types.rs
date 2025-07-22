@@ -1097,91 +1097,91 @@ pub enum StyleType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
 #[map_as(windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID)]
 pub enum TextAttribute {
-    /// Identifies the AnimationStyle text attribute, which specifies the type of animation applied to the text. This attribute is specified as a value from the AnimationStyle enumerated type.
+    /// Identifies the AnimationStyle text attribute, which specifies the type of animation applied to the text. This attribute is specified as a value from the AnimationStyle enumerated type.
     AnimationStyle = 40000i32,
-    /// Identifies the BackgroundColor text attribute, which specifies the background color of the text. This attribute is specified as a COLORREF; a 32-bit value used to specify an RGB or RGBA color.
+    /// Identifies the BackgroundColor text attribute, which specifies the background color of the text. This attribute is specified as a COLORREF; a 32-bit value used to specify an RGB or RGBA color.
     BackgroundColor = 40001i32,
-    /// Identifies the BulletStyle text attribute, which specifies the style of bullets used in the text range. This attribute is specified as a value from the BulletStyle enumerated type.
+    /// Identifies the BulletStyle text attribute, which specifies the style of bullets used in the text range. This attribute is specified as a value from the BulletStyle enumerated type.
     BulletStyle = 40002i32,
-    /// Identifies the CapStyle text attribute, which specifies the capitalization style for the text. This attribute is specified as a value from the CapStyle enumerated type.
+    /// Identifies the CapStyle text attribute, which specifies the capitalization style for the text. This attribute is specified as a value from the CapStyle enumerated type.
     CapStyle = 40003i32,
-    /// Identifies the Culture text attribute, which specifies the locale of the text by locale identifier (LCID).
+    /// Identifies the Culture text attribute, which specifies the locale of the text by locale identifier (LCID).
     Culture = 40004i32,
-    /// Identifies the FontName text attribute, which specifies the name of the font. Examples: Arial Black; Arial Narrow. The font name string is not localized.
+    /// Identifies the FontName text attribute, which specifies the name of the font. Examples: Arial Black; Arial Narrow. The font name string is not localized.
     FontName = 40005i32,
-    /// Identifies the FontSize text attribute, which specifies the point size of the font.
+    /// Identifies the FontSize text attribute, which specifies the point size of the font.
     FontSize = 40006i32,
-    /// Identifies the FontWeight text attribute, which specifies the relative stroke, thickness, or boldness of the font. The FontWeight attribute is modeled after the lfWeight member of the GDI LOGFONT structure, and related standards, and can be one of the following values:
+    /// Identifies the FontWeight text attribute, which specifies the relative stroke, thickness, or boldness of the font. The FontWeight attribute is modeled after the lfWeight member of the GDI LOGFONT structure, and related standards, and can be one of the following values:
     FontWeight = 40007i32,
-    /// Identifies the ForegroundColor text attribute, which specifies the foreground color of the text. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    /// Identifies the ForegroundColor text attribute, which specifies the foreground color of the text. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
     ForegroundColor = 40008i32,
-    /// Identifies the HorizontalTextAlignment text attribute, which specifies how the text is aligned horizontally. This attribute is specified as a value from the HorizontalTextAlignmentEnum enumerated type.
+    /// Identifies the HorizontalTextAlignment text attribute, which specifies how the text is aligned horizontally. This attribute is specified as a value from the HorizontalTextAlignmentEnum enumerated type.
     HorizontalTextAlignment = 40009i32,
-    /// Identifies the IndentationFirstLine text attribute, which specifies how far, in points, to indent the first line of a paragraph.
+    /// Identifies the IndentationFirstLine text attribute, which specifies how far, in points, to indent the first line of a paragraph.
     IndentationFirstLine = 40010i32,
-    /// Identifies the IndentationLeading text attribute, which specifies the leading indentation, in points.
+    /// Identifies the IndentationLeading text attribute, which specifies the leading indentation, in points.
     IndentationLeading = 40011i32,
-    /// Identifies the IndentationTrailing text attribute, which specifies the trailing indentation, in points.
+    /// Identifies the IndentationTrailing text attribute, which specifies the trailing indentation, in points.
     IndentationTrailing = 40012i32,
-    /// Identifies the IsHidden text attribute, which indicates whether the text is hidden (TRUE) or visible (FALSE).
+    /// Identifies the IsHidden text attribute, which indicates whether the text is hidden (TRUE) or visible (FALSE).
     IsHidden = 40013i32,
-    /// Identifies the IsItalic text attribute, which indicates whether the text is italic (TRUE) or not (FALSE).
+    /// Identifies the IsItalic text attribute, which indicates whether the text is italic (TRUE) or not (FALSE).
     IsItalic = 40014i32,
-    /// Identifies the IsReadOnly text attribute, which indicates whether the text is read-only (TRUE) or can be modified (FALSE).
+    /// Identifies the IsReadOnly text attribute, which indicates whether the text is read-only (TRUE) or can be modified (FALSE).
     IsReadOnly = 40015i32,
-    /// Identifies the IsSubscript text attribute, which indicates whether the text is subscript (TRUE) or not (FALSE).
+    /// Identifies the IsSubscript text attribute, which indicates whether the text is subscript (TRUE) or not (FALSE).
     IsSubscript = 40016i32,
-    /// Identifies the IsSuperscript text attribute, which indicates whether the text is subscript (TRUE) or not (FALSE).
+    /// Identifies the IsSuperscript text attribute, which indicates whether the text is subscript (TRUE) or not (FALSE).
     IsSuperscript = 40017i32,
-    /// Identifies the MarginBottom text attribute, which specifies the size, in points, of the bottom margin applied to the page associated with the text range.
+    /// Identifies the MarginBottom text attribute, which specifies the size, in points, of the bottom margin applied to the page associated with the text range.
     MarginBottom = 40018i32,
-    /// Identifies the MarginLeading text attribute, which specifies the size, in points, of the leading margin applied to the page associated with the text range.
+    /// Identifies the MarginLeading text attribute, which specifies the size, in points, of the leading margin applied to the page associated with the text range.
     MarginLeading = 40019i32,
-    /// Identifies the MarginTop text attribute, which specifies the size, in points, of the top margin applied to the page associated with the text range.
+    /// Identifies the MarginTop text attribute, which specifies the size, in points, of the top margin applied to the page associated with the text range.
     MarginTop = 40020i32,
-    /// Identifies the MarginTrailing text attribute, which specifies the size, in points, of the trailing margin applied to the page associated with the text range.
+    /// Identifies the MarginTrailing text attribute, which specifies the size, in points, of the trailing margin applied to the page associated with the text range.
     MarginTrailing = 40021i32,
-    /// Identifies the OutlineStyles text attribute, which specifies the outline style of the text. This attribute is specified as a value from the OutlineStyles enumerated type.
+    /// Identifies the OutlineStyles text attribute, which specifies the outline style of the text. This attribute is specified as a value from the OutlineStyles enumerated type.
     OutlineStyles = 40022i32,
-    /// Identifies the OverlineColor text attribute, which specifies the color of the overline text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    /// Identifies the OverlineColor text attribute, which specifies the color of the overline text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
     OverlineColor = 40023i32,
-    /// Identifies the OverlineStyle text attribute, which specifies the style of the overline text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
+    /// Identifies the OverlineStyle text attribute, which specifies the style of the overline text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
     OverlineStyle = 40024i32,
-    /// Identifies the StrikethroughColor text attribute, which specifies the color of the strikethrough text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    /// Identifies the StrikethroughColor text attribute, which specifies the color of the strikethrough text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
     StrikethroughColor = 40025i32,
-    /// Identifies the StrikethroughStyle text attribute, which specifies the style of the strikethrough text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
+    /// Identifies the StrikethroughStyle text attribute, which specifies the style of the strikethrough text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
     StrikethroughStyle = 40026i32,
-    /// Identifies the Tabs text attribute, which is an array specifying the tab stops for the text range. Each array element specifies a distance, in points, from the leading margin.
+    /// Identifies the Tabs text attribute, which is an array specifying the tab stops for the text range. Each array element specifies a distance, in points, from the leading margin.
     Tabs = 40027i32,
-    /// Identifies the TextFlowDirections text attribute, which specifies the direction of text flow. This attribute is specified as a combination of values from the FlowDirections enumerated type.
+    /// Identifies the TextFlowDirections text attribute, which specifies the direction of text flow. This attribute is specified as a combination of values from the FlowDirections enumerated type.
     TextFlowDirections = 40028i32,
-    /// Identifies the UnderlineColor text attribute, which specifies the color of the underline text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
+    /// Identifies the UnderlineColor text attribute, which specifies the color of the underline text decoration. This attribute is specified as a COLORREF, a 32-bit value used to specify an RGB or RGBA color.
     UnderlineColor = 40029i32,
-    /// Identifies the UnderlineStyle text attribute, which specifies the style of the underline text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
+    /// Identifies the UnderlineStyle text attribute, which specifies the style of the underline text decoration. This attribute is specified as a value from the TextDecorationLineStyleEnum enumerated type.
     UnderlineStyle = 40030i32,
-    /// Identifies the AnnotationTypes text attribute, which maintains a list of annotation type identifiers for a range of text. For a list of possible values, see Annotation Type Identifiers. Supported starting with Windows 8.
+    /// Identifies the AnnotationTypes text attribute, which maintains a list of annotation type identifiers for a range of text. For a list of possible values, see Annotation Type Identifiers. Supported starting with Windows 8.
     AnnotationTypes = 40031i32,
-    /// Identifies the AnnotationObjects text attribute, which maintains an array of IUIAutomationElement2 interfaces, one for each element in the current text range that implements the Annotation control pattern. Each element might also implement other control patterns as needed to describe the annotation. For example, an annotation that is a comment would also support the Text control pattern. Supported starting with Windows 8.
+    /// Identifies the AnnotationObjects text attribute, which maintains an array of IUIAutomationElement2 interfaces, one for each element in the current text range that implements the Annotation control pattern. Each element might also implement other control patterns as needed to describe the annotation. For example, an annotation that is a comment would also support the Text control pattern. Supported starting with Windows 8.
     AnnotationObjects = 40032i32,
-    /// Identifies the StyleName text attribute, which identifies the localized name of the text style in use for a text range. Supported starting with Windows 8.
+    /// Identifies the StyleName text attribute, which identifies the localized name of the text style in use for a text range. Supported starting with Windows 8.
     StyleName = 40033i32,
-    /// Identifies the StyleId text attribute, which indicates the text styles in use for a text range. For a list of possible values, see Style Identifiers. Supported starting with Windows 8.
+    /// Identifies the StyleId text attribute, which indicates the text styles in use for a text range. For a list of possible values, see Style Identifiers. Supported starting with Windows 8.
     StyleId = 40034i32,
-    /// Identifies the Link text attribute, which contains the IUIAutomationTextRange interface of the text range that is the target of an internal link in a document. Supported starting with Windows 8.
+    /// Identifies the Link text attribute, which contains the IUIAutomationTextRange interface of the text range that is the target of an internal link in a document. Supported starting with Windows 8.
     Link = 40035i32,
-    /// Identifies the IsActive text attribute, which indicates whether the control that contains the text range has the keyboard focus (TRUE) or not (FALSE). Supported starting with Windows 8.
+    /// Identifies the IsActive text attribute, which indicates whether the control that contains the text range has the keyboard focus (TRUE) or not (FALSE). Supported starting with Windows 8.
     IsActive = 40036i32,
-    /// Identifies the SelectionActiveEnd text attribute, which indicates the location of the caret relative to a text range that represents the currently selected text. This attribute is specified as a value from the ActiveEnd enumeration. Supported starting with Windows 8.
+    /// Identifies the SelectionActiveEnd text attribute, which indicates the location of the caret relative to a text range that represents the currently selected text. This attribute is specified as a value from the ActiveEnd enumeration. Supported starting with Windows 8.
     SelectionActiveEnd = 40037i32,
-    /// Identifies the CaretPosition text attribute, which indicates whether the caret is at the beginning or the end of a line of text in the text range. This attribute is specified as a value from the CaretPosition enumerated type. Supported starting with Windows 8.
+    /// Identifies the CaretPosition text attribute, which indicates whether the caret is at the beginning or the end of a line of text in the text range. This attribute is specified as a value from the CaretPosition enumerated type. Supported starting with Windows 8.
     CaretPosition = 40038i32,
-    /// Identifies the CaretBidiMode text attribute, which indicates the direction of text flow in the text range. This attribute is specified as a value from the CaretBidiMode enumerated type. Supported starting with Windows 8.
+    /// Identifies the CaretBidiMode text attribute, which indicates the direction of text flow in the text range. This attribute is specified as a value from the CaretBidiMode enumerated type. Supported starting with Windows 8.
     CaretBidiMode = 40039i32,
-    /// Identifies the LineSpacing text attribute, which specifies the spacing between lines of text.
+    /// Identifies the LineSpacing text attribute, which specifies the spacing between lines of text.
     LineSpacing = 40040i32,
-    /// Identifies the BeforeParagraphSpacing text attribute, which specifies the size of spacing before the paragraph.
+    /// Identifies the BeforeParagraphSpacing text attribute, which specifies the size of spacing before the paragraph.
     BeforeParagraphSpacing = 40041i32,
-    /// Identifies the AfterParagraphSpacing text attribute, which specifies the size of spacing after the paragraph.
+    /// Identifies the AfterParagraphSpacing text attribute, which specifies the size of spacing after the paragraph.
     AfterParagraphSpacing = 40042i32,
 }
 
@@ -1230,88 +1230,142 @@ pub enum StructureChangeType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
 #[map_as(windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID)]
 pub enum ControlType {
-    /// Identifies the Button control type.
+    /// Identifies the Button control type.
     Button = 50000i32,
-    /// Identifies the Calendar control type.
+    /// Identifies the Calendar control type.
     Calendar = 50001i32,
-    /// Identifies the CheckBox control type.
+    /// Identifies the CheckBox control type.
     CheckBox = 50002i32,
-    /// Identifies the ComboBox control type.
+    /// Identifies the ComboBox control type.
     ComboBox = 50003i32,
-    /// Identifies the Edit control type.
+    /// Identifies the Edit control type.
     Edit = 50004i32,
-    /// Identifies the Hyperlink control type.
+    /// Identifies the Hyperlink control type.
     Hyperlink = 50005i32,
-    /// Identifies the Image control type.
+    /// Identifies the Image control type.
     Image = 50006i32,
-    /// Identifies the ListItem control type.
+    /// Identifies the ListItem control type.
     ListItem = 50007i32,
-    /// Identifies the List control type.
+    /// Identifies the List control type.
     List = 50008i32,
-    /// Identifies the Menu control type.
+    /// Identifies the Menu control type.
     Menu = 50009i32,
-    /// Identifies the MenuBar control type.
+    /// Identifies the MenuBar control type.
     MenuBar = 50010i32,
-    /// Identifies the MenuItem control type.
+    /// Identifies the MenuItem control type.
     MenuItem = 50011i32,
-    /// Identifies the ProgressBar control type.
+    /// Identifies the ProgressBar control type.
     ProgressBar = 50012i32,
-    /// Identifies the RadioButton control type.
+    /// Identifies the RadioButton control type.
     RadioButton = 50013i32,
-    /// Identifies the ScrollBar control type.
+    /// Identifies the ScrollBar control type.
     ScrollBar = 50014i32,
-    /// Identifies the Slider control type.
+    /// Identifies the Slider control type.
     Slider = 50015i32,
-    /// Identifies the Spinner control type.
+    /// Identifies the Spinner control type.
     Spinner = 50016i32,
-    /// Identifies the StatusBar control type.
+    /// Identifies the StatusBar control type.
     StatusBar = 50017i32,
-    /// Identifies the Tab control type.
+    /// Identifies the Tab control type.
     Tab = 50018i32,
-    /// Identifies the TabItem control type.
+    /// Identifies the TabItem control type.
     TabItem = 50019i32,
-    /// Identifies the Text control type.
+    /// Identifies the Text control type.
     Text = 50020i32,
-    /// Identifies the ToolBar control type.
+    /// Identifies the ToolBar control type.
     ToolBar = 50021i32,
-    /// Identifies the ToolTip control type.
+    /// Identifies the ToolTip control type.
     ToolTip = 50022i32,
-    /// Identifies the Tree control type.
+    /// Identifies the Tree control type.
     Tree = 50023i32,
-    /// Identifies the TreeItem control type.
+    /// Identifies the TreeItem control type.
     TreeItem = 50024i32,
-    /// Identifies the Custom control type. For more information, see Custom Properties, Events, and Control Patterns.
+    /// Identifies the Custom control type. For more information, see Custom Properties, Events, and Control Patterns.
     Custom = 50025i32,
-    /// Identifies the Group control type.
+    /// Identifies the Group control type.
     Group = 50026i32,
-    /// Identifies the Thumb control type.
+    /// Identifies the Thumb control type.
     Thumb = 50027i32,
-    /// Identifies the DataGrid control type.
+    /// Identifies the DataGrid control type.
     DataGrid = 50028i32,
-    /// Identifies the DataItem control type.
+    /// Identifies the DataItem control type.
     DataItem = 50029i32,
-    /// Identifies the Document control type.
+    /// Identifies the Document control type.
     Document = 50030i32,
-    /// Identifies the SplitButton control type.
+    /// Identifies the SplitButton control type.
     SplitButton = 50031i32,
-    /// Identifies the Window control type.
+    /// Identifies the Window control type.
     Window = 50032i32,
-    /// Identifies the Pane control type.
+    /// Identifies the Pane control type.
     Pane = 50033i32,
-    /// Identifies the Header control type.
+    /// Identifies the Header control type.
     Header = 50034i32,
-    /// Identifies the HeaderItem control type.
+    /// Identifies the HeaderItem control type.
     HeaderItem = 50035i32,
-    /// Identifies the Table control type.
+    /// Identifies the Table control type.
     Table = 50036i32,
-    /// Identifies the TitleBar control type.
+    /// Identifies the TitleBar control type.
     TitleBar = 50037i32,
-    /// Identifies the Separator control type.
+    /// Identifies the Separator control type.
     Separator = 50038i32,
-    /// Identifies the SemanticZoom control type. Supported starting with Windows 8.
+    /// Identifies the SemanticZoom control type. Supported starting with Windows 8.
     SemanticZoom = 50039i32,
-    /// Identifies the AppBar control type. Supported starting with Windows 8.1.
+    /// Identifies the AppBar control type. Supported starting with Windows 8.1.
     AppBar = 50040i32    
+}
+
+/// `RemoteOperationStatus` represents the execution status of a remote operation.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum RemoteOperationStatus {
+    /// The operation completed successfully.
+    Success = 0,
+    /// The operation failed due to an invalid argument.
+    InvalidArgument = 1,
+    /// The operation failed due to a timeout.
+    Timeout = 2,
+    /// The operation failed due to an accessibility error.
+    AccessibilityError = 3,
+    /// The operation failed due to a communication error.
+    CommunicationError = 4,
+    /// The operation failed due to an unknown error.
+    UnknownError = 5,
+}
+
+/// `RemoteOperationMode` specifies how remote operations should be executed.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum RemoteOperationMode {
+    /// Execute operations individually (classic mode).
+    Individual = 0,
+    /// Execute operations as a batch to reduce cross-process calls.
+    Batch = 1,
+    /// Automatically choose the best mode based on the operation count.
+    Auto = 2,
+}
+
+/// `RemoteOperationExtensibilityLevel` specifies the level of extensibility for remote operations.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum RemoteOperationExtensibilityLevel {
+    /// Basic level with core functionality only.
+    Basic = 0,
+    /// Standard level with extended functionality.
+    Standard = 1,
+    /// Full level with all available functionality.
+    Full = 2,
+}
+
+/// `RemoteOperationCallbackBehavior` specifies how callbacks should be handled in remote operations.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
+pub enum RemoteOperationCallbackBehavior {
+    /// Execute callbacks synchronously.
+    Synchronous = 0,
+    /// Execute callbacks asynchronously.
+    Asynchronous = 1,
+    /// Queue callbacks for later execution.
+    Queued = 2,
 }
 
 #[cfg(test)]

@@ -1,0 +1,7 @@
+[package]
+name = "remote_operations_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+uiautomation = { path = "../../crates/uiautomation", features = ["remote_operations", "process"] } 
