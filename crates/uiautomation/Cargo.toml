@@ -18,7 +18,7 @@ all-features = true
 
 [features]
 default = [ "input", "control" ]
-all = [ "process", "dialog", "input", "clipboard", "pattern", "control", "event", "log" ]
+all = [ "process", "dialog", "input", "clipboard", "pattern", "control", "event", "log", "remote_operations" ]
 
 process = [ "windows/Win32_System_Threading", "windows/Win32_Security", "windows/Win32_System_Diagnostics_ToolHelp" ]
 dialog = [ "windows/Win32_UI_Input_KeyboardAndMouse", "windows/Win32_UI_WindowsAndMessaging" ]
@@ -27,6 +27,9 @@ clipboard = [ "windows/Win32_System_DataExchange", "windows/Win32_System_Memory"
 pattern = [ "uiautomation_derive/pattern_derive" ]
 control = [ "pattern", "uiautomation_derive/action_derive", "uiautomation_derive/control_derive", "windows/Win32_UI_WindowsAndMessaging" ]
 event = []
+# Real Microsoft CoreAutomationRemoteOperation API via WinRT
+# Available through Windows.UI.UIAutomation.Core namespace
+remote_operations = [ "windows/UI_UIAutomation_Core" ]
 
 log = ["dep:log"]
 

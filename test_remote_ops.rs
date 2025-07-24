@@ -1,0 +1,1 @@
+﻿use windows::UI::UIAutomation::Core::CoreAutomationRemoteOperation; fn main() { println!("Testing if CoreAutomationRemoteOperation exists"); match CoreAutomationRemoteOperation::new() { Ok(_) => println!("SUCCESS: Real API available!"), Err(e) => println!("Error: {}", e.message()) } }

@@ -20,6 +20,7 @@ Start by adding the dependency of this crate to your Cargo.toml file. Make use o
 | `control` | Enable to wrapper ui element as control to simplify operations | True |
 | `event` | Support Microsoft UI Automation events | False |
 | `log` | Use log crate to print debug message | False |
+| `remote_operations` | Support UI Automation Remote Operations for improved performance | False |
 | `all` | Enable all the above features | False |
 
 > `pattern` is a feature that `control` depends on.
@@ -163,5 +164,61 @@ fn main() {
 
     println!("waiting for notepad.exe...");
     note_proc.wait().unwrap();
+}
+```
+
+### Remote Operations for Improved Performance
+
+``` rust
+use uiautomation::core::UIAutomation;
+use uiautomation::remote_operations::{
+    RemoteOperationBuilder, RemoteOperationBatch, RemoteOperationContext,
+    RemoteOperationMode
+};
+use std::time::Duration;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize remote operations context
+    let mut context = RemoteOperationContext::new()?;
+    
+    // Get a UI element
+    let automation = context.automation();
+    let root = automation.get_root_element()?;
+    
+    // Create multiple operations that would normally require separate cross-process calls
+    let batch = RemoteOperationBatch::new()
+        .add_operation(
+            RemoteOperationBuilder::get_property("Name")
+                .with_target(root.clone())
+                .with_timeout(Duration::from_secs(5))
+        )
+        .add_operation(
+            RemoteOperationBuilder::get_property("ClassName")
+                .with_target(root.clone())
+        )
+        .add_operation(
+            RemoteOperationBuilder::invoke_method("SetFocus", vec![])
+                .with_target(root.clone())
+        )
+        .with_mode(RemoteOperationMode::Batch); // Execute as batch to save cross-process calls
+    
+    // Execute all operations efficiently
+    let results = batch.execute(&mut context)?;
+    
+    for (i, result) in results.iter().enumerate() {
+        println!("Operation {}: {:?}", i + 1, result.status);
+        if let Some(ref value) = result.value {
+            if let Ok(s) = value.get_string() {
+                println!("  Value: '{}'", s);
+            }
+        }
+    }
+    
+    // Check performance metrics
+    let metrics = context.performance_metrics();
+    println!("Cross-process calls saved: {}", metrics.cross_process_calls_saved);
+    println!("Success rate: {:.1}%", metrics.success_rate());
+    
+    Ok(())
 }
 ```
