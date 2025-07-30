@@ -1640,6 +1640,36 @@ impl UITreeWalker {
         };
         Ok(condition.into())
     }
+
+    /// Retrieves all children of the specified UI Automation element.
+    pub fn get_children(&self, element: &UIElement) -> Option<Vec<UIElement>> {
+        if let Ok(mut current) = self.get_first_child(element) {
+            let mut children = Vec::new();
+            while let Ok(next) = self.get_next_sibling(&current) {
+                children.push(current);
+                current = next;
+            }
+            children.push(current);
+            Some(children)
+        } else {
+            None
+        }
+    }
+
+    /// Retrieves all children of the specified UI Automation element, and caches properties and control patterns.
+    pub fn get_children_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Option<Vec<UIElement>> {
+        if let Ok(mut current) = self.get_first_child_build_cache(element, cache_request) {
+            let mut children = Vec::new();
+            while let Ok(next) = self.get_next_sibling_build_cache(&current, cache_request) {
+                children.push(current);
+                current = next;
+            }
+            children.push(current);
+            Some(children)
+        } else {
+            None
+        }
+    }
 }
 
 impl From<IUIAutomationTreeWalker> for UITreeWalker {

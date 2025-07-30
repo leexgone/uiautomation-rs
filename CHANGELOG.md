@@ -301,3 +301,7 @@
 ## v0.22.0
 
 + Fix clipboard crashes after many usages. [#114](https://github.com/leexgone/uiautomation-rs/issues/114)
+
+## v0.22.1
+
++ Add `UITreeWalker.get_children()` & `UITreeWalker.get_children_build_cache()`. [#118](https://github.com/leexgone/uiautomation-rs/issues/118)

@@ -225,4 +225,17 @@ Contact Email: procurement@globex.example.com\"";
         let notepad = WindowControl::try_from(notepad).unwrap();
         notepad.close().unwrap();
     }
+
+    #[test]
+    fn test_get_children() {
+        let automation = UIAutomation::new().unwrap();
+        let root = automation.get_root_element().unwrap();
+
+        let walker = automation.create_tree_walker().unwrap();
+        let children = walker.get_children(&root).unwrap();
+        assert!(!children.is_empty(), "Root element should have children");
+        for child in children {
+            println!("Child: {}", child.get_name().unwrap());
+        }
+    }
 }
