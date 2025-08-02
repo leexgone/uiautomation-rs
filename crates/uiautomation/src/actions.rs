@@ -1,3 +1,4 @@
+use crate::types::WindowVisualState;
 use crate::Result;
 use crate::UIElement;
 use crate::patterns::UITextRange;
@@ -126,6 +127,12 @@ pub trait Window {
 
     /// Causes the calling code to block for the specified time or until the associated process enters an idle state, whichever completes first.
     fn wait_for_input_idle(&self, milliseconds: i32) -> Result<bool>;
+
+    /// Retrieves the visual state of the window; that is, whether it is in the normal, maximized, or minimized state.
+    fn get_window_visual_state(&self) -> Result<WindowVisualState>;
+
+    /// Minimizes, maximizes, or restores the window.
+    fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()>;
 
     /// Indicates whether the window is normal state.
     fn is_normal(&self) -> Result<bool>;

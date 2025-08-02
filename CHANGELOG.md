@@ -305,3 +305,7 @@
 ## v0.22.1
 
 + Add `UITreeWalker.get_children()` & `UITreeWalker.get_children_build_cache()`. [#118](https://github.com/leexgone/uiautomation-rs/issues/118)
+
+## v0.22.2
+
++ Add `Window.get_window_visual_state()` & `Window.set_window_visual_state()`. [#119](https://github.com/leexgone/uiautomation-rs/issues/119)

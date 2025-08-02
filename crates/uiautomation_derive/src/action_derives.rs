@@ -114,6 +114,16 @@ pub(crate) fn impl_window(ast: &syn::DeriveInput) -> TokenStream {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
                 pattern.wait_for_input_idle(milliseconds)
             }
+
+            fn get_window_visual_state(&self) -> Result<super::types::WindowVisualState> {
+                let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
+                pattern.get_window_visual_state()
+            }
+
+            fn set_window_visual_state(&self, state: super::types::WindowVisualState) -> Result<()> {
+                let pattern: UIWindowPattern = self.as_ref().get_pattern()?;
+                pattern.set_window_visual_state(state)
+            }
         
             fn is_normal(&self) -> Result<bool> {
                 let pattern: UIWindowPattern = self.as_ref().get_pattern()?;

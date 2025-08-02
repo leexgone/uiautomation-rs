@@ -120,7 +120,10 @@ Contact Email: procurement@globex.example.com\"";
             assert!(rect.get_right() > rect.get_left() || rect.get_bottom() > rect.get_top(), "Bounding rectangle is empty");
 
             let window = WindowControl::try_from(notepad).unwrap();
+            println!("Window state: {:?}", window.get_window_visual_state().unwrap());
             window.minimize().unwrap();
+            std::thread::sleep(std::time::Duration::from_secs(1));
+            println!("Window state after minimize: {:?}", window.get_window_visual_state().unwrap());
         } else {
             panic!("Notepad not found");
         }
