@@ -985,6 +985,7 @@ mod tests {
 
     use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
+    use crate::inputs::get_screen_size;
     use crate::inputs::init_virtual_keys;
     use crate::inputs::Keyboard;
     use crate::inputs::Input;
@@ -1181,5 +1182,12 @@ mod tests {
             let keys = input.create_inputs();
             assert!(keys.is_ok());
         }
+    }
+
+    #[test]
+    fn test_screen_size() {
+        let (w, h) = get_screen_size().unwrap();
+        assert!(w > 0 && h > 0);
+        println!("Screen size: {}x{}", w, h);
     }
 }
