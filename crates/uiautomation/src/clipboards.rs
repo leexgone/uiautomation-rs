@@ -282,9 +282,7 @@ impl Clipboard {
 impl Drop for Clipboard {
     fn drop(&mut self) {
         if let Err(e) = unsafe { CloseClipboard() } {
-            // if e.code() != HRESULT(0) {
-                log_error!("Failed to close clipboard: {}", e);
-            // }
+            log_error!("Failed to close clipboard: {}", e);
         }
     }
 }

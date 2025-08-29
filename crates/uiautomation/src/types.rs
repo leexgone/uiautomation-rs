@@ -42,6 +42,12 @@ impl Point {
     pub fn set_y(&mut self, y: i32) {
         self.0.y = y;
     }
+
+    /// Offsets the point by dx and dy.
+    pub fn offset(&mut self, dx: i32, dy: i32) {
+        self.0.x += dx;
+        self.0.y += dy;
+    }
 }
 
 impl Eq for Point {

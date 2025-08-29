@@ -14,7 +14,9 @@ use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
 use windows::Win32::UI::WindowsAndMessaging::SM_CYSCREEN;
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
-use super::errors::ERR_FORMAT;
+use crate::log_error;
+
+use super::errors::{ERR_FORMAT, ERR_INVALID_ARG};
 use super::Error;
 use super::Result;
 use super::types::Point;
@@ -690,6 +692,39 @@ impl Drop for Keyboard {
     }
 }
 
+/// Mouse buttons.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MouseButton {
+    /// left button
+    LEFT,
+    /// right button
+    RIGHT,
+    /// middle button
+    MIDDLE,
+    /// X button
+    X
+}
+
+impl MouseButton {
+    fn down_flag(&self) -> MOUSE_EVENT_FLAGS {
+        match self {
+            MouseButton::LEFT => MOUSEEVENTF_LEFTDOWN,
+            MouseButton::RIGHT => MOUSEEVENTF_RIGHTDOWN,
+            MouseButton::MIDDLE => MOUSEEVENTF_MIDDLEDOWN,
+            MouseButton::X => MOUSEEVENTF_XDOWN,
+        }
+    }
+
+    fn up_flag(&self) -> MOUSE_EVENT_FLAGS {
+        match self {
+            MouseButton::LEFT => MOUSEEVENTF_LEFTUP,
+            MouseButton::RIGHT => MOUSEEVENTF_RIGHTUP,
+            MouseButton::MIDDLE => MOUSEEVENTF_MIDDLEUP,
+            MouseButton::X => MOUSEEVENTF_XUP,
+        }
+    }
+}
+
 /// Simulate mouse event.
 #[derive(Debug)]
 pub struct Mouse {
@@ -764,7 +799,7 @@ impl Mouse {
     }
 
     /// Moves the cursor to the specified screen coordinates. 
-    pub fn set_cursor_pos(pos: Point) -> Result<()> {
+    pub fn set_cursor_pos(pos: &Point) -> Result<()> {
         unsafe { SetCursorPos(pos.get_x(), pos.get_y())? };
         Ok(())
     }
@@ -778,10 +813,10 @@ impl Mouse {
     /// use uiautomation::types::Point;
     /// 
     /// let mouse = Mouse::new().move_time(800);
-    /// mouse.move_to(Point::new(10, 20)).unwrap();
-    /// mouse.move_to(Point::new(1000,400)).unwrap();
+    /// mouse.move_to(&Point::new(10, 20)).unwrap();
+    /// mouse.move_to(&Point::new(1000,400)).unwrap();
     /// ```
-    pub fn move_to(&self, target: Point) -> Result<()> {
+    pub fn move_to(&self, target: &Point) -> Result<()> {
         if self.move_time > 0 {
             let source = Self::get_cursor_pos()?;
             let delta_x = target.get_x() - source.get_x();
@@ -807,6 +842,60 @@ impl Mouse {
         Self::mouse_move_event(&target)
     }
 
+    /// Simulates a mouse click event with the specified button.
+    /// This will click at the current cursor position.
+    /// 
+    /// # Examples
+    /// 
+    /// ```no_run
+    /// use uiautomation::inputs::{Mouse, MouseButton};
+    /// use uiautomation::types::Point;
+    /// 
+    /// let mouse = Mouse::new();
+    /// mouse.move_to(&Point::new(200, 300)).unwrap();
+    /// mouse.click_button(MouseButton::LEFT).unwrap();
+    /// ```
+    pub fn click_button(&self, button: MouseButton) -> Result<()> {
+        let mut guard = MouseGuard::new(self);
+
+        self.before_click(&mut guard)?;
+        self.mouse_down(button, &mut guard)?;
+        self.mouse_up(button, &mut guard)?;
+        self.after_click(&mut guard)?;
+
+        Ok(())
+    }
+
+    /// Simulates a mouse double click event with the specified button.
+    /// This will double click at the current cursor position.
+    /// 
+    /// # Examples
+    /// ```no_run
+    /// use uiautomation::inputs::{Mouse, MouseButton};
+    /// use uiautomation::types::Point;
+    /// 
+    /// let mouse = Mouse::new();
+    /// mouse.move_to(&Point::new(200, 300)).unwrap();
+    /// mouse.double_click_button(MouseButton::LEFT).unwrap();
+    /// ```
+    pub fn double_click_button(&self, button: MouseButton) -> Result<()> {
+        let mut guard = MouseGuard::new(self);
+
+        self.before_click(&mut guard)?;
+
+        self.mouse_down(button, &mut guard)?;
+        self.mouse_up(button, &mut guard)?;
+
+        sleep(Duration::from_millis(max(200, self.interval)));
+
+        self.mouse_down(button, &mut guard)?;
+        self.mouse_up(button, &mut guard)?;
+
+        self.after_click(&mut guard)?;
+
+        Ok(())
+    }
+
     /// Simulates a mouse click event.
     /// 
     /// # Examples
@@ -815,21 +904,19 @@ impl Mouse {
     /// 
     /// let mouse = Mouse::new();
     /// let pos = Mouse::get_cursor_pos().unwrap();
-    /// mouse.click(pos).unwrap();
+    /// mouse.click(&pos).unwrap();
     /// ```
-    pub fn click(&self, pos: Point) -> Result<()> {
-        if self.auto_move {
-            self.move_to(pos)?;
-        }
+    pub fn click(&self, pos: &Point) -> Result<()> {
+        // self.before_click()?;
+        // self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
+        // self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
+        // self.after_click()?;
 
-        self.before_click()?;
-        self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
-        self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
-        self.after_click()?;
-
-        Ok(())
+        // Ok(())
+        self.move_to(pos)?;
+        self.click_button(MouseButton::LEFT)
     }
-
+    
     /// Simulates a mouse double click event.
     /// 
     /// # Examples
@@ -838,26 +925,30 @@ impl Mouse {
     /// 
     /// let mouse = Mouse::new();
     /// let pos = Mouse::get_cursor_pos().unwrap();
-    /// mouse.double_click(pos).unwrap();
+    /// mouse.double_click(&pos).unwrap();
     /// ```
-    pub fn double_click(&self, pos: Point) -> Result<()> {
-        if self.auto_move {
-            self.move_to(pos)?;
-        }
+    pub fn double_click(&self, pos: &Point) -> Result<()> {
+        // if self.auto_move {
+        //     self.move_to(pos)?;
+        // } else {
+        //     Mouse::set_cursor_pos(pos)?;
+        // }
 
-        self.before_click()?;
+        // self.before_click()?;
 
-        self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
-        self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
+        // self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
+        // self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
 
-        sleep(Duration::from_millis(max(200, self.interval)));
+        // sleep(Duration::from_millis(max(200, self.interval)));
 
-        self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
-        self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
+        // self.mouse_click_event(MOUSEEVENTF_LEFTDOWN)?;
+        // self.mouse_click_event(MOUSEEVENTF_LEFTUP)?;
 
-        self.after_click()?;
+        // self.after_click()?;
 
-        Ok(())
+        // Ok(())
+        self.move_to(pos)?;
+        self.double_click_button(MouseButton::LEFT)
     }
 
     /// Simulates a right mouse click event.
@@ -868,32 +959,54 @@ impl Mouse {
     /// 
     /// let mouse = Mouse::new();
     /// let pos = Mouse::get_cursor_pos().unwrap();
-    /// mouse.right_click(pos).unwrap();
+    /// mouse.right_click(&pos).unwrap();
     /// ```
-    pub fn right_click(&self, pos: Point) -> Result<()> {
-        if self.auto_move {
-            self.move_to(pos)?;
-        }
+    pub fn right_click(&self, pos: &Point) -> Result<()> {
+        // if self.auto_move {
+        //     self.move_to(pos)?;
+        // } else {
+        //     Mouse::set_cursor_pos(pos)?;
+        // }
 
-        self.before_click()?;
-        self.mouse_click_event(MOUSEEVENTF_RIGHTDOWN)?;
-        self.mouse_click_event(MOUSEEVENTF_RIGHTUP)?;
-        self.after_click()?;
+        // self.before_click()?;
+        // self.mouse_click_event(MOUSEEVENTF_RIGHTDOWN)?;
+        // self.mouse_click_event(MOUSEEVENTF_RIGHTUP)?;
+        // self.after_click()?;
+
+        // Ok(())
+        self.move_to(pos)?;
+        self.click_button(MouseButton::RIGHT)
+    }
+
+    /// Simulates dragging the mouse to the specified position with the specified button.
+    /// This will drag from the current cursor position to the target position.
+    pub fn drag_to(&self, button: MouseButton, pos: &Point) -> Result<()> {
+        let mut guard = MouseGuard::new(self);
+
+        self.before_click(&mut guard)?;
+        self.mouse_down(button, &mut guard)?;
+        self.move_to(pos)?;
+        self.mouse_up(button, &mut guard)?;
+        self.after_click(&mut guard)?;
 
         Ok(())
     }
 
-    fn before_click(&self) -> Result<()> {
+    fn before_click(&self, guard: &mut MouseGuard) -> Result<()> {
         for holdkey in &self.holdkeys {
             let key_input = [Input::create_virtual_key(*holdkey, KEYEVENTF_KEYDOWN)];
             send_input(&key_input)?;
             self.wait();
         }
 
+        guard.holding = true;
+
         Ok(())
     }
 
-    fn after_click(&self) -> Result<()> {
+    fn after_click(&self, guard: &mut MouseGuard) -> Result<()> {
+        guard.holding = false;
+
         for holdkey in &self.holdkeys {
             let key_input = [Input::create_virtual_key(*holdkey, KEYEVENTF_KEYUP)];
             send_input(&key_input)?;
@@ -901,6 +1014,22 @@ impl Mouse {
         }
 
         Ok(())
+    }
+
+    fn mouse_down(&self, button: MouseButton, guard: &mut MouseGuard) -> Result<()> {
+        self.mouse_click_event(button.down_flag())?;
+        guard.button = Some(button);
+        Ok(())
+    }
+
+    fn mouse_up(&self, button: MouseButton, guard: &mut MouseGuard) -> Result<()> {
+        if guard.button == Some(button) {
+            self.mouse_click_event(button.up_flag())?;
+            guard.button = None;
+            Ok(())
+        } else {
+            Err(Error::new(ERR_INVALID_ARG, "Mouse not holding this button"))
+        }
     }
 
     fn mouse_click_event(&self, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
@@ -948,6 +1077,40 @@ impl Mouse {
     fn wait(&self) {
         if self.interval > 0 {
             sleep(Duration::from_millis(self.interval));
+        }
+    }
+}
+
+struct MouseGuard<'a> {
+    mouse: &'a Mouse,
+    holding: bool,
+    button: Option<MouseButton>,
+}
+
+impl<'a> MouseGuard<'a> {
+    fn new(mouse: &'a Mouse) -> Self {
+        Self { 
+            mouse, 
+            holding: false, 
+            button: None 
+        }
+    }
+}
+
+impl Drop for MouseGuard<'_> {
+    fn drop(&mut self) {
+        if let Some(button) = self.button {
+            self.button = None;
+            if let Err(e) = self.mouse.mouse_up(button, self) {
+                log_error!("Error releasing mouse button: {}", e);
+            }
+        }
+
+        if self.holding {
+            self.holding = false;
+            if let Err(e) = self.mouse.after_click(self) {
+                log_error!("Error releasing holdkeys: {}", e);
+            }
         }
     }
 }

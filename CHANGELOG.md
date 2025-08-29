@@ -309,3 +309,7 @@
 ## v0.22.2
 
 + Add `Window.get_window_visual_state()` & `Window.set_window_visual_state()`. [#119](https://github.com/leexgone/uiautomation-rs/issues/119)
+
+## v0.23.0
+
++ Support mouse drag operation. [#123](https://github.com/leexgone/uiautomation-rs/issues/123)

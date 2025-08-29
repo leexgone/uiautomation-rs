@@ -35,6 +35,7 @@ use windows::core::Interface;
 // use crate::events::UIPropertyChangedEventHandler;
 // use crate::events::UIStructureChangeEventHandler;
 use crate::filters::FnFilter;
+use crate::inputs::MouseButton;
 use crate::log_debug;
 // use crate::patterns::UIPatternType;
 use crate::types::ControlType;
@@ -1300,7 +1301,7 @@ impl UIElement {
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
-        mouse.click(point)
+        mouse.click(&point)
     }
 
     /// Simulates mouse left click event with holdkeys on the element.
@@ -1310,7 +1311,7 @@ impl UIElement {
     pub fn hold_click(&self, holdkeys: &str) -> Result<()> {
         let point = self.get_click_point()?;
         let mouse = Mouse::default().holdkeys(holdkeys);
-        mouse.click(point)
+        mouse.click(&point)
     }
 
     /// Simulates mouse double click event on the element.
@@ -1320,7 +1321,7 @@ impl UIElement {
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
-        mouse.double_click(point)
+        mouse.double_click(&point)
     }
 
     /// Simulates mouse right click event on the element.
@@ -1330,10 +1331,23 @@ impl UIElement {
 
         let point = self.get_click_point()?;
         let mouse = Mouse::default();
-        mouse.right_click(point)
+        mouse.right_click(&point)
     }
 
-    fn get_click_point(&self) -> Result<Point> {
+    /// Simulates dragging the element to the target element.
+    #[cfg(feature = "input")]
+    pub fn drag_to(&self, target: &UIElement) -> Result<()> {
+        let mouse = Mouse::default();
+
+        let start = self.get_click_point()?;
+        mouse.move_to(&start)?;
+
+        let end = target.get_click_point()?;
+        mouse.drag_to(MouseButton::LEFT, &end)
+    }
+
+    /// Retrieves a point on the element that can be clicked. If not found, returns the center point of the bounding rectangle.
+    pub fn get_click_point(&self) -> Result<Point> {
         if let Ok(Some(point)) = self.get_clickable_point() {
             Ok(point)
         } else {

@@ -1,6 +1,6 @@
 [package]
 name = "uiautomation_derive"
-version = "0.7.3"
+version = "0.7.4"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["Steven Lee <leexgone@163.com>"]
@@ -26,6 +26,6 @@ default-target = "x86_64-pc-windows-msvc"
 targets = []
 
 [dependencies]
-syn = { version = "2.0.104", features = ["full"] }
+syn = { version = "2.0.106", features = ["full"] }
 quote = "1.0.40"
-proc-macro2 = "1.0.95"
+proc-macro2 = "1.0.101"
