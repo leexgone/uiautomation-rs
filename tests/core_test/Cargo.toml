@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 
 uiautomation = { path = "../../crates/uiautomation", features = ["process", "clipboard", "input"] }
-windows = { version = "0.61.1", features = ["Win32_UI_WindowsAndMessaging"]}
+windows = { version = "0.62.0", features = ["Win32_UI_WindowsAndMessaging"]}

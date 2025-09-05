@@ -313,3 +313,7 @@
 ## v0.23.0
 
 + Support mouse drag operation. [#123](https://github.com/leexgone/uiautomation-rs/issues/123)
+
+## v0.23.1
+
++ Update to `windows v0.62`.
