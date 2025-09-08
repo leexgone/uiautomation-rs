@@ -6,4 +6,4 @@ edition = "2024"
 [dependencies]
 
 uiautomation = { path = "../../crates/uiautomation", features = ["process", "event"]}
-windows = { version = "0.62.0", features = []}
+windows = { workspace = true, features = []}

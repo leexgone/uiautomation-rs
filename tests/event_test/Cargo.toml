@@ -7,10 +7,11 @@ edition = "2021"
 
 [dependencies]
 uiautomation = { path = "../../crates/uiautomation" }
-windows-core = "0.62.0"
+windows-core = { workspace = true } # "0.62.0"
 
 [dependencies.windows]
-version = "0.62.0"
+# version = "0.62.0"
+workspace = true
 features = [
     # "implement",
     "UI_UIAutomation",

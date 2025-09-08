@@ -8,3 +8,8 @@ members = [
 ]
 
 resolver = "2"
+
+[workspace.dependencies]
+
+windows = "0.62.0"
+windows-core = "0.62.0"
