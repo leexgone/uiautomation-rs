@@ -82,7 +82,7 @@ fn init_hold_keys() -> HashSet<String> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputItem {
     HoldKey(VIRTUAL_KEY),
-    VirtualKey(VIRTUAL_KEY),
+    VirtualKey(VIRTUAL_KEY, usize), // usize is the repeat count.
     Character(char),
 }
 
@@ -157,9 +157,11 @@ impl Input {
 
         for item in &self.items {
             match item {
-                InputItem::VirtualKey(key) => {
-                    inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYDOWN));
-                    inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYUP));
+                InputItem::VirtualKey(key, count) => {
+                    for _ in 0..max(*count, 1) {
+                        inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYDOWN));
+                        inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYUP));
+                    }
                 },
                 InputItem::Character(ch) => {
                     let mut buffer = [0; 2];
@@ -487,14 +489,19 @@ impl Parser {
             if token == "(" || token == ")" || token == "{" || token == "}" {
                 Ok(InputItem::Character(token.chars().nth(0).unwrap()))
             } else {
-                let token = token.to_uppercase();
                 let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); 
                 let hkeys = HOLD_KEYS.get_or_init(init_hold_keys);
-                if let Some(key) = vkeys.get(&token) {
-                    if hkeys.contains(&token) {
+                
+                // let token = token.to_uppercase();
+                let mut itr = token.split_whitespace();
+                let expr = itr.next().unwrap().to_uppercase();
+                let modifier = itr.next();
+                if let Some(key) = vkeys.get(&expr) {
+                    if hkeys.contains(&expr) {
                         Ok(InputItem::HoldKey(*key))
                     } else {
-                        Ok(InputItem::VirtualKey(*key))
+                        let count: usize = modifier.and_then(|s| s.parse().ok()).unwrap_or(1);
+                        Ok(InputItem::VirtualKey(*key, count))
                     }
                 } else {
                     Err(Error::new(ERR_FORMAT, "Error Input Format"))
@@ -568,6 +575,8 @@ impl Keyboard {
     /// Simulates typing `keys` on keyboard.
     /// 
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
+    /// 
+    /// Special keys can specify the number of repetitions. For example: '{enter 3}' means pressing the Enter key three times.
     /// 
     /// `()` is used for group keys. The '(' symbol only takes effect after the '{}' symbol. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     /// 
@@ -1191,7 +1200,7 @@ mod tests {
             Parser::new(false).parse_input("{ctrl}{alt}{delete}").unwrap(),
             vec![Input {
                 holdkeys: vec![VK_CONTROL, VK_MENU],
-                items: vec![InputItem::VirtualKey(VK_DELETE)]
+                items: vec![InputItem::VirtualKey(VK_DELETE, 1)]
             }]
         );
     }
@@ -1335,6 +1344,18 @@ mod tests {
     fn test_parse_input_9() {
         assert!(
             Parser::new(true).parse_input(" {None} (Keys).").is_ok()
+        );
+    }
+
+    #[test]
+    fn test_repeat_keys() {
+        let input = Parser::new(false).parse_input("{ENTER 3}").unwrap();
+        assert_eq!(
+            input,
+            vec![Input {
+                holdkeys: vec![],
+                items: vec![InputItem::VirtualKey(VK_RETURN, 3)]
+            }]
         );
     }
 

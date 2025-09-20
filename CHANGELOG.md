@@ -317,3 +317,7 @@
 ## v0.23.1
 
 + Update to `windows v0.62`.
+
+## v0.24.0
+
++ Support additional key syntax for repetition count for special keys. [#124](https://github.com/leexgone/uiautomation-rs/issues/124)

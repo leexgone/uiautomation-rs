@@ -1172,6 +1172,8 @@ impl UIElement {
     /// Simulates typing `keys` on keyboard.
     ///
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
+    /// 
+    /// Special keys can specify the number of repetitions. For example: '{enter 3}' means pressing the Enter key three times.
     ///
     /// `()` is used for group keys. The '(' symbol only takes effect after the '{}' symbol. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     ///

@@ -90,6 +90,8 @@ Contact Email: procurement@globex.example.com\"";
             let new_lines: Vec<&str> = content.split(&['\r', '\n']).collect();
             assert_eq!(raw_lines, new_lines);
 
+            notepad.send_keys("{enter 3}Bye!Bye!", 50).unwrap();
+
             close_notepad(&automation, notepad);
         }
     }
