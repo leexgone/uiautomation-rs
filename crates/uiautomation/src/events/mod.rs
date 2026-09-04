@@ -7,7 +7,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
-use windows_core::Param;
+use windows::core::Param;
 
 use crate::types::StructureChangeType;
 use crate::types::UIProperty;

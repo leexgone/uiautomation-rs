@@ -17,8 +17,8 @@ use windows::Win32::System::Memory::GlobalUnlock;
 use windows::Win32::System::Memory::GHND;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow;
 use windows::Win32::UI::WindowsAndMessaging::GetDesktopWindow;
-use windows_core::HRESULT;
-use windows_core::PWSTR;
+use windows::core::HRESULT;
+use windows::core::PWSTR;
 
 use crate::log_error;
 use crate::types::Handle;
