@@ -1,9 +1,8 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use chrono::Local;
 use windows::core::Param;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
@@ -1922,7 +1921,7 @@ impl UIMatcher {
 
     fn find(&self, first_only: bool) -> Result<Vec<UIElement>> {
         let mut elements: Vec<UIElement> = Vec::new();
-        let start = Local::now().timestamp_millis();
+        let start = Instant::now();
         loop {
             // if self.debug {
             //     #[cfg(feature = "log")]
@@ -1941,8 +1940,7 @@ impl UIMatcher {
                 break;
             }
 
-            let now = Local::now().timestamp_millis();
-            if now - start >= self.timeout as i64 {
+            if start.elapsed() >= Duration::from_millis(self.timeout) {
                 return Err(Error::new(ERR_TIMEOUT, "find element time out"));
             }
 
