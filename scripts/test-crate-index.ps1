@@ -43,3 +43,5 @@ if ($script:failures -gt 0) {
     exit 1
 }
 Write-Host 'All crate-index helper tests passed' -ForegroundColor Green
+# Explicit success code so the result never depends on a stale $LASTEXITCODE.
+exit 0

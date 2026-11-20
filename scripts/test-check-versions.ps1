@@ -99,3 +99,6 @@ if ($script:failures -gt 0) {
     exit 1
 }
 Write-Host 'All test cases passed' -ForegroundColor Green
+# Explicit success code: failing cases above spawn child pwsh processes that leave
+# $LASTEXITCODE=1 behind, and cmdlets like Write-Host do not reset it.
+exit 0
