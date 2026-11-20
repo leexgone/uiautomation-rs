@@ -25,6 +25,12 @@ jobs:
         with:
           workspaces: '. -> target'
 
+      - name: Run release-script tests
+        shell: pwsh
+        run: |
+          ./scripts/test-check-versions.ps1
+          ./scripts/test-crate-index.ps1
+
       - name: Verify crate version dependency consistency
         shell: pwsh
         run: ./scripts/check-versions.ps1

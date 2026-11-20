@@ -23,9 +23,11 @@ if (-not (Test-Path $manifestPath)) {
     Write-Fail "Cannot find Cargo.toml under '$Root'; pass the repository root with -Root."
 }
 
-$metadataJson = & cargo metadata --format-version 1 --no-deps --manifest-path $manifestPath
-if ($LASTEXITCODE -ne 0 -or -not $metadataJson) {
-    Write-Fail "cargo metadata failed; make sure the Rust toolchain is available and the manifest is valid: $manifestPath"
+try {
+    $metadataJson = & cargo metadata --format-version 1 --no-deps --manifest-path $manifestPath
+    if ($LASTEXITCODE -ne 0 -or -not $metadataJson) { throw 'cargo metadata exited unsuccessfully' }
+} catch {
+    Write-Fail "cargo metadata failed; make sure the Rust toolchain is installed and the manifest is valid ($manifestPath): $_"
 }
 $metadata = $metadataJson | ConvertFrom-Json
 

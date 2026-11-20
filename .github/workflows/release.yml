@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
 
+# One publish run per tag; a re-run of the same tag waits, and the publish
+# script itself is idempotent (already-published versions are skipped).
+concurrency:
+  group: release-${{ github.ref_name }}
+
 permissions:
   contents: write
 
@@ -23,9 +28,17 @@ jobs:
         with:
           workspaces: '. -> target'
 
+      - name: Run release-script tests
+        shell: pwsh
+        run: |
+          ./scripts/test-check-versions.ps1
+          ./scripts/test-crate-index.ps1
+
       - name: Verify version dependency and tag consistency
         shell: pwsh
-        run: ./scripts/check-versions.ps1 -ExpectedTag '${{ github.ref_name }}'
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: ./scripts/check-versions.ps1 -ExpectedTag $env:TAG_NAME
 
       - name: Pre-release build gate
         shell: pwsh

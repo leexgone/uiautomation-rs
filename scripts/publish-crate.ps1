@@ -17,47 +17,19 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $workspaceManifest = Join-Path $root 'Cargo.toml'
 Set-Location $root
+Import-Module (Join-Path $PSScriptRoot 'CrateIndex.psm1') -Force
 
-$metadataJson = & cargo metadata --format-version 1 --no-deps --manifest-path $workspaceManifest
-if ($LASTEXITCODE -ne 0 -or -not $metadataJson) { throw 'cargo metadata failed' }
+try {
+    $metadataJson = & cargo metadata --format-version 1 --no-deps --manifest-path $workspaceManifest
+    if ($LASTEXITCODE -ne 0 -or -not $metadataJson) { throw 'cargo metadata exited unsuccessfully' }
+} catch {
+    throw "cargo metadata failed; make sure the Rust toolchain is installed and the manifest is valid ($workspaceManifest): $_"
+}
 $pkg = ($metadataJson | ConvertFrom-Json).packages |
     Where-Object { $_.name -eq $Crate } |
     Select-Object -First 1
 if (-not $pkg) { throw "crate $Crate not found in metadata" }
 $version = $pkg.version
-
-# crates.io index path rules:
-# 1 char  -> 1/<name>; 2 chars -> 2/<name>; 3 chars -> 3/<first-char>/<name>;
-# longer  -> <first-2-chars>/<chars-3-4>/<name>
-function Get-CrateIndexUrl {
-    param([string]$Name)
-    $lower = $Name.ToLowerInvariant()
-    if ($lower.Length -eq 1) { return "https://index.crates.io/1/$lower" }
-    if ($lower.Length -eq 2) { return "https://index.crates.io/2/$lower" }
-    if ($lower.Length -eq 3) { return "https://index.crates.io/3/$($lower[0])/$lower" }
-    return "https://index.crates.io/$($lower.Substring(0, 2))/$($lower.Substring(2, 2))/$lower"
-}
-
-function Get-PublishedVersions {
-    param([string]$Url)
-    $versions = @()
-    try {
-        # The sparse index returns newline-delimited JSON lines (Content-Type text/plain),
-        # so fetch raw text and split per line; Invoke-RestMethod / a single ConvertFrom-Json would fail.
-        $text = (Invoke-WebRequest -Uri $Url -UseBasicParsing -Method Get).Content
-        foreach ($line in ($text -split "`r?`n")) {
-            if (-not [string]::IsNullOrWhiteSpace($line)) {
-                $versions += ($line | ConvertFrom-Json).vers
-            }
-        }
-    } catch {
-        # 404 means the crate has no index entry yet (not expected for either target crate, but handled generically).
-        $status = 0
-        if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
-        if ($status -ne 404) { throw }
-    }
-    return $versions
-}
 
 $url = Get-CrateIndexUrl -Name $Crate
 if ((Get-PublishedVersions -Url $url) -contains $version) {
