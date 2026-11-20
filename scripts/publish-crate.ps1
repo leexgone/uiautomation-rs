@@ -1,9 +1,9 @@
-# 幂等发布一个 crate 到 crates.io：
-# 1. 从 cargo metadata 读取工作区中该 crate 的版本；
-# 2. 查询 crates.io sparse 索引，版本已存在则跳过（tag 重跑安全）；
-# 3. 不存在则先 cargo publish --dry-run，再正式 cargo publish；
-# 4. 发布后轮询索引，确认新版本可见（为后续主包发布消除传播延迟）。
-# 凭证：cargo 自动读取环境变量 CARGO_REGISTRY_TOKEN，不要通过命令行传 token。
+# Idempotently publish one crate to crates.io:
+# 1. Read the workspace crate version from cargo metadata;
+# 2. Query the crates.io sparse index; skip when the version already exists (safe tag re-runs);
+# 3. Otherwise run cargo publish --dry-run, then cargo publish;
+# 4. Poll the index until the new version is visible (removes propagation delay before the main crate publishes).
+# Credentials: cargo reads the CARGO_REGISTRY_TOKEN environment variable; never pass the token on the command line.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -19,16 +19,16 @@ $workspaceManifest = Join-Path $root 'Cargo.toml'
 Set-Location $root
 
 $metadataJson = & cargo metadata --format-version 1 --no-deps --manifest-path $workspaceManifest
-if ($LASTEXITCODE -ne 0 -or -not $metadataJson) { throw 'cargo metadata 执行失败' }
+if ($LASTEXITCODE -ne 0 -or -not $metadataJson) { throw 'cargo metadata failed' }
 $pkg = ($metadataJson | ConvertFrom-Json).packages |
     Where-Object { $_.name -eq $Crate } |
     Select-Object -First 1
-if (-not $pkg) { throw "metadata 中找不到 crate $Crate" }
+if (-not $pkg) { throw "crate $Crate not found in metadata" }
 $version = $pkg.version
 
-# crates.io 索引路径规则：
-# 1 字符 -> 1/<name>；2 字符 -> 2/<name>；3 字符 -> 3/<首字符>/<name>；
-# 更长 -> <前2字符>/<第3-4字符>/<name>
+# crates.io index path rules:
+# 1 char  -> 1/<name>; 2 chars -> 2/<name>; 3 chars -> 3/<first-char>/<name>;
+# longer  -> <first-2-chars>/<chars-3-4>/<name>
 function Get-CrateIndexUrl {
     param([string]$Name)
     $lower = $Name.ToLowerInvariant()
@@ -42,8 +42,8 @@ function Get-PublishedVersions {
     param([string]$Url)
     $versions = @()
     try {
-        # sparse 索引返回换行分隔的 JSON 文本行（Content-Type 为 text/plain），
-        # 必须先取原文再按行拆分；直接 Invoke-RestMethod/整体 ConvertFrom-Json 会失败。
+        # The sparse index returns newline-delimited JSON lines (Content-Type text/plain),
+        # so fetch raw text and split per line; Invoke-RestMethod / a single ConvertFrom-Json would fail.
         $text = (Invoke-WebRequest -Uri $Url -UseBasicParsing -Method Get).Content
         foreach ($line in ($text -split "`r?`n")) {
             if (-not [string]::IsNullOrWhiteSpace($line)) {
@@ -51,7 +51,7 @@ function Get-PublishedVersions {
             }
         }
     } catch {
-        # 404 表示该 crate 在索引中尚无任何记录（两个目标 crate 不会出现，但按通用规则处理）
+        # 404 means the crate has no index entry yet (not expected for either target crate, but handled generically).
         $status = 0
         if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
         if ($status -ne 404) { throw }
@@ -61,27 +61,27 @@ function Get-PublishedVersions {
 
 $url = Get-CrateIndexUrl -Name $Crate
 if ((Get-PublishedVersions -Url $url) -contains $version) {
-    Write-Host "[$Crate $version] crates.io 上已存在，跳过发布。" -ForegroundColor Yellow
+    Write-Host "[$Crate $version] already published on crates.io, skipping." -ForegroundColor Yellow
     exit 0
 }
 
-Write-Host "[$Crate $version] 未发布，先执行 dry-run ..." -ForegroundColor Cyan
+Write-Host "[$Crate $version] not published yet, running dry-run ..." -ForegroundColor Cyan
 cargo publish -p $Crate --dry-run
-if ($LASTEXITCODE -ne 0) { throw "[$Crate] dry-run 失败" }
+if ($LASTEXITCODE -ne 0) { throw "[$Crate] dry-run failed" }
 
-Write-Host "[$Crate $version] 正式发布 ..." -ForegroundColor Cyan
-# 注意：cargo publish 不支持 --all-features；全 feature 编译由发版 workflow 中
-# `cargo check --workspace --all-targets --all-features` 闸门保证，publish 自身只验证默认 feature。
+Write-Host "[$Crate $version] publishing ..." -ForegroundColor Cyan
+# cargo publish has no --all-features; the full-feature build is guaranteed by the release
+# workflow's `cargo check --workspace --all-targets --all-features` gate; publish itself validates default features.
 cargo publish -p $Crate
-if ($LASTEXITCODE -ne 0) { throw "[$Crate] publish 失败" }
+if ($LASTEXITCODE -ne 0) { throw "[$Crate] publish failed" }
 
 $deadline = (Get-Date).AddSeconds(120)
 while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 5
     if ((Get-PublishedVersions -Url $url) -contains $version) {
-        Write-Host "[$Crate $version] 已进入 crates.io 索引。" -ForegroundColor Green
+        Write-Host "[$Crate $version] is now visible in the crates.io index." -ForegroundColor Green
         exit 0
     }
-    Write-Host '索引尚未出现新版本，继续等待 ...'
+    Write-Host 'new version not yet in the index, waiting ...'
 }
-throw "[$Crate $version] 发布后 120 秒内未在索引中出现；可直接重跑该 tag（流程幂等）。"
+throw "[$Crate $version] did not appear in the index within 120s after publishing; re-run the tag (the flow is idempotent)."

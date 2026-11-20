@@ -10,40 +10,40 @@ permissions:
 
 jobs:
   publish:
-    name: 校验并发布两个 crate
+    name: Validate and publish both crates
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: 安装 Rust 工具链
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cargo 缓存
+      - name: Cargo cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: '. -> target'
 
-      - name: 校验版本依赖与 tag 一致性
+      - name: Verify version dependency and tag consistency
         shell: pwsh
         run: ./scripts/check-versions.ps1 -ExpectedTag '${{ github.ref_name }}'
 
-      - name: 发布前编译闸门
+      - name: Pre-release build gate
         shell: pwsh
         run: cargo check --workspace --all-targets --all-features
 
-      - name: 发布 uiautomation_derive（先发）
+      - name: Publish uiautomation_derive (first)
         shell: pwsh
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: ./scripts/publish-crate.ps1 -Crate uiautomation_derive
 
-      - name: 发布 uiautomation（后发）
+      - name: Publish uiautomation (second)
         shell: pwsh
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: ./scripts/publish-crate.ps1 -Crate uiautomation
 
-      - name: 创建 GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ github.ref_name }}
