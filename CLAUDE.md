@@ -10,6 +10,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `uiautomation` - main library (Rust bindings for `IUIAutomation`)
 - `uiautomation_derive` - procedural macros for control pattern derive traits
 
+## Repository Conventions
+
+- Everything committed to this repository is written in **English**: code comments, documentation, workflow names and step labels, script messages, and **git commit messages**.
+- Commit messages: short imperative subject in English, optionally with a conventional prefix seen in the history (`ci:`, `docs:`, `chore:`, `feat:`, `fix:`), e.g. `docs: document the release procedure`.
+- Requirement/design/plan working documents produced during agent sessions may be written in Chinese for the maintainer's review, but they are process artifacts and are not committed to the repository.
+
 ## Build & Development Commands
 
 ```bash
