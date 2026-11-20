@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Windows build gate and version check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: '. -> target'
+
+      - name: Run release-script tests
+        shell: pwsh
+        run: |
+          ./scripts/test-check-versions.ps1
+          ./scripts/test-crate-index.ps1
+
+      - name: Verify crate version dependency consistency
+        shell: pwsh
+        run: ./scripts/check-versions.ps1
+
+      - name: Check the whole workspace (samples and test programs included)
+        shell: pwsh
+        run: cargo check --workspace --all-targets --all-features

@@ -36,7 +36,7 @@ log = ["dep:log"]
 
 log = { version = "0.4.35", optional = true }
 png = { version = "0.18.1", optional = true }
-uiautomation_derive = { version = "0.7.9", path = "../uiautomation_derive" }
+uiautomation_derive = { version = "=0.7.10", path = "../uiautomation_derive" }
 
 [dependencies.windows-core]
 workspace = true
