@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Windows 编译闸门与版本校验
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo 缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: '. -> target'
+
+      - name: 校验 crate 版本依赖一致性
+        shell: pwsh
+        run: ./scripts/check-versions.ps1
+
+      - name: 编译校验整个工作区（含 samples 与 tests 程序）
+        shell: pwsh
+        run: cargo check --workspace --all-targets --all-features
