@@ -15,4 +15,5 @@ Cargo.lock
 /target
 .vscode
 
-CLAUDE.md
+# Local Claude Code settings
+.claude/
