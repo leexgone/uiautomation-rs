@@ -1,4 +1,3 @@
-use crate::types::WindowVisualState;
 use crate::Result;
 use crate::UIElement;
 use crate::patterns::UITextRange;
@@ -11,6 +10,7 @@ use crate::types::ScrollAmount;
 use crate::types::SupportedTextSelection;
 use crate::types::ToggleState;
 use crate::types::WindowInteractionState;
+use crate::types::WindowVisualState;
 use crate::types::ZoomUnit;
 use crate::variants::Variant;
 
@@ -68,7 +68,7 @@ pub trait MultipleView {
     fn get_supported_views(&self) -> Result<Vec<i32>>;
 
     /// Retrieves the name of a control-specific view.
-    /// 
+    ///
     /// The `view` parameter is the id of the view. You can get all view identifiers by `get_supported_views()` function.
     fn get_view_name(&self, view: i32) -> Result<String>;
 
@@ -82,9 +82,14 @@ pub trait MultipleView {
 /// Define a ItemContainer action for uielement.
 pub trait ItemContainer {
     /// Retrieves an element within a containing element, based on a specified property value.
-    /// 
+    ///
     /// Search `UIElement` from the `start_ater` item, return the first item which property is specified value.
-    fn find_item_by_property(&self, start_after: UIElement, property_id: i32, value: Variant) -> Result<UIElement>;    
+    fn find_item_by_property(
+        &self,
+        start_after: UIElement,
+        property_id: i32,
+        value: Variant,
+    ) -> Result<UIElement>;
 }
 
 /// Define a Scroll action for uielement.
@@ -117,7 +122,7 @@ pub trait Scroll {
 /// Define a ScrollItem action for uielement.
 pub trait ScrollItem {
     /// Scrolls the content area of a container object to display the UI Automation element within the visible region (viewport) of the container.
-    fn scroll_into_view(&self) -> Result<()>;    
+    fn scroll_into_view(&self) -> Result<()>;
 }
 
 /// Define a Window action for uielement.
@@ -143,10 +148,10 @@ pub trait Window {
     /// Indicates whether the window can be maximized.
     fn can_maximize(&self) -> Result<bool>;
 
-    /// Chcek whether the window is maximized state. 
+    /// Chcek whether the window is maximized state.
     fn is_maximized(&self) -> Result<bool>;
 
-    /// Set the window state as maximized. 
+    /// Set the window state as maximized.
     fn maximize(&self) -> Result<()>;
 
     /// Indicates whether the window can be minimized.

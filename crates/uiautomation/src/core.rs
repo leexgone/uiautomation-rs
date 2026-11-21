@@ -3,7 +3,6 @@ use std::fmt::Display;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use windows::core::Param;
 use windows::Win32::System::Com::CLSCTX_ALL;
 use windows::Win32::System::Com::COINIT_MULTITHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
@@ -25,6 +24,7 @@ use windows::Win32::UI::Accessibility::IUIAutomationPropertyCondition;
 use windows::Win32::UI::Accessibility::IUIAutomationTreeWalker;
 use windows::core::IUnknown;
 use windows::core::Interface;
+use windows::core::Param;
 // use windows::Win32::UI::Accessibility::UIA_PROPERTY_ID;
 
 // use crate::controls::ControlType;
@@ -46,37 +46,37 @@ use crate::types::TreeScope;
 use crate::types::UIProperty;
 use crate::variants::SafeArray;
 
-use super::filters::ClassNameFilter;
-use super::filters::MatcherFilter;
-use super::filters::ControlTypeFilter;
-use super::filters::NameFilter;
 use super::errors::ERR_NOTFOUND;
 use super::errors::ERR_TIMEOUT;
 use super::errors::Error;
 use super::errors::Result;
+use super::filters::ClassNameFilter;
+use super::filters::ControlTypeFilter;
+use super::filters::MatcherFilter;
+use super::filters::NameFilter;
 // use super::patterns::UIPattern;
 use super::types::Handle;
-use super::types::Rect;
 use super::types::Point;
+use super::types::Rect;
 use super::variants::Variant;
 
 // #[cfg(feature = "input")]
 // use arboard::Clipboard;
-#[cfg(feature = "input")]
-use crate::inputs::Mouse;
-#[cfg(feature = "input")]
-use super::inputs::Keyboard;
-#[cfg(feature = "event")]
-use super::events::*;
 #[cfg(feature = "clipboard")]
 use super::clipboards::Clipboard;
+#[cfg(feature = "event")]
+use super::events::*;
+#[cfg(feature = "input")]
+use super::inputs::Keyboard;
+#[cfg(feature = "input")]
+use crate::inputs::Mouse;
 
 /// A wrapper for windows `IUIAutomation` interface.
 ///
 /// Exposes methods that enable Microsoft UI Automation client applications to discover, access, and filter UI Automation elements.
 #[derive(Debug, Clone)]
 pub struct UIAutomation {
-    automation: IUIAutomation
+    automation: IUIAutomation,
 }
 
 impl UIAutomation {
@@ -84,9 +84,7 @@ impl UIAutomation {
     ///
     /// This method initializes the COM library each time, sets the thread's concurrency model as `COINIT_MULTITHREADED`.
     pub fn new() -> Result<UIAutomation> {
-        let result = unsafe {
-            CoInitializeEx(None, COINIT_MULTITHREADED)
-        };
+        let result = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
 
         if result.is_ok() {
             UIAutomation::new_direct()
@@ -99,89 +97,92 @@ impl UIAutomation {
     ///
     /// The COM library should be initialized manually before invoking.
     pub fn new_direct() -> Result<UIAutomation> {
-        let automation: IUIAutomation = unsafe {
-            CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?
-        };
+        let automation: IUIAutomation =
+            unsafe { CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)? };
 
-        Ok(UIAutomation {
-            automation
-        })
+        Ok(UIAutomation { automation })
     }
 
     /// Compares two UI Automation elements to determine whether they represent the same underlying UI element.
     pub fn compare_elements(&self, element1: &UIElement, element2: &UIElement) -> Result<bool> {
         let same;
         unsafe {
-            same = self.automation.CompareElements(element1.as_ref(), element2.as_ref())?;
+            same = self
+                .automation
+                .CompareElements(element1.as_ref(), element2.as_ref())?;
         }
         Ok(same.as_bool())
     }
 
     /// Retrieves a UI Automation element for the specified window.
     pub fn element_from_handle(&self, hwnd: Handle) -> Result<UIElement> {
-        let element = unsafe {
-            self.automation.ElementFromHandle(hwnd.into())?
-        };
+        let element = unsafe { self.automation.ElementFromHandle(hwnd.into())? };
 
         Ok(UIElement::from(element))
     }
 
     /// Retrieves a UI Automation element for the specified window, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn element_from_handle_build_cache(&self, hwnd: Handle, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn element_from_handle_build_cache(
+        &self,
+        hwnd: Handle,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let element = unsafe {
-            self.automation.ElementFromHandleBuildCache(hwnd.into(), cache_request)?
+            self.automation
+                .ElementFromHandleBuildCache(hwnd.into(), cache_request)?
         };
         Ok(element.into())
     }
 
     /// Retrieves the UI Automation element at the specified point on the desktop.
     pub fn element_from_point(&self, point: Point) -> Result<UIElement> {
-        let element = unsafe {
-            self.automation.ElementFromPoint(point.into())?
-        };
+        let element = unsafe { self.automation.ElementFromPoint(point.into())? };
 
         Ok(UIElement::from(element))
     }
 
     /// Retrieves the UI Automation element at the specified point on the desktop, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn element_from_point_build_cache(&self, point: Point, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn element_from_point_build_cache(
+        &self,
+        point: Point,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let element = unsafe {
-            self.automation.ElementFromPointBuildCache(point.into(), cache_request)?
+            self.automation
+                .ElementFromPointBuildCache(point.into(), cache_request)?
         };
         Ok(element.into())
     }
 
     /// Retrieves the UI Automation element that has the input focus.
     pub fn get_focused_element(&self) -> Result<UIElement> {
-        let element = unsafe {
-            self.automation.GetFocusedElement()?
-        };
+        let element = unsafe { self.automation.GetFocusedElement()? };
 
         Ok(UIElement::from(element))
     }
 
     /// Retrieves the UI Automation element that has the input focus, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn get_focused_element_build_cache(&self, cache_request: &UICacheRequest) -> Result<UIElement> {
-        let element = unsafe {
-            self.automation.GetFocusedElementBuildCache(cache_request)?
-        };
+    pub fn get_focused_element_build_cache(
+        &self,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
+        let element = unsafe { self.automation.GetFocusedElementBuildCache(cache_request)? };
         Ok(element.into())
     }
 
     /// Retrieves the UI Automation element that represents the desktop.
     pub fn get_root_element(&self) -> Result<UIElement> {
-        let element = unsafe {
-            self.automation.GetRootElement()?
-        };
+        let element = unsafe { self.automation.GetRootElement()? };
 
         Ok(UIElement::from(element))
     }
 
     /// Retrieves the UI Automation element that represents the desktop, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn get_root_element_build_cache(&self, cache_request: &UICacheRequest) -> Result<UIElement> {
-        let element = unsafe {
-            self.automation.GetRootElementBuildCache(cache_request)?
-        };
+    pub fn get_root_element_build_cache(
+        &self,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
+        let element = unsafe { self.automation.GetRootElementBuildCache(cache_request)? };
         Ok(element.into())
     }
 
@@ -209,49 +210,37 @@ impl UIAutomation {
 
     /// Retrieves a filtered tree walker object that can be used to traverse the Microsoft UI Automation tree.
     pub fn filter_tree_walker(&self, condition: UICondition) -> Result<UITreeWalker> {
-        let tree_walker = unsafe {
-            self.automation.CreateTreeWalker(condition)?
-        };
+        let tree_walker = unsafe { self.automation.CreateTreeWalker(condition)? };
         Ok(tree_walker.into())
     }
 
     /// Retrieves a tree walker object used to traverse an unfiltered view of the Microsoft UI Automation tree.
     pub fn get_raw_view_walker(&self) -> Result<UITreeWalker> {
-        let walker = unsafe {
-            self.automation.RawViewWalker()?
-        };
+        let walker = unsafe { self.automation.RawViewWalker()? };
         Ok(walker.into())
     }
 
     /// Retrieves a predefined UICondition that selects control elements.
     pub fn get_control_view_condition(&self) -> Result<UICondition> {
-        let condition = unsafe {
-            self.automation.ControlViewCondition()?
-        };
+        let condition = unsafe { self.automation.ControlViewCondition()? };
         Ok(condition.into())
     }
 
     /// Retrieves a predefined UITreeWalker interface that selects control elements.
     pub fn get_control_view_walker(&self) -> Result<UITreeWalker> {
-        let walker = unsafe {
-            self.automation.ControlViewWalker()?
-        };
+        let walker = unsafe { self.automation.ControlViewWalker()? };
         Ok(walker.into())
     }
 
     /// Retrieves a predefined UICondition that selects content elements.
     pub fn get_content_view_condition(&self) -> Result<UICondition> {
-        let condition = unsafe {
-            self.automation.ContentViewCondition()?
-        };
+        let condition = unsafe { self.automation.ContentViewCondition()? };
         Ok(condition.into())
     }
 
     /// Retrieves a UITreeWalker interface used to discover content elements.
     pub fn get_content_view_walker(&self) -> Result<UITreeWalker> {
-        let walker = unsafe {
-            self.automation.ContentViewWalker()?
-        };
+        let walker = unsafe { self.automation.ContentViewWalker()? };
         Ok(walker.into())
     }
 
@@ -274,52 +263,60 @@ impl UIAutomation {
 
     /// Retrieves a predefined condition that selects all elements.
     pub fn create_true_condition(&self) -> Result<UICondition> {
-        let condition = unsafe {
-            self.automation.CreateTrueCondition()?
-        };
+        let condition = unsafe { self.automation.CreateTrueCondition()? };
         Ok(condition.into())
     }
 
     /// Creates a condition that is always false.
     pub fn create_false_condition(&self) -> Result<UICondition> {
-        let condition = unsafe {
-            self.automation.CreateFalseCondition()?
-        };
+        let condition = unsafe { self.automation.CreateFalseCondition()? };
         Ok(condition.into())
     }
 
     /// Creates a condition that is the negative of a specified condition.
     pub fn create_not_condition(&self, condition: UICondition) -> Result<UICondition> {
         // let condition: IUIAutomationCondition = condition.into();
-        let result = unsafe {
-            self.automation.CreateNotCondition(condition)?
-        };
+        let result = unsafe { self.automation.CreateNotCondition(condition)? };
         Ok(result.into())
     }
 
     /// Creates a condition that selects elements that match both of two conditions.
-    pub fn create_and_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        let result = unsafe {
-            self.automation.CreateAndCondition(condition1, condition2)?
-        };
+    pub fn create_and_condition(
+        &self,
+        condition1: UICondition,
+        condition2: UICondition,
+    ) -> Result<UICondition> {
+        let result = unsafe { self.automation.CreateAndCondition(condition1, condition2)? };
         Ok(result.into())
     }
 
     /// Creates a combination of two conditions where a match exists if either of the conditions is true.
-    pub fn create_or_condition(&self, condition1: UICondition, condition2: UICondition) -> Result<UICondition> {
-        let result = unsafe {
-            self.automation.CreateOrCondition(condition1, condition2)?
-        };
+    pub fn create_or_condition(
+        &self,
+        condition1: UICondition,
+        condition2: UICondition,
+    ) -> Result<UICondition> {
+        let result = unsafe { self.automation.CreateOrCondition(condition1, condition2)? };
         Ok(result.into())
     }
 
     /// Creates a condition that selects elements that have a property with the specified value, using optional flags.
-    pub fn create_property_condition(&self, property: UIProperty, value: Variant, flags: Option<PropertyConditionFlags>) -> Result<UICondition> {
+    pub fn create_property_condition(
+        &self,
+        property: UIProperty,
+        value: Variant,
+        flags: Option<PropertyConditionFlags>,
+    ) -> Result<UICondition> {
         let condition = unsafe {
             if let Some(flags) = flags {
-                self.automation.CreatePropertyConditionEx(property.into(), value.as_ref(), flags.into())?
+                self.automation.CreatePropertyConditionEx(
+                    property.into(),
+                    value.as_ref(),
+                    flags.into(),
+                )?
             } else {
-                self.automation.CreatePropertyCondition(property.into(), value.as_ref())?
+                self.automation
+                    .CreatePropertyCondition(property.into(), value.as_ref())?
             }
         };
         Ok(condition.into())
@@ -333,101 +330,157 @@ impl UIAutomation {
 
     /// Registers a method that handles Microsoft UI Automation events.
     #[cfg(feature = "event")]
-    pub fn add_automation_event_handler(&self, event_type: UIEventType, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIEventHandler) -> Result<()> {
+    pub fn add_automation_event_handler(
+        &self,
+        event_type: UIEventType,
+        element: &UIElement,
+        scope: TreeScope,
+        cache_request: Option<&UICacheRequest>,
+        handler: &UIEventHandler,
+    ) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
-            self.automation.AddAutomationEventHandler(event_type.into(), element, scope.into(), cache_request, handler)?
+            self.automation.AddAutomationEventHandler(
+                event_type.into(),
+                element,
+                scope.into(),
+                cache_request,
+                handler,
+            )?
         };
         Ok(())
     }
 
     /// Removes the specified UI Automation event handler.
     #[cfg(feature = "event")]
-    pub fn remove_automation_event_handler(&self, event_type: UIEventType, element: &UIElement, handler: &UIEventHandler) -> Result<()> {
+    pub fn remove_automation_event_handler(
+        &self,
+        event_type: UIEventType,
+        element: &UIElement,
+        handler: &UIEventHandler,
+    ) -> Result<()> {
         unsafe {
-            self.automation.RemoveAutomationEventHandler(event_type.into(), element, handler)?
+            self.automation
+                .RemoveAutomationEventHandler(event_type.into(), element, handler)?
         };
         Ok(())
     }
 
     /// Registers a method that handles and array of property-changed events.
     #[cfg(feature = "event")]
-    pub fn add_property_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIPropertyChangedEventHandler, properties: &[UIProperty]) -> Result<()> {
+    pub fn add_property_changed_event_handler(
+        &self,
+        element: &UIElement,
+        scope: TreeScope,
+        cache_request: Option<&UICacheRequest>,
+        handler: &UIPropertyChangedEventHandler,
+        properties: &[UIProperty],
+    ) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
-        let prop_arr: Vec<windows::Win32::UI::Accessibility::UIA_PROPERTY_ID> = properties.iter().map(|p| (*p).into()).collect();
+        let prop_arr: Vec<windows::Win32::UI::Accessibility::UIA_PROPERTY_ID> =
+            properties.iter().map(|p| (*p).into()).collect();
         unsafe {
-            self.automation.AddPropertyChangedEventHandlerNativeArray(element, scope.into(), cache_request, handler, &prop_arr)?
+            self.automation.AddPropertyChangedEventHandlerNativeArray(
+                element,
+                scope.into(),
+                cache_request,
+                handler,
+                &prop_arr,
+            )?
         };
         Ok(())
     }
 
     /// Removes a property-changed event handler.
     #[cfg(feature = "event")]
-    pub fn remove_property_changed_event_handler(&self, element: &UIElement, handler: &UIPropertyChangedEventHandler) -> Result<()> {
+    pub fn remove_property_changed_event_handler(
+        &self,
+        element: &UIElement,
+        handler: &UIPropertyChangedEventHandler,
+    ) -> Result<()> {
         unsafe {
-            self.automation.RemovePropertyChangedEventHandler(element, handler)?
+            self.automation
+                .RemovePropertyChangedEventHandler(element, handler)?
         };
         Ok(())
     }
 
     /// Registers a method that handles structure-changed events.
     #[cfg(feature = "event")]
-    pub fn add_structure_changed_event_handler(&self, element: &UIElement, scope: TreeScope, cache_request: Option<&UICacheRequest>, handler: &UIStructureChangeEventHandler) -> Result<()> {
+    pub fn add_structure_changed_event_handler(
+        &self,
+        element: &UIElement,
+        scope: TreeScope,
+        cache_request: Option<&UICacheRequest>,
+        handler: &UIStructureChangeEventHandler,
+    ) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
-            self.automation.AddStructureChangedEventHandler(element, scope.into(), cache_request, handler)?
+            self.automation.AddStructureChangedEventHandler(
+                element,
+                scope.into(),
+                cache_request,
+                handler,
+            )?
         };
         Ok(())
     }
 
     /// Removes a structure-changed event handler.
     #[cfg(feature = "event")]
-    pub fn remove_structure_changed_event_handler(&self, element: &UIElement, handler: &UIStructureChangeEventHandler) -> Result<()> {
+    pub fn remove_structure_changed_event_handler(
+        &self,
+        element: &UIElement,
+        handler: &UIStructureChangeEventHandler,
+    ) -> Result<()> {
         unsafe {
-            self.automation.RemoveStructureChangedEventHandler(element, handler)?
+            self.automation
+                .RemoveStructureChangedEventHandler(element, handler)?
         };
         Ok(())
     }
 
     /// Registers a method that handles focus-changed events.
     #[cfg(feature = "event")]
-    pub fn add_focus_changed_event_handler(&self, cache_request: Option<&UICacheRequest>, handler: &UIFocusChangedEventHandler) -> Result<()> {
+    pub fn add_focus_changed_event_handler(
+        &self,
+        cache_request: Option<&UICacheRequest>,
+        handler: &UIFocusChangedEventHandler,
+    ) -> Result<()> {
         let cache_request = cache_request.map(|r| r.as_ref());
         unsafe {
-            self.automation.AddFocusChangedEventHandler(cache_request, handler)?
+            self.automation
+                .AddFocusChangedEventHandler(cache_request, handler)?
         };
         Ok(())
     }
 
     /// Removes a focus-changed event handler.
     #[cfg(feature = "event")]
-    pub fn remove_focus_changed_event_handler(&self, handler: &UIFocusChangedEventHandler) -> Result<()> {
-        unsafe {
-            self.automation.RemoveFocusChangedEventHandler(handler)?
-        };
+    pub fn remove_focus_changed_event_handler(
+        &self,
+        handler: &UIFocusChangedEventHandler,
+    ) -> Result<()> {
+        unsafe { self.automation.RemoveFocusChangedEventHandler(handler)? };
         Ok(())
     }
 
     /// Removes all registered Microsoft UI Automation event handlers.
     pub fn remove_all_event_handlers(&self) -> Result<()> {
-        unsafe {
-            self.automation.RemoveAllEventHandlers()?
-        };
+        unsafe { self.automation.RemoveAllEventHandlers()? };
         Ok(())
     }
 }
 
 impl From<IUIAutomation> for UIAutomation {
     fn from(automation: IUIAutomation) -> Self {
-        UIAutomation {
-            automation
-        }
+        UIAutomation { automation }
     }
 }
 
-impl Into<IUIAutomation> for UIAutomation {
-    fn into(self) -> IUIAutomation {
-        self.automation
+impl From<UIAutomation> for IUIAutomation {
+    fn from(val: UIAutomation) -> Self {
+        val.automation
     }
 }
 
@@ -442,71 +495,71 @@ impl AsRef<IUIAutomation> for UIAutomation {
 /// Exposes methods and properties for a UI Automation element, which represents a UI item.
 #[derive(Clone)]
 pub struct UIElement {
-    element: IUIAutomationElement
+    element: IUIAutomationElement,
 }
 
 impl UIElement {
     /// Retrieves a new UI Automation element with an updated cache.
     pub fn build_updated_cache(&self, cache_request: &UICacheRequest) -> Result<UIElement> {
-        let element = unsafe {
-            self.element.BuildUpdatedCache(cache_request)?
-        };
+        let element = unsafe { self.element.BuildUpdatedCache(cache_request)? };
         Ok(element.into())
     }
 
     /// Retrieves the first child or descendant element that matches the specified condition.
     pub fn find_first(&self, scope: TreeScope, condition: &UICondition) -> Result<UIElement> {
-        let result = unsafe {
-            self.element.FindFirst(scope.into(), condition.as_ref())?
-        };
+        let result = unsafe { self.element.FindFirst(scope.into(), condition.as_ref())? };
         Ok(result.into())
     }
 
     /// Retrieves the first child or descendant element that matches the specified condition, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn find_first_build_cache(&self, scope: TreeScope, condition: &UICondition, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn find_first_build_cache(
+        &self,
+        scope: TreeScope,
+        condition: &UICondition,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let element = unsafe {
-            self.element.FindFirstBuildCache(scope.into(), condition, cache_request)?
+            self.element
+                .FindFirstBuildCache(scope.into(), condition, cache_request)?
         };
         Ok(element.into())
     }
 
     /// Returns all UI Automation elements that satisfy the specified condition.
     pub fn find_all(&self, scope: TreeScope, condition: &UICondition) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.FindAll(scope.into(), condition.as_ref())?
-        };
+        let elements = unsafe { self.element.FindAll(scope.into(), condition.as_ref())? };
         Self::to_elements(elements)
     }
 
     /// Returns all UI Automation elements that satisfy the specified condition, prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn find_all_build_cache(&self, scope: TreeScope, condition: &UICondition, cache_request: &UICacheRequest) -> Result<Vec<UIElement>> {
+    pub fn find_all_build_cache(
+        &self,
+        scope: TreeScope,
+        condition: &UICondition,
+        cache_request: &UICacheRequest,
+    ) -> Result<Vec<UIElement>> {
         let elements = unsafe {
-            self.element.FindAllBuildCache(scope.into(), condition, cache_request)?
+            self.element
+                .FindAllBuildCache(scope.into(), condition, cache_request)?
         };
         Self::to_elements(elements)
     }
 
     /// Retrieves from the cache the parent of this UI Automation element.
     pub fn get_cached_parent(&self) -> Result<UIElement> {
-        let parent = unsafe {
-            self.element.GetCachedParent()?
-        };
+        let parent = unsafe { self.element.GetCachedParent()? };
         Ok(parent.into())
     }
 
     /// Retrieves the cached child elements of this UI Automation element.
     pub fn get_cached_children(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.GetCachedChildren()?
-        };
+        let elements = unsafe { self.element.GetCachedChildren()? };
         Self::to_elements(elements)
     }
 
     /// Receives the runtime ID as a vec of integers.
     pub fn get_runtime_id(&self) -> Result<Vec<i32>> {
-        let id = unsafe {
-            self.element.GetRuntimeId()?
-        };
+        let id = unsafe { self.element.GetRuntimeId()? };
 
         let arr = SafeArray::new(id, false);
         arr.try_into()
@@ -514,345 +567,267 @@ impl UIElement {
 
     /// Retrieves the name of the element.
     pub fn get_name(&self) -> Result<String> {
-        let name = unsafe {
-            self.element.CurrentName()?
-        };
+        let name = unsafe { self.element.CurrentName()? };
 
         Ok(name.to_string())
     }
 
     /// Retrieves the cached name of the element.
     pub fn get_cached_name(&self) -> Result<String> {
-        let name = unsafe {
-            self.element.CachedName()?
-        };
+        let name = unsafe { self.element.CachedName()? };
         Ok(name.to_string())
     }
 
     /// Retrieves the Microsoft UI Automation identifier of the element.
     pub fn get_automation_id(&self) -> Result<String> {
-        let automation_id = unsafe {
-            self.element.CurrentAutomationId()?
-        };
+        let automation_id = unsafe { self.element.CurrentAutomationId()? };
 
         Ok(automation_id.to_string())
     }
 
     /// Retrieves the cached Microsoft UI Automation identifier of the element.
     pub fn get_cached_automation_id(&self) -> Result<String> {
-        let automation_id = unsafe {
-            self.element.CachedAutomationId()?
-        };
+        let automation_id = unsafe { self.element.CachedAutomationId()? };
         Ok(automation_id.to_string())
     }
 
     /// Retrieves the identifier of the process that hosts the element.
     pub fn get_process_id(&self) -> Result<u32> {
-        let id = unsafe {
-            self.element.CurrentProcessId()?
-        };
+        let id = unsafe { self.element.CurrentProcessId()? };
 
         Ok(id as _)
     }
 
     /// Retrieves the cached ID of the process that hosts the element.
     pub fn get_cached_process_id(&self) -> Result<i32> {
-        let id = unsafe {
-            self.element.CachedProcessId()?
-        };
+        let id = unsafe { self.element.CachedProcessId()? };
         Ok(id)
     }
 
     /// Retrieves the class name of the element.
-   pub fn get_classname(&self) -> Result<String> {
-        let classname = unsafe {
-            self.element.CurrentClassName()?
-        };
+    pub fn get_classname(&self) -> Result<String> {
+        let classname = unsafe { self.element.CurrentClassName()? };
 
         Ok(classname.to_string())
     }
 
     /// Retrieves the cached class name of the element.
     pub fn get_cached_classname(&self) -> Result<String> {
-        let classname = unsafe {
-            self.element.CachedClassName()?
-        };
+        let classname = unsafe { self.element.CachedClassName()? };
         Ok(classname.to_string())
     }
 
     /// Retrieves the control type of the element.
     pub fn get_control_type(&self) -> Result<ControlType> {
-        let control_type = unsafe {
-            self.element.CurrentControlType()?
-        };
+        let control_type = unsafe { self.element.CurrentControlType()? };
 
         ControlType::try_from(control_type)
     }
 
     /// Retrieves the cached control type of the element.
     pub fn get_cached_control_type(&self) -> Result<ControlType> {
-        let control_type = unsafe {
-            self.element.CachedControlType()?
-        };
+        let control_type = unsafe { self.element.CachedControlType()? };
         control_type.try_into()
     }
 
     /// Retrieves a localized description of the control type of the element.
     pub fn get_localized_control_type(&self) -> Result<String> {
-        let control_type = unsafe {
-            self.element.CurrentLocalizedControlType()?
-        };
+        let control_type = unsafe { self.element.CurrentLocalizedControlType()? };
 
         Ok(control_type.to_string())
     }
 
     /// Retrieves cached localized description of the control type of the element.
     pub fn get_cached_localized_control_type(&self) -> Result<String> {
-        let control_type = unsafe {
-            self.element.CachedLocalizedControlType()?
-        };
+        let control_type = unsafe { self.element.CachedLocalizedControlType()? };
         Ok(control_type.to_string())
     }
 
     /// Retrieves the accelerator key for the element.
     pub fn get_accelerator_key(&self) -> Result<String> {
-        let accelerator_key = unsafe {
-            self.element.CurrentAcceleratorKey()?
-        };
+        let accelerator_key = unsafe { self.element.CurrentAcceleratorKey()? };
 
         Ok(accelerator_key.to_string())
     }
 
     /// Retrieves the cached accelerator key for the element.
     pub fn get_cached_accelerator_key(&self) -> Result<String> {
-        let accelerator_key = unsafe {
-            self.element.CachedAcceleratorKey()?
-        };
+        let accelerator_key = unsafe { self.element.CachedAcceleratorKey()? };
 
         Ok(accelerator_key.to_string())
     }
 
     /// Retrieves the access key character for the element.
     pub fn get_access_key(&self) -> Result<String> {
-        let access_key = unsafe {
-            self.element.CurrentAccessKey()?
-        };
+        let access_key = unsafe { self.element.CurrentAccessKey()? };
 
         Ok(access_key.to_string())
     }
 
     /// Retrieves the cached access key character for the element.
     pub fn get_cached_access_key(&self) -> Result<String> {
-        let access_key = unsafe {
-            self.element.CachedAccessKey()?
-        };
+        let access_key = unsafe { self.element.CachedAccessKey()? };
 
         Ok(access_key.to_string())
     }
 
     /// Indicates whether the element has keyboard focus.
     pub fn has_keyboard_focus(&self) -> Result<bool> {
-        let has_focus = unsafe {
-            self.element.CurrentHasKeyboardFocus()?
-        };
+        let has_focus = unsafe { self.element.CurrentHasKeyboardFocus()? };
 
         Ok(has_focus.as_bool())
     }
 
     /// A cached value that indicates whether the element has keyboard focus.
     pub fn has_cached_keyboard_focus(&self) -> Result<bool> {
-        let has_focus = unsafe {
-            self.element.CachedHasKeyboardFocus()?
-        };
+        let has_focus = unsafe { self.element.CachedHasKeyboardFocus()? };
 
         Ok(has_focus.as_bool())
     }
 
     /// Indicates whether the element can accept keyboard focus.
     pub fn is_keyboard_focusable(&self) -> Result<bool> {
-        let focusable = unsafe {
-            self.element.CurrentIsKeyboardFocusable()?
-        };
+        let focusable = unsafe { self.element.CurrentIsKeyboardFocusable()? };
 
         Ok(focusable.as_bool())
     }
 
     /// A cached value that indicates whether the element can accept keyboard focus.
     pub fn is_cached_keyboard_focusable(&self) -> Result<bool> {
-        let focusable = unsafe {
-            self.element.CachedIsKeyboardFocusable()?
-        };
+        let focusable = unsafe { self.element.CachedIsKeyboardFocusable()? };
 
         Ok(focusable.as_bool())
     }
 
     /// Indicates whether the element is enabled.
     pub fn is_enabled(&self) -> Result<bool> {
-        let enabled = unsafe {
-            self.element.CurrentIsEnabled()?
-        };
+        let enabled = unsafe { self.element.CurrentIsEnabled()? };
 
         Ok(enabled.as_bool())
     }
 
     /// A cached value that indicates whether the element is enabled.
     pub fn is_cached_enabled(&self) -> Result<bool> {
-        let enabled = unsafe {
-            self.element.CachedIsEnabled()?
-        };
+        let enabled = unsafe { self.element.CachedIsEnabled()? };
 
         Ok(enabled.as_bool())
     }
 
     /// Retrieves the help text for the element.
     pub fn get_help_text(&self) -> Result<String> {
-        let text = unsafe {
-            self.element.CurrentHelpText()?
-        };
+        let text = unsafe { self.element.CurrentHelpText()? };
 
         Ok(text.to_string())
     }
 
     /// Retrieves the cached help text for the element.
     pub fn get_cached_help_text(&self) -> Result<String> {
-        let text = unsafe {
-            self.element.CachedHelpText()?
-        };
+        let text = unsafe { self.element.CachedHelpText()? };
 
         Ok(text.to_string())
     }
 
     /// Retrieves the culture identifier for the element.
     pub fn get_culture(&self) -> Result<i32> {
-        let culture = unsafe {
-            self.element.CurrentCulture()?
-        };
+        let culture = unsafe { self.element.CurrentCulture()? };
 
         Ok(culture)
     }
 
     /// Retrieves the cached culture identifier for the element.
     pub fn get_cached_culture(&self) -> Result<i32> {
-        let culture = unsafe {
-            self.element.CachedCulture()?
-        };
+        let culture = unsafe { self.element.CachedCulture()? };
 
         Ok(culture)
     }
 
     /// Indicates whether the element is a control element.
     pub fn is_control_element(&self) -> Result<bool> {
-        let is_control = unsafe {
-            self.element.CurrentIsControlElement()?
-        };
+        let is_control = unsafe { self.element.CurrentIsControlElement()? };
 
         Ok(is_control.as_bool())
     }
 
     /// A cached value that indicates whether the element is a control element.
     pub fn is_cached_control_element(&self) -> Result<bool> {
-        let is_control = unsafe {
-            self.element.CachedIsControlElement()?
-        };
+        let is_control = unsafe { self.element.CachedIsControlElement()? };
 
         Ok(is_control.as_bool())
     }
 
     /// Indicates whether the element is a content element.
     pub fn is_content_element(&self) -> Result<bool> {
-        let is_content = unsafe {
-            self.element.CurrentIsContentElement()?
-        };
+        let is_content = unsafe { self.element.CurrentIsContentElement()? };
 
         Ok(is_content.as_bool())
     }
 
     /// A cached value that indicates whether the element is a content element.
     pub fn is_cached_content_element(&self) -> Result<bool> {
-        let is_content = unsafe {
-            self.element.CachedIsContentElement()?
-        };
+        let is_content = unsafe { self.element.CachedIsContentElement()? };
 
         Ok(is_content.as_bool())
     }
 
     /// Indicates whether the element contains a disguised password.
     pub fn is_password(&self) -> Result<bool> {
-        let is_password = unsafe {
-            self.element.CurrentIsPassword()?
-        };
+        let is_password = unsafe { self.element.CurrentIsPassword()? };
 
         Ok(is_password.as_bool())
     }
 
     /// A cached value that indicates whether the element contains a disguised password.
     pub fn is_cached_password(&self) -> Result<bool> {
-        let is_password = unsafe {
-            self.element.CachedIsPassword()?
-        };
+        let is_password = unsafe { self.element.CachedIsPassword()? };
 
         Ok(is_password.as_bool())
     }
 
     /// Retrieves the window handle of the element.
     pub fn get_native_window_handle(&self) -> Result<Handle> {
-        let handle = unsafe {
-            self.element.CurrentNativeWindowHandle()?
-        };
+        let handle = unsafe { self.element.CurrentNativeWindowHandle()? };
 
         Ok(handle.into())
     }
 
     /// Retrieves the cached window handle of the element.
     pub fn get_cached_native_window_handle(&self) -> Result<Handle> {
-        let handle = unsafe {
-            self.element.CachedNativeWindowHandle()?
-        };
+        let handle = unsafe { self.element.CachedNativeWindowHandle()? };
 
         Ok(handle.into())
     }
 
     /// Retrieves a description of the type of UI item represented by the element.
     pub fn get_item_type(&self) -> Result<String> {
-        let item_type = unsafe {
-            self.element.CurrentItemType()?
-        };
+        let item_type = unsafe { self.element.CurrentItemType()? };
 
         Ok(item_type.to_string())
     }
 
     /// Retrieves a cached description of the type of UI item represented by the element.
     pub fn get_cached_item_type(&self) -> Result<String> {
-        let item_type = unsafe {
-            self.element.CachedItemType()?
-        };
+        let item_type = unsafe { self.element.CachedItemType()? };
 
         Ok(item_type.to_string())
     }
 
     /// Indicates whether the element is off-screen.
     pub fn is_offscreen(&self) -> Result<bool> {
-        let off_screen = unsafe {
-            self.element.CurrentIsOffscreen()?
-        };
+        let off_screen = unsafe { self.element.CurrentIsOffscreen()? };
 
         Ok(off_screen.as_bool())
     }
 
     /// A cached value that indicates whether the element is off-screen.
     pub fn is_cached_offscreen(&self) -> Result<bool> {
-        let off_screen = unsafe {
-            self.element.CachedIsOffscreen()?
-        };
+        let off_screen = unsafe { self.element.CachedIsOffscreen()? };
 
         Ok(off_screen.as_bool())
     }
 
     /// Retrieves a value that indicates the orientation of the element.
     pub fn get_orientation(&self) -> Result<OrientationType> {
-        let orientation = unsafe {
-            self.element.CurrentOrientation()?
-        };
+        let orientation = unsafe { self.element.CurrentOrientation()? };
 
         // Ok(orientation.into())
         orientation.try_into()
@@ -860,9 +835,7 @@ impl UIElement {
 
     /// Retrieves a cached value that indicates the orientation of the element.
     pub fn get_cached_orientation(&self) -> Result<OrientationType> {
-        let orientation = unsafe {
-            self.element.CachedOrientation()?
-        };
+        let orientation = unsafe { self.element.CachedOrientation()? };
 
         // Ok(orientation.into())
         orientation.try_into()
@@ -870,180 +843,140 @@ impl UIElement {
 
     /// Retrieves the name of the underlying UI framework.
     pub fn get_framework_id(&self) -> Result<String> {
-        let id = unsafe {
-            self.element.CurrentFrameworkId()?
-        };
+        let id = unsafe { self.element.CurrentFrameworkId()? };
 
         Ok(id.to_string())
     }
 
     /// Retrieves the cached name of the underlying UI framework.
     pub fn get_cached_framework_id(&self) -> Result<String> {
-        let id = unsafe {
-            self.element.CachedFrameworkId()?
-        };
+        let id = unsafe { self.element.CachedFrameworkId()? };
 
         Ok(id.to_string())
     }
 
     /// Indicates whether the element is required to be filled out on a form.
     pub fn is_required_for_form(&self) -> Result<bool> {
-        let required = unsafe {
-            self.element.CurrentIsRequiredForForm()?
-        };
+        let required = unsafe { self.element.CurrentIsRequiredForForm()? };
 
         Ok(required.as_bool())
     }
 
     /// A cached value that indicates whether the element is required to be filled out on a form.
     pub fn is_cached_required_for_form(&self) -> Result<bool> {
-        let required = unsafe {
-            self.element.CachedIsRequiredForForm()?
-        };
+        let required = unsafe { self.element.CachedIsRequiredForForm()? };
 
         Ok(required.as_bool())
     }
 
     /// Indicates whether the element contains valid data for a form.
     pub fn is_data_valid_for_form(&self) -> Result<bool> {
-        let valid = unsafe {
-            self.element.CurrentIsDataValidForForm()?
-        };
+        let valid = unsafe { self.element.CurrentIsDataValidForForm()? };
 
         Ok(valid.as_bool())
     }
 
     /// A cached value that indicates whether the element contains valid data for a form.
     pub fn is_cached_data_valid_for_form(&self) -> Result<bool> {
-        let valid = unsafe {
-            self.element.CachedIsDataValidForForm()?
-        };
+        let valid = unsafe { self.element.CachedIsDataValidForForm()? };
 
         Ok(valid.as_bool())
     }
 
     /// Retrieves the description of the status of an item in an element.
     pub fn get_item_status(&self) -> Result<String> {
-        let status = unsafe {
-            self.element.CurrentItemStatus()?
-        };
+        let status = unsafe { self.element.CurrentItemStatus()? };
 
         Ok(status.to_string())
     }
 
     /// Retrieves the cached description of the status of an item in an element.
     pub fn get_cached_item_status(&self) -> Result<String> {
-        let status = unsafe {
-            self.element.CachedItemStatus()?
-        };
+        let status = unsafe { self.element.CachedItemStatus()? };
 
         Ok(status.to_string())
     }
 
     /// Retrieves the coordinates of the rectangle that completely encloses the element.
     pub fn get_bounding_rectangle(&self) -> Result<Rect> {
-        let rect = unsafe {
-            self.element.CurrentBoundingRectangle()?
-        };
+        let rect = unsafe { self.element.CurrentBoundingRectangle()? };
 
         Ok(rect.into())
     }
 
     /// Retrieves the cached coordinates of the rectangle that completely encloses the element.
     pub fn get_cached_bounding_rectangle(&self) -> Result<Rect> {
-        let rect = unsafe {
-            self.element.CachedBoundingRectangle()?
-        };
+        let rect = unsafe { self.element.CachedBoundingRectangle()? };
 
         Ok(rect.into())
     }
 
     /// Retrieves the element that contains the text label for this element.
     pub fn get_labeled_by(&self) -> Result<UIElement> {
-        let labeled_by = unsafe {
-            self.element.CurrentLabeledBy()?
-        };
+        let labeled_by = unsafe { self.element.CurrentLabeledBy()? };
 
         Ok(UIElement::from(labeled_by))
     }
 
     /// Retrieves the cached element that contains the text label for this element.
     pub fn get_cached_labeled_by(&self) -> Result<UIElement> {
-        let labeled_by = unsafe {
-            self.element.CachedLabeledBy()?
-        };
+        let labeled_by = unsafe { self.element.CachedLabeledBy()? };
 
         Ok(UIElement::from(labeled_by))
     }
 
     /// Retrieves an array of elements for which this element serves as the controller.
     pub fn get_controller_for(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.CurrentControllerFor()?
-        };
+        let elements = unsafe { self.element.CurrentControllerFor()? };
 
         Self::to_elements(elements)
     }
 
     /// Retrieves a cached array of elements for which this element serves as the controller.
     pub fn get_cached_controller_for(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.CachedControllerFor()?
-        };
+        let elements = unsafe { self.element.CachedControllerFor()? };
 
         Self::to_elements(elements)
     }
 
     /// Retrieves an array of elements that describe this element.
     pub fn get_described_by(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.CurrentDescribedBy()?
-        };
+        let elements = unsafe { self.element.CurrentDescribedBy()? };
 
         Self::to_elements(elements)
     }
 
     /// Retrieves a cached array of elements that describe this element.
     pub fn get_cached_described_by(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.CachedDescribedBy()?
-        };
+        let elements = unsafe { self.element.CachedDescribedBy()? };
 
         Self::to_elements(elements)
     }
 
     /// Retrieves an array of elements that indicates the reading order after the current element.
     pub fn get_flows_to(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.CurrentFlowsTo()?
-        };
+        let elements = unsafe { self.element.CurrentFlowsTo()? };
 
         Self::to_elements(elements)
     }
 
     /// Retrieves a cached array of elements that indicates the reading order after the current element.
     pub fn get_cached_flows_to(&self) -> Result<Vec<UIElement>> {
-        let elements = unsafe {
-            self.element.CachedFlowsTo()?
-        };
+        let elements = unsafe { self.element.CachedFlowsTo()? };
 
         Self::to_elements(elements)
     }
 
     /// Retrieves a description of the provider for this element.
     pub fn get_provider_description(&self) -> Result<String> {
-        let descr = unsafe {
-            self.element.CurrentProviderDescription()?
-        };
+        let descr = unsafe { self.element.CurrentProviderDescription()? };
 
         Ok(descr.to_string())
     }
 
     /// Retrieves a cached description of the provider for this element.
     pub fn get_cached_provider_description(&self) -> Result<String> {
-        let descr = unsafe {
-            self.element.CachedProviderDescription()?
-        };
+        let descr = unsafe { self.element.CachedProviderDescription()? };
 
         Ok(descr.to_string())
     }
@@ -1064,20 +997,20 @@ impl UIElement {
 
     /// Retrieves the control pattern interface of the specified pattern `<T>` from this UI Automation element.
     #[cfg(feature = "pattern")]
-    pub fn get_pattern<T: super::patterns::UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
-        let pattern = unsafe {
-            self.element.GetCurrentPattern(T::TYPE.into())?
-        };
+    pub fn get_pattern<T: super::patterns::UIPattern + TryFrom<IUnknown, Error = Error>>(
+        &self,
+    ) -> Result<T> {
+        let pattern = unsafe { self.element.GetCurrentPattern(T::TYPE.into())? };
 
         T::try_from(pattern)
     }
 
     /// Retrieves the cached control pattern interface of the specified pattern `<T>` from this UI Automation element.
     #[cfg(feature = "pattern")]
-    pub fn get_cached_pattern<T: super::patterns::UIPattern + TryFrom<IUnknown, Error = Error>>(&self) -> Result<T> {
-        let pattern = unsafe {
-            self.element.GetCachedPattern(T::TYPE.into())?
-        };
+    pub fn get_cached_pattern<T: super::patterns::UIPattern + TryFrom<IUnknown, Error = Error>>(
+        &self,
+    ) -> Result<T> {
+        let pattern = unsafe { self.element.GetCachedPattern(T::TYPE.into())? };
 
         T::try_from(pattern)
     }
@@ -1085,31 +1018,21 @@ impl UIElement {
     /// Retrieves a point on the element that can be clicked.
     pub fn get_clickable_point(&self) -> Result<Option<Point>> {
         let mut point = Point::default();
-        let got = unsafe {
-            self.element.GetClickablePoint(point.as_mut())?
-        };
+        let got = unsafe { self.element.GetClickablePoint(point.as_mut())? };
 
-        Ok(if got.as_bool() {
-            Some(point)
-        } else {
-            None
-        })
+        Ok(if got.as_bool() { Some(point) } else { None })
     }
 
     /// Retrieves the current value of a property for this UI Automation element.
     pub fn get_property_value(&self, property: UIProperty) -> Result<Variant> {
-        let value = unsafe {
-            self.element.GetCurrentPropertyValue(property.into())?
-        };
+        let value = unsafe { self.element.GetCurrentPropertyValue(property.into())? };
 
         Ok(value.into())
     }
 
     /// Retrieves the cached value of a property for this UI Automation element.
     pub fn get_cached_property_value(&self, property: UIProperty) -> Result<Variant> {
-        let value = unsafe {
-            self.element.GetCachedPropertyValue(property.into())?
-        };
+        let value = unsafe { self.element.GetCachedPropertyValue(property.into())? };
 
         Ok(value.into())
     }
@@ -1117,42 +1040,32 @@ impl UIElement {
     /// Programmatically invokes a context menu on the target element.
     pub fn show_context_menu(&self) -> Result<()> {
         let element3: IUIAutomationElement3 = self.element.cast()?;
-        unsafe {
-            element3.ShowContextMenu()?
-        }
+        unsafe { element3.ShowContextMenu()? }
 
         Ok(())
     }
 
     pub fn get_heading_level(&self) -> Result<HeadingLevel> {
         let element8: IUIAutomationElement8 = self.element.cast()?;
-        let heading_level = unsafe {
-            element8.CurrentHeadingLevel()?
-        };
+        let heading_level = unsafe { element8.CurrentHeadingLevel()? };
         heading_level.0.try_into()
     }
 
     pub fn get_cached_heading_level(&self) -> Result<HeadingLevel> {
         let element8: IUIAutomationElement8 = self.element.cast()?;
-        let heading_level = unsafe {
-            element8.CachedHeadingLevel()?
-        };
+        let heading_level = unsafe { element8.CachedHeadingLevel()? };
         heading_level.0.try_into()
     }
 
     pub fn is_dialog(&self) -> Result<bool> {
         let element9: IUIAutomationElement9 = self.element.cast()?;
-        let got = unsafe {
-            element9.CurrentIsDialog()?
-        };
+        let got = unsafe { element9.CurrentIsDialog()? };
         Ok(got.as_bool())
     }
 
     pub fn is_cached_dialog(&self) -> Result<bool> {
         let element9: IUIAutomationElement9 = self.element.cast()?;
-        let got = unsafe {
-            element9.CachedIsDialog()?
-        };
+        let got = unsafe { element9.CachedIsDialog()? };
         Ok(got.as_bool())
     }
 
@@ -1171,22 +1084,22 @@ impl UIElement {
     /// Simulates typing `keys` on keyboard.
     ///
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
-    /// 
+    ///
     /// Special keys can specify the number of repetitions. For example: '{enter 3}' means pressing the Enter key three times.
     ///
     /// `()` is used for group keys. The '(' symbol only takes effect after the '{}' symbol. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
     ///
     /// `{}()` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
-    /// 
+    ///
     ///  When `ignore_parse_err` is `false`, the parser will throw an error if the input format is incorrect.
     ///  When `ignore_parse_err` is `true`, the parser will ignore parse error and try to allow `{` & `(` as regular inputs.
     ///
-    /// `interval` is the milliseconds between keys. 
+    /// `interval` is the milliseconds between keys.
     ///
     /// When inputting long texts, if the parameter value is set too low, input loss may occur during the input process.
-    /// 
+    ///
     /// When inputting only texts without special keys, you should use `send_text()` instead.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -1229,11 +1142,11 @@ impl UIElement {
     }
 
     /// Simulates sending text to the element without any special keys.
-    /// 
+    ///
     /// This method will only output the literal content of the text.
-    /// 
-    /// `interval` is the milliseconds between keys. 
-    /// 
+    ///
+    /// `interval` is the milliseconds between keys.
+    ///
     /// When inputting long texts, if the parameter value is set too low, input loss may occur during the input process.
     #[cfg(feature = "input")]
     pub fn send_text(&self, text: &str, interval: u64) -> Result<()> {
@@ -1282,7 +1195,7 @@ impl UIElement {
         let restore_result = {
             match Clipboard::open() {
                 Ok(clipboard) => clipboard.restore(snapshot),
-                Err(e) => Err(e)
+                Err(e) => Err(e),
             }
         };
 
@@ -1359,7 +1272,10 @@ impl UIElement {
             Ok(point)
         } else {
             let rect = self.get_bounding_rectangle()?;
-            let point = Point::new((rect.get_left() + rect.get_right()) / 2, (rect.get_top() + rect.get_bottom()) / 2);
+            let point = Point::new(
+                (rect.get_left() + rect.get_right()) / 2,
+                (rect.get_top() + rect.get_bottom()) / 2,
+            );
             Ok(point)
         }
     }
@@ -1367,9 +1283,7 @@ impl UIElement {
 
 impl From<IUIAutomationElement> for UIElement {
     fn from(element: IUIAutomationElement) -> Self {
-        UIElement {
-            element
-        }
+        UIElement { element }
     }
 }
 
@@ -1379,9 +1293,9 @@ impl From<&IUIAutomationElement> for UIElement {
     }
 }
 
-impl Into<IUIAutomationElement> for UIElement {
-    fn into(self) -> IUIAutomationElement {
-        self.element
+impl From<UIElement> for IUIAutomationElement {
+    fn from(val: UIElement) -> Self {
+        val.element
     }
 }
 
@@ -1406,7 +1320,9 @@ impl AsRef<IUIAutomationElement> for UIElement {
 impl Display for UIElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = self.get_name().unwrap_or(String::from("(NONE)"));
-        let control_type = self.get_localized_control_type().unwrap_or(String::from("UNKNOWN_TYPE"));
+        let control_type = self
+            .get_localized_control_type()
+            .unwrap_or(String::from("UNKNOWN_TYPE"));
 
         write!(f, "{} {}", name, control_type)
     }
@@ -1434,89 +1350,71 @@ impl Debug for UIElement {
 /// Client applications use this interface to specify the properties and control patterns to be cached when a Microsoft UI Automation element is obtained.
 #[derive(Debug, Clone)]
 pub struct UICacheRequest {
-    request: IUIAutomationCacheRequest
+    request: IUIAutomationCacheRequest,
 }
 
 impl UICacheRequest {
     /// Adds a control pattern to the cache request.
     #[cfg(feature = "pattern")]
     pub fn add_pattern(&self, pattern: super::patterns::UIPatternType) -> Result<()> {
-        unsafe {
-            self.request.AddPattern(pattern.into())?
-        };
+        unsafe { self.request.AddPattern(pattern.into())? };
         Ok(())
     }
 
     /// Adds a property to the cache request.
     pub fn add_property(&self, property: UIProperty) -> Result<()> {
-        unsafe {
-            self.request.AddProperty(property.into())?
-        };
+        unsafe { self.request.AddProperty(property.into())? };
         Ok(())
     }
 
     /// Retrieves whether returned elements contain full references to the underlying UI, or only cached information.
     pub fn get_element_mode(&self) -> Result<ElementMode> {
-        let mode = unsafe {
-            self.request.AutomationElementMode()?
-        };
+        let mode = unsafe { self.request.AutomationElementMode()? };
         // Ok(mode.into())
         mode.try_into()
     }
 
     /// Sets whether returned elements contain full references to the underlying UI, or only cached information.
     pub fn set_element_mode(&self, mode: ElementMode) -> Result<()> {
-        unsafe {
-            self.request.SetAutomationElementMode(mode.into())?
-        };
+        unsafe { self.request.SetAutomationElementMode(mode.into())? };
         Ok(())
     }
 
     /// Retrieves the view of the UI Automation element tree that is used when caching.
     pub fn get_tree_filter(&self) -> Result<UICondition> {
-        let condition = unsafe {
-            self.request.TreeFilter()?
-        };
+        let condition = unsafe { self.request.TreeFilter()? };
         Ok(condition.into())
     }
 
     /// Sets the view of the UI Automation element tree that is used when caching.
     pub fn set_tree_filter(&self, filter: UICondition) -> Result<()> {
-        unsafe {
-            self.request.SetTreeFilter(filter)?
-        };
+        unsafe { self.request.SetTreeFilter(filter)? };
         Ok(())
     }
 
     /// Retrieves the scope of caching.
     pub fn get_tree_scope(&self) -> Result<TreeScope> {
-        let scope = unsafe {
-            self.request.TreeScope()?
-        };
+        let scope = unsafe { self.request.TreeScope()? };
         // Ok(scope.into())
         scope.try_into()
     }
 
     /// Sets the scope of caching.
     pub fn set_tree_scope(&self, scope: TreeScope) -> Result<()> {
-        unsafe {
-            self.request.SetTreeScope(scope.into())?
-        };
+        unsafe { self.request.SetTreeScope(scope.into())? };
         Ok(())
     }
 }
 
 impl From<IUIAutomationCacheRequest> for UICacheRequest {
     fn from(value: IUIAutomationCacheRequest) -> Self {
-        Self {
-            request: value
-        }
+        Self { request: value }
     }
 }
 
-impl Into<IUIAutomationCacheRequest> for UICacheRequest {
-    fn into(self) -> IUIAutomationCacheRequest {
-        self.request
+impl From<UICacheRequest> for IUIAutomationCacheRequest {
+    fn from(val: UICacheRequest) -> Self {
+        val.request
     }
 }
 
@@ -1543,7 +1441,7 @@ impl Param<IUIAutomationCacheRequest> for &UICacheRequest {
 /// Exposes properties and methods that UI Automation client applications use to view and navigate the UI Automation elements on the desktop.
 #[derive(Clone)]
 pub struct UITreeWalker {
-    tree_walker: IUIAutomationTreeWalker
+    tree_walker: IUIAutomationTreeWalker,
 }
 
 impl UITreeWalker {
@@ -1558,9 +1456,14 @@ impl UITreeWalker {
     }
 
     /// Retrieves the parent element of the specified UI Automation element, and caches properties and control patterns.
-    pub fn get_parent_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn get_parent_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let parent = unsafe {
-            self.tree_walker.GetParentElementBuildCache(element, cache_request)?
+            self.tree_walker
+                .GetParentElementBuildCache(element, cache_request)?
         };
         Ok(parent.into())
     }
@@ -1576,9 +1479,14 @@ impl UITreeWalker {
     }
 
     /// Retrieves the first child element of the specified UI Automation element, and caches properties and control patterns.
-    pub fn get_first_child_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn get_first_child_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let child = unsafe {
-            self.tree_walker.GetFirstChildElementBuildCache(element, cache_request)?
+            self.tree_walker
+                .GetFirstChildElementBuildCache(element, cache_request)?
         };
         Ok(child.into())
     }
@@ -1594,9 +1502,14 @@ impl UITreeWalker {
     }
 
     /// Retrieves the last child element of the specified UI Automation element, and caches properties and control patterns.
-    pub fn get_last_child_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn get_last_child_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let child = unsafe {
-            self.tree_walker.GetLastChildElementBuildCache(element, cache_request)?
+            self.tree_walker
+                .GetLastChildElementBuildCache(element, cache_request)?
         };
         Ok(child.into())
     }
@@ -1612,9 +1525,14 @@ impl UITreeWalker {
     }
 
     /// Retrieves the next sibling element of the specified UI Automation element, and caches properties and control patterns.
-    pub fn get_next_sibling_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn get_next_sibling_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let sibling = unsafe {
-            self.tree_walker.GetNextSiblingElementBuildCache(element, cache_request)?
+            self.tree_walker
+                .GetNextSiblingElementBuildCache(element, cache_request)?
         };
         Ok(sibling.into())
     }
@@ -1623,42 +1541,50 @@ impl UITreeWalker {
     pub fn get_previous_sibling(&self, element: &UIElement) -> Result<UIElement> {
         let sibling: IUIAutomationElement;
         unsafe {
-            sibling = self.tree_walker.GetPreviousSiblingElement(&element.element)?;
+            sibling = self
+                .tree_walker
+                .GetPreviousSiblingElement(&element.element)?;
         }
 
         Ok(UIElement::from(sibling))
     }
 
     /// Retrieves the previous sibling element of the specified UI Automation element, and caches properties and control patterns.
-    pub fn get_previous_sibling_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn get_previous_sibling_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let sibling = unsafe {
-            self.tree_walker.GetPreviousSiblingElementBuildCache(element, cache_request)?
+            self.tree_walker
+                .GetPreviousSiblingElementBuildCache(element, cache_request)?
         };
         Ok(sibling.into())
     }
 
     /// Retrieves the ancestor element nearest to the specified Microsoft UI Automation element in the tree view.
     pub fn normalize(&self, element: &UIElement) -> Result<UIElement> {
-        let result = unsafe {
-            self.tree_walker.NormalizeElement(element.as_ref())?
-        };
+        let result = unsafe { self.tree_walker.NormalizeElement(element.as_ref())? };
         Ok(result.into())
     }
 
     /// Retrieves the ancestor element nearest to the specified Microsoft UI Automation element in the tree view,
     /// prefetches the requested properties and control patterns, and stores the prefetched items in the cache.
-    pub fn normalize_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Result<UIElement> {
+    pub fn normalize_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Result<UIElement> {
         let ret = unsafe {
-            self.tree_walker.NormalizeElementBuildCache(element, cache_request)?
+            self.tree_walker
+                .NormalizeElementBuildCache(element, cache_request)?
         };
         Ok(ret.into())
     }
 
     /// Retrieves the condition that defines the view of the UI Automation tree.
     pub fn get_condition(&self) -> Result<UICondition> {
-        let condition = unsafe {
-            self.tree_walker.Condition()?
-        };
+        let condition = unsafe { self.tree_walker.Condition()? };
         Ok(condition.into())
     }
 
@@ -1678,7 +1604,11 @@ impl UITreeWalker {
     }
 
     /// Retrieves all children of the specified UI Automation element, and caches properties and control patterns.
-    pub fn get_children_build_cache(&self, element: &UIElement, cache_request: &UICacheRequest) -> Option<Vec<UIElement>> {
+    pub fn get_children_build_cache(
+        &self,
+        element: &UIElement,
+        cache_request: &UICacheRequest,
+    ) -> Option<Vec<UIElement>> {
         if let Ok(mut current) = self.get_first_child_build_cache(element, cache_request) {
             let mut children = Vec::new();
             while let Ok(next) = self.get_next_sibling_build_cache(&current, cache_request) {
@@ -1695,15 +1625,13 @@ impl UITreeWalker {
 
 impl From<IUIAutomationTreeWalker> for UITreeWalker {
     fn from(tree_walker: IUIAutomationTreeWalker) -> Self {
-        UITreeWalker {
-            tree_walker
-        }
+        UITreeWalker { tree_walker }
     }
 }
 
-impl Into<IUIAutomationTreeWalker> for UITreeWalker {
-    fn into(self) -> IUIAutomationTreeWalker {
-        self.tree_walker
+impl From<UITreeWalker> for IUIAutomationTreeWalker {
+    fn from(val: UITreeWalker) -> Self {
+        val.tree_walker
     }
 }
 
@@ -1721,7 +1649,7 @@ pub enum UIMatcherMode {
     /// Searches control element only.
     Control,
     /// Searches content element only.
-    Content
+    Content,
 }
 
 /// Defines filter conditions to match specific UI Element.
@@ -1735,7 +1663,7 @@ pub struct UIMatcher {
     filters: Vec<Box<dyn MatcherFilter>>,
     timeout: u64,
     interval: u64,
-    debug: bool
+    debug: bool,
 }
 
 impl UIMatcher {
@@ -1749,7 +1677,7 @@ impl UIMatcher {
             filters: Vec::new(),
             timeout: 3000,
             interval: 100,
-            debug: false
+            debug: false,
         }
     }
 
@@ -1798,7 +1726,7 @@ impl UIMatcher {
     }
 
     /// Appends a filter condition which is used as `and` logic.
-     pub fn filter(mut self, filter: Box<dyn MatcherFilter>) -> Self {
+    pub fn filter(mut self, filter: Box<dyn MatcherFilter>) -> Self {
         self.filters.push(filter);
         self
     }
@@ -1821,10 +1749,11 @@ impl UIMatcher {
     /// let element = matcher.find_first();
     /// assert!(element.is_ok());
     /// ```
-    pub fn filter_fn<F>(mut self, f: Box<F>) -> Self where F: Fn(&UIElement) -> Result<bool> + 'static {
-        let filter = FnFilter {
-            filter: f
-        };
+    pub fn filter_fn<F>(mut self, f: Box<F>) -> Self
+    where
+        F: Fn(&UIElement) -> Result<bool> + 'static,
+    {
+        let filter = FnFilter { filter: f };
         self.filters.push(Box::new(filter));
         self
     }
@@ -1834,7 +1763,7 @@ impl UIMatcher {
         let condition = NameFilter {
             value: name.into(),
             casesensitive: true,
-            partial: false
+            partial: false,
         };
 
         self.filter(Box::new(condition))
@@ -1845,7 +1774,7 @@ impl UIMatcher {
         let condition = NameFilter {
             value: name.into(),
             casesensitive: false,
-            partial: true
+            partial: true,
         };
         self.filter(Box::new(condition))
     }
@@ -1855,7 +1784,7 @@ impl UIMatcher {
         let condition = NameFilter {
             value: name.into(),
             casesensitive: false,
-            partial: false
+            partial: false,
         };
         self.filter(Box::new(condition))
     }
@@ -1863,16 +1792,14 @@ impl UIMatcher {
     /// Filters by classname.
     pub fn classname<S: Into<String>>(self, classname: S) -> Self {
         let condition = ClassNameFilter {
-            classname: classname.into()
+            classname: classname.into(),
         };
         self.filter(Box::new(condition))
     }
 
     /// Filters by control type.
     pub fn control_type(self, control_type: ControlType) -> Self {
-        let condition = ControlTypeFilter {
-            control_type
-        };
+        let condition = ControlTypeFilter { control_type };
         self.filter(Box::new(condition))
     }
 
@@ -1936,7 +1863,7 @@ impl UIMatcher {
             let (root, walker) = self.prepare()?;
             self.search(&walker, &root, &mut elements, 1, first_only)?;
 
-            if !elements.is_empty() || self.timeout <= 0 {
+            if !elements.is_empty() || self.timeout == 0 {
                 break;
             }
 
@@ -1959,14 +1886,25 @@ impl UIMatcher {
 
         let walker = match self.mode {
             UIMatcherMode::Raw => self.automation.create_tree_walker()?,
-            UIMatcherMode::Control => self.automation.filter_tree_walker(self.automation.get_control_view_condition()?)?,
-            UIMatcherMode::Content => self.automation.filter_tree_walker(self.automation.get_content_view_condition()?)?,
+            UIMatcherMode::Control => self
+                .automation
+                .filter_tree_walker(self.automation.get_control_view_condition()?)?,
+            UIMatcherMode::Content => self
+                .automation
+                .filter_tree_walker(self.automation.get_content_view_condition()?)?,
         };
 
         Ok((root, walker))
     }
 
-    fn search(&self, walker: &UITreeWalker, element: &UIElement, elements: &mut Vec<UIElement>, depth: u32, first_only: bool) -> Result<()> {
+    fn search(
+        &self,
+        walker: &UITreeWalker,
+        element: &UIElement,
+        elements: &mut Vec<UIElement>,
+        depth: u32,
+        first_only: bool,
+    ) -> Result<()> {
         if self.is_matched(element)? {
             elements.push(element.clone());
 
@@ -1991,10 +1929,10 @@ impl UIMatcher {
     }
 
     fn is_matched(&self, element: &UIElement) -> Result<bool> {
-        if let Some(ref root) = self.from {
-            if self.automation.compare_elements(root, element)? {
-                return Ok(false);
-            }
+        if let Some(ref root) = self.from
+            && self.automation.compare_elements(root, element)?
+        {
+            return Ok(false);
         }
 
         // let ret = if let Some(ref condition) = self.condition {
@@ -2036,13 +1974,12 @@ impl Debug for UIMatcher {
             .field("timeout", &self.timeout)
             .field("interval", &self.interval)
             .field("debug", &self.debug)
-        .finish()
+            .finish()
     }
 }
 
 /// This is the trait for conditions used in filtering when searching for elements in the UI Automation tree.
-pub trait IUICondition<T: Interface>: Sized + From<T> + Into<T> + AsRef<T> {
-}
+pub trait IUICondition<T: Interface>: Sized + From<T> + Into<T> + AsRef<T> {}
 
 /// This is the primary interface for conditions used in filtering when searching for elements in the UI Automation tree.
 #[derive(Debug, Clone)]
@@ -2080,8 +2017,7 @@ impl UICondition {
     }
 }
 
-impl IUICondition<IUIAutomationCondition> for UICondition {
-}
+impl IUICondition<IUIAutomationCondition> for UICondition {}
 
 impl From<IUIAutomationCondition> for UICondition {
     fn from(condition: IUIAutomationCondition) -> Self {
@@ -2089,9 +2025,9 @@ impl From<IUIAutomationCondition> for UICondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UICondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0
+impl From<UICondition> for IUIAutomationCondition {
+    fn from(val: UICondition) -> Self {
+        val.0
     }
 }
 
@@ -2119,15 +2055,12 @@ pub struct UIBoolCondition(IUIAutomationBoolCondition);
 
 impl UIBoolCondition {
     pub fn get_bool_value(&self) -> Result<bool> {
-        let val = unsafe {
-            self.0.BooleanValue()?
-        };
+        let val = unsafe { self.0.BooleanValue()? };
         Ok(val.as_bool())
     }
 }
 
-impl IUICondition<IUIAutomationBoolCondition> for UIBoolCondition {
-}
+impl IUICondition<IUIAutomationBoolCondition> for UIBoolCondition {}
 
 impl From<IUIAutomationBoolCondition> for UIBoolCondition {
     fn from(condition: IUIAutomationBoolCondition) -> Self {
@@ -2135,9 +2068,9 @@ impl From<IUIAutomationBoolCondition> for UIBoolCondition {
     }
 }
 
-impl Into<IUIAutomationBoolCondition> for UIBoolCondition {
-    fn into(self) -> IUIAutomationBoolCondition {
-        self.0
+impl From<UIBoolCondition> for IUIAutomationBoolCondition {
+    fn from(val: UIBoolCondition) -> Self {
+        val.0
     }
 }
 
@@ -2156,9 +2089,9 @@ impl TryFrom<IUIAutomationCondition> for UIBoolCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIBoolCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIBoolCondition> for IUIAutomationCondition {
+    fn from(val: UIBoolCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2170,9 +2103,9 @@ impl TryFrom<UICondition> for UIBoolCondition {
     }
 }
 
-impl Into<UICondition> for UIBoolCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UIBoolCondition> for UICondition {
+    fn from(val: UIBoolCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2184,15 +2117,12 @@ pub struct UINotCondition(IUIAutomationNotCondition);
 impl UINotCondition {
     /// Retrieves the condition of which this condition is the negative.
     pub fn get_child(&self) -> Result<UICondition> {
-        let child = unsafe {
-            self.0.GetChild()?
-        };
+        let child = unsafe { self.0.GetChild()? };
         Ok(child.into())
     }
 }
 
-impl IUICondition<IUIAutomationNotCondition> for UINotCondition {
-}
+impl IUICondition<IUIAutomationNotCondition> for UINotCondition {}
 
 impl From<IUIAutomationNotCondition> for UINotCondition {
     fn from(condition: IUIAutomationNotCondition) -> Self {
@@ -2200,9 +2130,9 @@ impl From<IUIAutomationNotCondition> for UINotCondition {
     }
 }
 
-impl Into<IUIAutomationNotCondition> for UINotCondition {
-    fn into(self) -> IUIAutomationNotCondition {
-        self.0
+impl From<UINotCondition> for IUIAutomationNotCondition {
+    fn from(val: UINotCondition) -> Self {
+        val.0
     }
 }
 
@@ -2221,9 +2151,9 @@ impl TryFrom<IUIAutomationCondition> for UINotCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UINotCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UINotCondition> for IUIAutomationCondition {
+    fn from(val: UINotCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2235,9 +2165,9 @@ impl TryFrom<UICondition> for UINotCondition {
     }
 }
 
-impl Into<UICondition> for UINotCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UINotCondition> for UICondition {
+    fn from(val: UINotCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2249,17 +2179,13 @@ pub struct UIAndCondition(IUIAutomationAndCondition);
 impl UIAndCondition {
     /// Retrieves the number of conditions that make up this "and" condition.
     pub fn get_children_count(&self) -> Result<i32> {
-        let count = unsafe {
-            self.0.ChildCount()?
-        };
+        let count = unsafe { self.0.ChildCount()? };
         Ok(count)
     }
 
     /// Retrieves the conditions that make up this "and" condition.
     pub fn get_children(&self) -> Result<Vec<UICondition>> {
-        let arr = unsafe {
-            self.0.GetChildren()?
-        };
+        let arr = unsafe { self.0.GetChildren()? };
         let arr = SafeArray::from(arr);
         let children: Vec<IUIAutomationCondition> = arr.into_interface_vector()?;
         let conditions: Vec<UICondition> = children.into_iter().map(|c| c.into()).collect();
@@ -2267,8 +2193,7 @@ impl UIAndCondition {
     }
 }
 
-impl IUICondition<IUIAutomationAndCondition> for UIAndCondition {
-}
+impl IUICondition<IUIAutomationAndCondition> for UIAndCondition {}
 
 impl From<IUIAutomationAndCondition> for UIAndCondition {
     fn from(condition: IUIAutomationAndCondition) -> Self {
@@ -2276,9 +2201,9 @@ impl From<IUIAutomationAndCondition> for UIAndCondition {
     }
 }
 
-impl Into<IUIAutomationAndCondition> for UIAndCondition {
-    fn into(self) -> IUIAutomationAndCondition {
-        self.0
+impl From<UIAndCondition> for IUIAutomationAndCondition {
+    fn from(val: UIAndCondition) -> Self {
+        val.0
     }
 }
 
@@ -2297,9 +2222,9 @@ impl TryFrom<IUIAutomationCondition> for UIAndCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIAndCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIAndCondition> for IUIAutomationCondition {
+    fn from(val: UIAndCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2311,9 +2236,9 @@ impl TryFrom<UICondition> for UIAndCondition {
     }
 }
 
-impl Into<UICondition> for UIAndCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UIAndCondition> for UICondition {
+    fn from(val: UIAndCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2324,17 +2249,13 @@ pub struct UIOrCondition(IUIAutomationOrCondition);
 impl UIOrCondition {
     /// Retrieves the number of conditions that make up this "or" condition.
     pub fn get_children_count(&self) -> Result<i32> {
-        let count = unsafe {
-            self.0.ChildCount()?
-        };
+        let count = unsafe { self.0.ChildCount()? };
         Ok(count)
     }
 
     /// Retrieves the conditions that make up this "or" condition.
     pub fn get_children(&self) -> Result<Vec<UICondition>> {
-        let arr = unsafe {
-            self.0.GetChildren()?
-        };
+        let arr = unsafe { self.0.GetChildren()? };
         let arr = SafeArray::from(arr);
         let children: Vec<IUIAutomationCondition> = arr.into_interface_vector()?;
         let conditions: Vec<UICondition> = children.into_iter().map(|c| c.into()).collect();
@@ -2342,8 +2263,7 @@ impl UIOrCondition {
     }
 }
 
-impl IUICondition<IUIAutomationOrCondition> for UIOrCondition {
-}
+impl IUICondition<IUIAutomationOrCondition> for UIOrCondition {}
 
 impl From<IUIAutomationOrCondition> for UIOrCondition {
     fn from(condition: IUIAutomationOrCondition) -> Self {
@@ -2351,9 +2271,9 @@ impl From<IUIAutomationOrCondition> for UIOrCondition {
     }
 }
 
-impl Into<IUIAutomationOrCondition> for UIOrCondition {
-    fn into(self) -> IUIAutomationOrCondition {
-        self.0
+impl From<UIOrCondition> for IUIAutomationOrCondition {
+    fn from(val: UIOrCondition) -> Self {
+        val.0
     }
 }
 
@@ -2372,9 +2292,9 @@ impl TryFrom<IUIAutomationCondition> for UIOrCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIOrCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIOrCondition> for IUIAutomationCondition {
+    fn from(val: UIOrCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2387,9 +2307,9 @@ impl TryFrom<UICondition> for UIOrCondition {
     }
 }
 
-impl Into<UICondition> for UIOrCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.into();
+impl From<UIOrCondition> for UICondition {
+    fn from(val: UIOrCondition) -> Self {
+        let condition: IUIAutomationCondition = val.into();
         condition.into()
     }
 }
@@ -2401,33 +2321,26 @@ pub struct UIPropertyCondition(IUIAutomationPropertyCondition);
 impl UIPropertyCondition {
     /// Retrieves the identifier of the property on which this condition is based.
     pub fn get_property(&self) -> Result<UIProperty> {
-        let property_id = unsafe {
-            self.0.PropertyId()?
-        };
+        let property_id = unsafe { self.0.PropertyId()? };
         // Ok(property_id.into())
         property_id.try_into()
     }
 
     /// Retrieves the property value that must be matched for the condition to be true.
     pub fn get_property_value(&self) -> Result<Variant> {
-        let value = unsafe {
-            self.0.PropertyValue()?
-        };
+        let value = unsafe { self.0.PropertyValue()? };
         Ok(value.into())
     }
 
     /// Retrieves a set of flags that specify how the condition is applied.
     pub fn get_property_condition_flags(&self) -> Result<PropertyConditionFlags> {
-        let flags = unsafe {
-            self.0.PropertyConditionFlags()?
-        };
+        let flags = unsafe { self.0.PropertyConditionFlags()? };
 
         flags.try_into()
     }
 }
 
-impl IUICondition<IUIAutomationPropertyCondition> for UIPropertyCondition {
-}
+impl IUICondition<IUIAutomationPropertyCondition> for UIPropertyCondition {}
 
 impl From<IUIAutomationPropertyCondition> for UIPropertyCondition {
     fn from(condition: IUIAutomationPropertyCondition) -> Self {
@@ -2435,9 +2348,9 @@ impl From<IUIAutomationPropertyCondition> for UIPropertyCondition {
     }
 }
 
-impl Into<IUIAutomationPropertyCondition> for UIPropertyCondition {
-    fn into(self) -> IUIAutomationPropertyCondition {
-        self.0
+impl From<UIPropertyCondition> for IUIAutomationPropertyCondition {
+    fn from(val: UIPropertyCondition) -> Self {
+        val.0
     }
 }
 
@@ -2456,9 +2369,9 @@ impl TryFrom<IUIAutomationCondition> for UIPropertyCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIPropertyCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIPropertyCondition> for IUIAutomationCondition {
+    fn from(val: UIPropertyCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2470,9 +2383,9 @@ impl TryFrom<UICondition> for UIPropertyCondition {
     }
 }
 
-impl Into<UICondition> for UIPropertyCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UIPropertyCondition> for UICondition {
+    fn from(val: UIPropertyCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2485,9 +2398,9 @@ mod tests {
     use windows::Win32::UI::Accessibility::*;
     // use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
-    use crate::types::ControlType;
     use crate::UIAutomation;
     use crate::UIElement;
+    use crate::types::ControlType;
     // use crate::controls::ControlType;
     use crate::filters::MatcherFilter;
     use crate::types::TreeScope;
@@ -2495,18 +2408,36 @@ mod tests {
     fn print_element(element: &UIElement) {
         println!("Name: {}", element.get_name().unwrap());
         println!("ControlType: {:?}", element.get_control_type().unwrap());
-        println!("LocalizedControlType: {}", element.get_localized_control_type().unwrap());
-        println!("BoundingRectangle: {}", element.get_bounding_rectangle().unwrap());
+        println!(
+            "LocalizedControlType: {}",
+            element.get_localized_control_type().unwrap()
+        );
+        println!(
+            "BoundingRectangle: {}",
+            element.get_bounding_rectangle().unwrap()
+        );
         println!("IsEnabled: {}", element.is_enabled().unwrap());
         println!("IsOffscreen: {}", element.is_offscreen().unwrap());
-        println!("IsKeyboardFocusable: {}", element.is_keyboard_focusable().unwrap());
-        println!("HasKeyboardFocus: {}", element.has_keyboard_focus().unwrap());
+        println!(
+            "IsKeyboardFocusable: {}",
+            element.is_keyboard_focusable().unwrap()
+        );
+        println!(
+            "HasKeyboardFocus: {}",
+            element.has_keyboard_focus().unwrap()
+        );
         println!("ProcessId: {}", element.get_process_id().unwrap());
         println!("RuntimeId: {:?}", element.get_runtime_id().unwrap());
         println!("FrameworkId: {}", element.get_framework_id().unwrap());
         println!("ClassName: {}", element.get_classname().unwrap());
-        println!("NativeWindowHandle: {}", element.get_native_window_handle().unwrap());
-        println!("ProviderDescription: {}", element.get_provider_description().unwrap());
+        println!(
+            "NativeWindowHandle: {}",
+            element.get_native_window_handle().unwrap()
+        );
+        println!(
+            "ProviderDescription: {}",
+            element.get_provider_description().unwrap()
+        );
         println!("IsPassword: {}", element.is_password().unwrap());
         println!("AutomationId: {}", element.get_automation_id().unwrap());
         println!("HeadingLevel: {}", element.get_heading_level().unwrap());
@@ -2539,7 +2470,11 @@ mod tests {
     #[cfg(feature = "input")]
     fn test_zh_input() {
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
+        let matcher = automation
+            .create_matcher()
+            .depth(2)
+            .classname("Notepad")
+            .timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
             notepad.send_keys("你好！{enter}", 0).unwrap();
             notepad.send_keys("Hello!", 0).unwrap();
@@ -2552,9 +2487,19 @@ mod tests {
         use crate::types::ControlType;
 
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().depth(2).classname("Notepad").timeout(1000);
+        let matcher = automation
+            .create_matcher()
+            .depth(2)
+            .classname("Notepad")
+            .timeout(1000);
         if let Ok(notepad) = matcher.find_first() {
-            let matcher = automation.create_matcher().control_type(ControlType::MenuItem).from_ref(&notepad).name("文件").depth(5).timeout(1000);
+            let matcher = automation
+                .create_matcher()
+                .control_type(ControlType::MenuItem)
+                .from_ref(&notepad)
+                .name("文件")
+                .depth(5)
+                .timeout(1000);
             if let Ok(menu_item) = matcher.find_first() {
                 menu_item.click().unwrap();
             }
@@ -2574,24 +2519,43 @@ mod tests {
     fn test_notepad() {
         let automation = UIAutomation::new().unwrap();
         let matcher = automation.create_matcher();
-        if let Ok(window) = matcher.classname("Notepad").timeout(0).debug(true).find_first() {
+        if let Ok(window) = matcher
+            .classname("Notepad")
+            .timeout(0)
+            .debug(true)
+            .find_first()
+        {
             println!("{}", window.get_name().unwrap());
 
-            let menubar = automation.create_matcher() //.debug(true)
+            let menubar = automation
+                .create_matcher() //.debug(true)
                 .from(window.clone())
                 .control_type(ControlType::Pane)
                 .timeout(0)
-                .find_first().unwrap();
+                .find_first()
+                .unwrap();
 
-            println!("{}, {}", menubar.get_framework_id().unwrap(), menubar.get_classname().unwrap());
+            println!(
+                "{}, {}",
+                menubar.get_framework_id().unwrap(),
+                menubar.get_classname().unwrap()
+            );
         }
     }
 
     #[test]
     fn test_search_from() {
         let automation = UIAutomation::new().unwrap();
-        if let Ok(window) = automation.create_matcher().classname("Notepad").find_first() {
-            let nothing = automation.create_matcher().from(window.clone()).control_type(ControlType::Window).find_first();
+        if let Ok(window) = automation
+            .create_matcher()
+            .classname("Notepad")
+            .find_first()
+        {
+            let nothing = automation
+                .create_matcher()
+                .from(window.clone())
+                .control_type(ControlType::Window)
+                .find_first();
             assert!(nothing.is_ok());
         }
     }
@@ -2608,7 +2572,11 @@ mod tests {
     #[test]
     fn test_custom_search() {
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().timeout(0).filter(Box::new(FrameworkIdFilter("Win32".into()))).depth(2);
+        let matcher = automation
+            .create_matcher()
+            .timeout(0)
+            .filter(Box::new(FrameworkIdFilter("Win32".into())))
+            .depth(2);
         let element = matcher.find_first();
         assert!(element.is_ok());
         println!("{}", element.unwrap());
@@ -2617,7 +2585,10 @@ mod tests {
     #[test]
     fn test_find_no_wait() {
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().timeout(0).name("You can find nothing!");
+        let matcher = automation
+            .create_matcher()
+            .timeout(0)
+            .name("You can find nothing!");
         let item = matcher.find_first();
         assert!(item.is_err());
     }
@@ -2625,12 +2596,21 @@ mod tests {
     #[test]
     fn test_automation_id() {
         let automation = UIAutomation::new().unwrap();
-        if let Ok(notepad) = automation.create_matcher().timeout(0).classname("Notepad").find_first() {
-            let title_bar = automation.create_matcher().from(notepad).timeout(0).control_type(ControlType::TitleBar).find_first().unwrap();
+        if let Ok(notepad) = automation
+            .create_matcher()
+            .timeout(0)
+            .classname("Notepad")
+            .find_first()
+        {
+            let title_bar = automation
+                .create_matcher()
+                .from(notepad)
+                .timeout(0)
+                .control_type(ControlType::TitleBar)
+                .find_first()
+                .unwrap();
             let element: &IUIAutomationElement = title_bar.as_ref();
-            let automation_id = unsafe {
-                element.CurrentAutomationId().unwrap()
-            };
+            let automation_id = unsafe { element.CurrentAutomationId().unwrap() };
             println!("{} -> {}", title_bar, automation_id);
         }
     }

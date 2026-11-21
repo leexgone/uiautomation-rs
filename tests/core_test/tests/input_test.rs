@@ -17,7 +17,8 @@ mod tests {
         println!("Desktop path: {:?}", desktop_path);
 
         let test_file_path = desktop_path.join("test.txt");
-        std::fs::write(&test_file_path, "This is a test file.").expect("Failed to create test.txt on Desktop");
+        std::fs::write(&test_file_path, "This is a test file.")
+            .expect("Failed to create test.txt on Desktop");
         println!("Created file: {:?}", test_file_path);
 
         let automation = UIAutomation::new().unwrap();
@@ -43,7 +44,13 @@ mod tests {
             }
         }
 
-        if automation.create_matcher().name("test.txt").timeout(2000).find_first().is_ok() {
+        if automation
+            .create_matcher()
+            .name("test.txt")
+            .timeout(2000)
+            .find_first()
+            .is_ok()
+        {
             std::fs::remove_file(&test_file_path).expect("Failed to delete test.txt from Desktop");
             println!("Deleted file: {:?}", test_file_path);
         } else {

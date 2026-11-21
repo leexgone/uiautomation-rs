@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use uiautomation::screenshots::{Screenshot, PixelFormat};
+use uiautomation::screenshots::{PixelFormat, Screenshot};
 use uiautomation::types::Rect;
 use uiautomation::UIAutomation;
 
@@ -26,8 +26,16 @@ mod tests {
         assert!(!shot.pixels().is_empty(), "pixels should not be empty");
 
         let expected_size = (shot.width() * shot.height() * 4) as usize;
-        assert_eq!(shot.pixels().len(), expected_size, "pixel buffer size mismatch");
-        assert_eq!(shot.format(), PixelFormat::BGRA, "default format should be BGRA");
+        assert_eq!(
+            shot.pixels().len(),
+            expected_size,
+            "pixel buffer size mismatch"
+        );
+        assert_eq!(
+            shot.format(),
+            PixelFormat::BGRA,
+            "default format should be BGRA"
+        );
 
         println!("Desktop screenshot: {}x{}", shot.width(), shot.height());
     }
@@ -111,8 +119,11 @@ mod tests {
 
         let data = fs::read(&path).unwrap();
         // PNG signature: 89 50 4E 47 0D 0A 1A 0A
-        assert_eq!(&data[0..8], &[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
-            "PNG signature mismatch");
+        assert_eq!(
+            &data[0..8],
+            &[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+            "PNG signature mismatch"
+        );
 
         println!("PNG saved to: {}", path.display());
     }
@@ -152,8 +163,7 @@ mod tests {
         let rect = Rect::new(-100, -100, 200, 200);
         let result = Screenshot::capture_rect(rect);
         // This should succeed on multi-monitor setups where negative coords are valid
-        if result.is_ok() {
-            let shot = result.unwrap();
+        if let Ok(shot) = result {
             assert_eq!(shot.width(), 300);
             assert_eq!(shot.height(), 300);
         }
@@ -188,6 +198,10 @@ mod tests {
         assert!(png_data.len() > 8); // PNG header
 
         // BMP and PNG sizes will differ, but both should be valid images
-        println!("BMP: {} bytes, PNG: {} bytes", bmp_data.len(), png_data.len());
+        println!(
+            "BMP: {} bytes, PNG: {} bytes",
+            bmp_data.len(),
+            png_data.len()
+        );
     }
 }

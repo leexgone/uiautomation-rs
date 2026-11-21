@@ -8,7 +8,13 @@ use uiautomation::variants::Variant;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
-    let filter = automation.create_property_condition(UIProperty::ControlType, Variant::from(ControlType::Pane as i32), None).unwrap();
+    let filter = automation
+        .create_property_condition(
+            UIProperty::ControlType,
+            Variant::from(ControlType::Pane as i32),
+            None,
+        )
+        .unwrap();
     let walker = automation.filter_tree_walker(filter).unwrap(); //automation.get_control_view_walker().unwrap(); 
     let root = automation.get_root_element().unwrap();
 
@@ -21,7 +27,7 @@ fn print_element(walker: &UITreeWalker, element: &UIElement, level: usize) -> Re
     }
     println!("{} - {}", element.get_classname()?, element.get_name()?);
 
-    if let Ok(child) = walker.get_first_child(&element) {
+    if let Ok(child) = walker.get_first_child(element) {
         print_element(walker, &child, level + 1)?;
 
         let mut next = child;
@@ -31,6 +37,6 @@ fn print_element(walker: &UITreeWalker, element: &UIElement, level: usize) -> Re
             next = sibling;
         }
     }
-    
+
     Ok(())
 }

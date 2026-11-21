@@ -1,10 +1,10 @@
 use std::fmt::Display;
-use std::string::FromUtf16Error;
 use std::string::FromUtf8Error;
+use std::string::FromUtf16Error;
 
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::GetLastError;
 use windows::core::HRESULT;
-use windows::Win32::Foundation::E_FAIL;
 
 /// Error caused by unknown reason.
 pub const ERR_NONE: i32 = 0;
@@ -17,7 +17,7 @@ pub const ERR_INACTIVE: i32 = 3;
 /// Error caused by unsupported or mismatched type
 pub const ERR_TYPE: i32 = 4;
 /// Error when a pointer is null.
-pub const ERR_NULL_PTR:  i32 = 5;
+pub const ERR_NULL_PTR: i32 = 5;
 /// Error format.
 pub const ERR_FORMAT: i32 = 6;
 /// Error invalid object.
@@ -30,14 +30,14 @@ pub const ERR_INVALID_ARG: i32 = 9;
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
     code: i32,
-    message: String
+    message: String,
 }
 
 impl Error {
     pub fn new(code: i32, message: &str) -> Error {
         Error {
             code,
-            message: String::from(message)
+            message: String::from(message),
         }
     }
 
@@ -70,24 +70,23 @@ impl Display for Error {
     }
 }
 
-impl std::error::Error for Error {
-}
+impl std::error::Error for Error {}
 
 impl From<windows::core::Error> for Error {
     fn from(e: windows::core::Error) -> Self {
         Self {
             code: e.code().0,
-            message: e.message()
+            message: e.message(),
         }
     }
 }
 
-impl Into<windows::core::Error> for Error {
-    fn into(self) -> windows::core::Error {
-        if let Some(result) = self.result() {
+impl From<Error> for windows::core::Error {
+    fn from(val: Error) -> Self {
+        if let Some(result) = val.result() {
             windows::core::Error::from_hresult(result)
         } else {
-            windows::core::Error::new(E_FAIL, self.message)
+            windows::core::Error::new(E_FAIL, val.message)
         }
     }
 }
@@ -96,17 +95,14 @@ impl From<HRESULT> for Error {
     fn from(result: HRESULT) -> Self {
         Self {
             code: result.0,
-            message: result.message().to_string()
+            message: result.message().to_string(),
         }
     }
 }
 
 impl From<String> for Error {
     fn from(message: String) -> Self {
-        Error {
-            code: 0,
-            message
-        }
+        Error { code: 0, message }
     }
 }
 
@@ -114,7 +110,7 @@ impl From<&str> for Error {
     fn from(message: &str) -> Self {
         Error {
             code: 0,
-            message: String::from(message)
+            message: String::from(message),
         }
     }
 }

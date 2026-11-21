@@ -1,5 +1,5 @@
-use std::mem;
 use std::iter::once;
+use std::mem;
 
 use windows::Win32::Foundation::CloseHandle;
 use windows::Win32::Foundation::HANDLE;
@@ -19,10 +19,10 @@ use windows::core::PWSTR;
 
 use super::Error;
 use super::Result;
-use crate::errors::ERR_ALREADY_RUNNING;
-use crate::types::Handle;
 use super::errors::ERR_NONE;
 use super::errors::ERR_TIMEOUT;
+use crate::errors::ERR_ALREADY_RUNNING;
+use crate::types::Handle;
 
 /// Windows process wrapper.
 #[derive(Debug)]
@@ -32,14 +32,14 @@ pub struct Process {
     cur_dir: Option<String>,
     wait_for_idle: Option<u32>,
     startup_info: STARTUPINFOW,
-    proc_info: PROCESS_INFORMATION
+    proc_info: PROCESS_INFORMATION,
 }
 
-struct WSTR {
+struct Wstr {
     data: Option<Vec<u16>>,
 }
 
-impl WSTR {
+impl Wstr {
     fn new(s: Option<&str>) -> Self {
         Self {
             data: s.map(|s| s.encode_utf16().chain(once(0)).collect()),
@@ -50,24 +50,24 @@ impl WSTR {
         self.data
             .as_ref()
             .map(|s| PCWSTR::from_raw(s.as_ptr()))
-            .unwrap_or_else(|| PCWSTR::null())
+            .unwrap_or_else(PCWSTR::null)
     }
 
-    fn to_pwstr(&mut self) -> PWSTR {
+    fn as_pwstr(&mut self) -> PWSTR {
         self.data
             .as_mut()
             .map(|s| PWSTR::from_raw(s.as_mut_ptr()))
-            .unwrap_or_else(|| PWSTR::null())
+            .unwrap_or_else(PWSTR::null)
     }
 }
 
 impl Process {
     /// Create and run a process by command line. This process will wait for idle state for 0.5s before returning.
-    /// 
+    ///
     /// # Examples
     /// ```no_run
     /// use uiautomation::processes::Process;
-    /// 
+    ///
     /// let p = Process::create("notepad.exe");
     /// assert!(p.is_ok());
     /// ```
@@ -89,19 +89,20 @@ impl Process {
 
     #[inline]
     fn startupinfo() -> STARTUPINFOW {
-        let mut si = STARTUPINFOW::default();
-        si.cb = mem::size_of::<STARTUPINFOW>() as _;
-        si
+        STARTUPINFOW {
+            cb: mem::size_of::<STARTUPINFOW>() as _,
+            ..Default::default()
+        }
     }
 
-    /// Create a process by `command`. This process will not startup until it is called by `run()`. 
+    /// Create a process by `command`. This process will not startup until it is called by `run()`.
     pub fn new<S: Into<String>>(command: S) -> Self {
-        Self { 
+        Self {
             application: None,
             command: Some(command.into()),
             cur_dir: None,
             wait_for_idle: None,
-            startup_info: Self::startupinfo(), 
+            startup_info: Self::startupinfo(),
             proc_info: PROCESS_INFORMATION::default(),
         }
     }
@@ -118,13 +119,13 @@ impl Process {
         self
     }
 
-    /// Set the current directory as `dir`, which is the full path to the current directory for the process. 
+    /// Set the current directory as `dir`, which is the full path to the current directory for the process.
     pub fn current_directory<S: Into<String>>(mut self, dir: S) -> Self {
         self.cur_dir = Some(dir.into());
         self
     }
 
-    /// Set to wait until the specified process has finished processing its initial input and is waiting for user input with no input pending, 
+    /// Set to wait until the specified process has finished processing its initial input and is waiting for user input with no input pending,
     /// or until the time-out interval(`milliseconds`) has elapsed.
     pub fn wait_for_idle(mut self, milliseconds: u32) -> Self {
         self.wait_for_idle = Some(milliseconds);
@@ -132,26 +133,29 @@ impl Process {
     }
 
     /// Run the current process.
-    /// 
+    ///
     /// # Examples:
     /// ```
     /// use uiautomation::processes::Process;
-    /// 
+    ///
     /// let ping = Process::new("ping.exe localhost -n 1").current_directory("C:/").run().unwrap();
     /// ping.wait().unwrap();
     /// ```
     pub fn run(mut self) -> Result<Self> {
         if !self.proc_info.hProcess.is_invalid() {
-            Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
+            Err(Error::new(
+                ERR_ALREADY_RUNNING,
+                "process is already started",
+            ))
         } else {
-            let app = WSTR::new(self.application.as_deref());
-            let mut cmd = WSTR::new(self.command.as_deref());
-            let cur_dir = WSTR::new(self.cur_dir.as_deref());
+            let app = Wstr::new(self.application.as_deref());
+            let mut cmd = Wstr::new(self.command.as_deref());
+            let cur_dir = Wstr::new(self.cur_dir.as_deref());
 
             unsafe {
                 CreateProcessW(
                     app.to_pcwstr(),
-                    Some(cmd.to_pwstr()),
+                    Some(cmd.as_pwstr()),
                     None,
                     None,
                     true,
@@ -159,24 +163,23 @@ impl Process {
                     None,
                     cur_dir.to_pcwstr(),
                     &self.startup_info,
-                    &mut self.proc_info)?
+                    &mut self.proc_info,
+                )?
             };
 
             if let Some(timeout) = self.wait_for_idle {
                 unsafe { WaitForInputIdle(self.proc_info.hProcess, timeout) };
             }
-    
+
             Ok(self)
         }
     }
 
     /// Wait for the process to exit.
-    /// 
+    ///
     /// `timeout` is the milliseconds to wait for.
     pub fn wait_for(&self, timeout: u32) -> Result<()> {
-        let ret = unsafe {
-            WaitForSingleObject(self.proc_info.hProcess, timeout)
-        };
+        let ret = unsafe { WaitForSingleObject(self.proc_info.hProcess, timeout) };
 
         if ret == WAIT_OBJECT_0 {
             Ok(())
@@ -197,9 +200,7 @@ impl Process {
     /// Get the exit code of the process.
     pub fn get_exit_code(&self) -> Result<u32> {
         let mut exit_code: u32 = 0;
-        unsafe {
-            GetExitCodeProcess(self.proc_info.hProcess, &mut exit_code)?
-        };
+        unsafe { GetExitCodeProcess(self.proc_info.hProcess, &mut exit_code)? };
 
         Ok(exit_code)
     }
@@ -239,23 +240,23 @@ impl Drop for Process {
 
 impl Default for Process {
     fn default() -> Self {
-        Self { 
-            application: None, 
-            command: None, 
+        Self {
+            application: None,
+            command: None,
             cur_dir: None,
             wait_for_idle: None,
-            startup_info: Self::startupinfo(), 
-            proc_info: Default::default() 
+            startup_info: Self::startupinfo(),
+            proc_info: Default::default(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::UIAutomation;
     use crate::actions::Window;
     use crate::controls::WindowControl;
     use crate::processes::Process;
-    use crate::UIAutomation;
 
     #[test]
     fn create_notepad() {
@@ -265,7 +266,10 @@ mod tests {
 
         let notepad = proc_notepad.unwrap();
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().process_id(notepad.get_id()).classname("Notepad");
+        let matcher = automation
+            .create_matcher()
+            .process_id(notepad.get_id())
+            .classname("Notepad");
         if let Ok(notepad) = matcher.find_first() {
             let notepad = WindowControl::try_from(notepad).unwrap();
             notepad.close().unwrap();
@@ -274,7 +278,10 @@ mod tests {
 
     #[test]
     fn run_ping() {
-        let ping = Process::new("ping.exe localhost -n 1").current_directory("C:/").run().unwrap();
+        let ping = Process::new("ping.exe localhost -n 1")
+            .current_directory("C:/")
+            .run()
+            .unwrap();
         ping.wait().unwrap();
     }
 
@@ -284,10 +291,12 @@ mod tests {
             .application("C:\\Windows\\System32\\notepad.exe")
             .current_directory("C:\\")
             .wait_for_idle(5000)
-            .run().unwrap();
+            .run()
+            .unwrap();
 
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher()
+        let matcher = automation
+            .create_matcher()
             .process_id(proc.get_id())
             .classname("Notepad")
             .timeout(1000);

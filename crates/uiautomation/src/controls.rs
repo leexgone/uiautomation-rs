@@ -1,18 +1,18 @@
-use std::fmt::{self , Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 
 use uiautomation_derive::*;
 use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
 
-use super::actions::*;
 use super::Result;
 use super::UIElement;
+use super::actions::*;
 use super::errors::ERR_TYPE;
 use super::patterns::*;
 
 pub type ControlType = super::types::ControlType;
 
 // /// Defines enum for `windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID`.
-// /// 
+// ///
 // /// Contains the named constants used to identify Microsoft UI Automation control types.
 // #[repr(i32)]
 // #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -98,7 +98,7 @@ pub type ControlType = super::types::ControlType;
 //     /// Identifies the SemanticZoom control type. Supported starting with Windows 8.
 //     SemanticZoom = 50039i32,
 //     /// Identifies the AppBar control type. Supported starting with Windows 8.1.
-//     AppBar = 50040i32    
+//     AppBar = 50040i32
 // }
 
 // impl From<windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID> for ControlType {
@@ -120,12 +120,12 @@ pub trait Control {
 }
 
 /// Wrapper a AppBar element as control. The control type of the element must be `UIA_AppBarControlTypeId`.
-/// 
+///
 /// + Must support: `ExpandCollapse`, `Toggle`
 /// + Conditional support: None
 #[derive(Debug, Control, ExpandCollapse, Toggle)]
 pub struct AppBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for AppBarControl {
@@ -133,12 +133,12 @@ impl Control for AppBarControl {
 }
 
 /// Wrapper a Button element as a control. The control type of the element must be `UIA_ButtonControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support： `ExpandCollapse`, `Invoke`, `Toggle`, `Value`
 #[derive(Debug, Control, Invoke, Value, ExpandCollapse, Toggle)]
 pub struct ButtonControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ButtonControl {
@@ -146,12 +146,12 @@ impl Control for ButtonControl {
 }
 
 /// Wrapper a Calendar element as control.
-/// 
+///
 /// + Must support: `Grid`, `Table`
 /// + Conditional support： `Scroll`, `Selection`
 #[derive(Debug, Control, Grid, Table, Scroll, Selection)]
 pub struct CalendarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for CalendarControl {
@@ -159,12 +159,12 @@ impl Control for CalendarControl {
 }
 
 /// Wrapper a CheckBox element as control. The control type of the element must be `UIA_CheckBoxControlTypeId`.
-/// 
+///
 /// + Must support: `Toggle`
 /// + Conditional support: None
 #[derive(Debug, Control, Toggle)]
 pub struct CheckBoxControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for CheckBoxControl {
@@ -172,12 +172,12 @@ impl Control for CheckBoxControl {
 }
 
 /// Wrapper a ComboBox element as control. The control type of the element must be `UIA_ComboBoxControlTypeId`.
-/// 
+///
 /// + Must support: `ExpandCollapse`
 /// + Conditional support: `Selection`, `Value`
 #[derive(Debug, Control, ExpandCollapse, Selection, Value)]
 pub struct ComboBoxControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ComboBoxControl {
@@ -185,12 +185,12 @@ impl Control for ComboBoxControl {
 }
 
 /// Wrapper a DataGrid element as control. The control type of the element must be `UIA_DataGridControlTypeId`.
-/// 
+///
 /// + Must support: `Grid`
 /// + Conditional support: `Scroll`, `Selection`, `Table`
 #[derive(Debug, Control, Grid, Scroll, Selection, Table)]
 pub struct DataGridControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for DataGridControl {
@@ -198,12 +198,23 @@ impl Control for DataGridControl {
 }
 
 /// Wrapper a DataItem element as control. The control type of the element must be `UIA_DataItemControlTypeId`.
-/// 
+///
 /// + Must support: `SelectionItem`
 /// + Conditional support: `CustomNavigation`, `ExpandCollapse`, `GridItem`, `ScrollItem`, `TableItem`, `Toggle`, `Value`
-#[derive(Debug, Control, SelectionItem, CustomNavigation, ExpandCollapse, GridItem, ScrollItem, TableItem, Toggle, Value)]
+#[derive(
+    Debug,
+    Control,
+    SelectionItem,
+    CustomNavigation,
+    ExpandCollapse,
+    GridItem,
+    ScrollItem,
+    TableItem,
+    Toggle,
+    Value,
+)]
 pub struct DataItemControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for DataItemControl {
@@ -211,12 +222,12 @@ impl Control for DataItemControl {
 }
 
 /// Wrapper a Document element as control. The control type of the element must be `UIA_DocumentControlTypeId`.
-/// 
+///
 /// + Must support: `Text`
 /// + Conditional support: `Scroll`, `Value`
 #[derive(Debug, Control, Text, Scroll, Value)]
 pub struct DocumentControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for DocumentControl {
@@ -224,12 +235,12 @@ impl Control for DocumentControl {
 }
 
 /// Wrapper a Edit element as control. The control type of the element must be `UIA_EditControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `RangeValue`, `Text`, `Value`
 #[derive(Debug, Control, RangeValue, Text, Value)]
 pub struct EditControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for EditControl {
@@ -237,12 +248,12 @@ impl Control for EditControl {
 }
 
 /// Wrapper a Group element as control. The control type of the element must be `UIA_GroupControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `ExpandCollapse`
 #[derive(Debug, Control, ExpandCollapse)]
 pub struct GroupControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for GroupControl {
@@ -250,12 +261,12 @@ impl Control for GroupControl {
 }
 
 /// Wrapper a Header element as control. The control type of the element must be `UIA_HeaderControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Transform`
 #[derive(Debug, Control, Transform)]
 pub struct HeaderControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for HeaderControl {
@@ -263,12 +274,12 @@ impl Control for HeaderControl {
 }
 
 /// Wrapper a HeaderItem element as control. The control type of the element must be `UIA_HeaderItemControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `CustomNavigation`, `Invoke`, `Transform`
 #[derive(Debug, Control, CustomNavigation, Invoke, Transform)]
 pub struct HeaderItemControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for HeaderItemControl {
@@ -276,12 +287,12 @@ impl Control for HeaderItemControl {
 }
 
 /// Wrapper a Hyperlink element as control. The control type of the element must be `UIA_HyperlinkControlTypeId`.
-/// 
+///
 /// + Must support: `Invoke`
 /// + Conditional support: `Value`
 #[derive(Debug, Control, Invoke, Value)]
 pub struct HyperlinkControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for HyperlinkControl {
@@ -289,12 +300,12 @@ impl Control for HyperlinkControl {
 }
 
 /// Wrapper a Image element as control. The control type of the element must be `UIA_ImageControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `GridItem`, `TableItem`
 #[derive(Debug, Control, GridItem, TableItem)]
 pub struct ImageControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ImageControl {
@@ -302,12 +313,12 @@ impl Control for ImageControl {
 }
 
 /// Wrapper a List element as control. The control type of the element must be `UIA_ListControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Grid`, `MultipleView`, `Scroll`, `Selection`
 #[derive(Debug, Control, Grid, MultipleView, Scroll, Selection)]
 pub struct ListControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ListControl {
@@ -315,12 +326,23 @@ impl Control for ListControl {
 }
 
 /// Wrapper a ListItem element as control. The control type of the element must be `UIA_ListItemControlTypeId`.
-/// 
+///
 /// + Must support: `SelectionItem`
-/// + Conditional support: 	`CustomNavigation`, `ExpandCollapse`, `GridItem`, `Invoke`, `ScrollItem`, `Toggle`, `Value`
-#[derive(Debug, Control, SelectionItem, CustomNavigation, ExpandCollapse, GridItem, Invoke, ScrollItem, Toggle, Value)]
+/// + Conditional support: `CustomNavigation`, `ExpandCollapse`, `GridItem`, `Invoke`, `ScrollItem`, `Toggle`, `Value`
+#[derive(
+    Debug,
+    Control,
+    SelectionItem,
+    CustomNavigation,
+    ExpandCollapse,
+    GridItem,
+    Invoke,
+    ScrollItem,
+    Toggle,
+    Value,
+)]
 pub struct ListItemControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ListItemControl {
@@ -328,12 +350,12 @@ impl Control for ListItemControl {
 }
 
 /// Wrapper a Menu element as control. The control type of the element must be `UIA_MenuControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: None
 #[derive(Debug, Control)]
 pub struct MenuControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for MenuControl {
@@ -341,12 +363,12 @@ impl Control for MenuControl {
 }
 
 /// Wrapper a MenuBar element as control. The control type of the element must be `UIA_MenuBarControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Dock`, `ExpandCollapse`, `Transform`
 #[derive(Debug, Control, Dock, ExpandCollapse, Transform)]
 pub struct MenuBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for MenuBarControl {
@@ -354,12 +376,12 @@ impl Control for MenuBarControl {
 }
 
 /// Wrapper a MenuItem element as control. The control type of the element must be `UIA_MenuItemControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `ExpandCollapse`, `Invoke`, `SelectionItem`, `Toggle`
 #[derive(Debug, Control, ExpandCollapse, Invoke, SelectionItem, Toggle)]
 pub struct MenuItemControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for MenuItemControl {
@@ -367,12 +389,12 @@ impl Control for MenuItemControl {
 }
 
 /// Wrapper a Pane element as control. The control type of the element must be `UIA_PaneControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Dock`, `Scroll`, `Transform`, `Window`
-#[derive(Debug,	Control, Dock, Scroll, Transform, Window)]
+#[derive(Debug, Control, Dock, Scroll, Transform, Window)]
 pub struct PaneControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for PaneControl {
@@ -380,12 +402,12 @@ impl Control for PaneControl {
 }
 
 /// Wrapper a ProgressBar element as control. The control type of the element must be `UIA_ProgressBarControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: RangeValue, Value
 #[derive(Debug, Control, RangeValue, Value)]
 pub struct ProgressBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ProgressBarControl {
@@ -393,12 +415,12 @@ impl Control for ProgressBarControl {
 }
 
 /// Wrapper a RadioButton element as control. The control type of the element must be `UIA_RadioButtonControlTypeId`.
-/// 
+///
 /// + Must support: `SelectionItem`
 /// + Conditional support: None
 #[derive(Debug, Control, SelectionItem)]
 pub struct RadioButtonControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for RadioButtonControl {
@@ -406,12 +428,12 @@ impl Control for RadioButtonControl {
 }
 
 /// Wrapper a ScrollBar element as control. The control type of the element must be `UIA_ScrollBarControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `RangeValue`
 #[derive(Debug, Control, RangeValue)]
 pub struct ScrollBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ScrollBarControl {
@@ -419,12 +441,12 @@ impl Control for ScrollBarControl {
 }
 
 /// Wrapper a SemanticZoom element as control. The control type of the element must be `UIA_SemanticZoomControlTypeId`.
-/// 
+///
 /// + Must support: `Toggle`
 /// + Conditional support: None
 #[derive(Debug, Control, Toggle)]
 pub struct SemanticZoomControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for SemanticZoomControl {
@@ -432,12 +454,12 @@ impl Control for SemanticZoomControl {
 }
 
 /// Wrapper a Separator element as control. The control type of the element must be `UIA_SeparatorControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: None
 #[derive(Debug, Control)]
 pub struct SeparatorControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for SeparatorControl {
@@ -445,12 +467,12 @@ impl Control for SeparatorControl {
 }
 
 /// Wrapper a Slider element as control. The control type of the element must be `UIA_SliderControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `RangeValue`, `Selection`, `Value`
 #[derive(Debug, Control, RangeValue, Selection, Value)]
 pub struct SliderControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for SliderControl {
@@ -458,12 +480,12 @@ impl Control for SliderControl {
 }
 
 /// Wrapper a Spinner element as control. The control type of the element must be `UIA_SpinnerControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `RangeValue`, `Selection`, `Value`
 #[derive(Debug, Control, RangeValue, Selection, Value)]
 pub struct SpinnerControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for SpinnerControl {
@@ -471,12 +493,12 @@ impl Control for SpinnerControl {
 }
 
 /// Wrapper a SplitButton element as control. The control type of the element must be `UIA_SplitButtonControlTypeId`.
-/// 
+///
 /// + Must support: `ExpandCollapse`, `Invoke`
 /// + Conditional support: None
 #[derive(Debug, Control, ExpandCollapse, Invoke)]
 pub struct SplitButtonControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for SplitButtonControl {
@@ -484,12 +506,12 @@ impl Control for SplitButtonControl {
 }
 
 /// Wrapper a StatusBar element as control. The control type of the element must be `UIA_StatusBarControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Grid`
 #[derive(Debug, Control, Grid)]
 pub struct StatusBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for StatusBarControl {
@@ -497,12 +519,12 @@ impl Control for StatusBarControl {
 }
 
 /// Wrapper a Tab element as control. The control type of the element must be `UIA_TabControlTypeId`.
-/// 
+///
 /// + Must support: `Selection`
 /// + Conditional support: `Scroll`
 #[derive(Debug, Control, Selection, Scroll)]
 pub struct TabControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TabControl {
@@ -510,12 +532,12 @@ impl Control for TabControl {
 }
 
 /// Wrapper a TabItem element as control. The control type of the element must be `UIA_TabItemControlTypeId`.
-/// 
+///
 /// + Must support: `SelectionItem`
 /// + Conditional support: None
 #[derive(Debug, Control, SelectionItem)]
 pub struct TabItemControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TabItemControl {
@@ -523,12 +545,12 @@ impl Control for TabItemControl {
 }
 
 /// Wrapper a Table element as control. The control type of the element must be `UIA_TableControlTypeId`.
-/// 
+///
 /// + Must support: `Grid`, `GridItem`, `Table`, `TableItem`
 /// + Conditional support: None
 #[derive(Debug, Control, Grid, GridItem, Table, TableItem)]
 pub struct TableControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TableControl {
@@ -536,12 +558,12 @@ impl Control for TableControl {
 }
 
 /// Wrapper a Text element as control. The control type of the element must be `UIA_TextControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `GridItem`, `TableItem`, `Text`
 #[derive(Debug, Control, GridItem, TableItem, Text)]
 pub struct TextControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TextControl {
@@ -549,12 +571,12 @@ impl Control for TextControl {
 }
 
 /// Wrapper a Thumb element as control. The control type of the element must be `UIA_ThumbControlTypeId`.
-/// 
+///
 /// + Must support: `Transform`
 /// + Conditional support: None
 #[derive(Debug, Control, Transform)]
 pub struct ThumbControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ThumbControl {
@@ -562,12 +584,12 @@ impl Control for ThumbControl {
 }
 
 /// Wrapper a TitleBar element as control. The control type of the element must be `UIA_TitleBarControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: None
 #[derive(Debug, Control)]
 pub struct TitleBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TitleBarControl {
@@ -575,12 +597,12 @@ impl Control for TitleBarControl {
 }
 
 /// Wrapper a ToolBar element as control. The control type of the element must be `UIA_ToolBarControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Dock`, `ExpandCollapse`, `Transform`
 #[derive(Debug, Control, Dock, ExpandCollapse, Transform)]
 pub struct ToolBarControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ToolBarControl {
@@ -588,12 +610,12 @@ impl Control for ToolBarControl {
 }
 
 /// Wrapper a ToolTip element as control. The control type of the element must be `UIA_ToolTipControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Text`, `Window`
 #[derive(Debug, Control, Text, Window)]
 pub struct ToolTipControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for ToolTipControl {
@@ -601,12 +623,12 @@ impl Control for ToolTipControl {
 }
 
 /// Wrapper a Tree element as control. The control type of the element must be `UIA_TreeControlTypeId`.
-/// 
+///
 /// + Must support: None
 /// + Conditional support: `Scroll`, `Selection`
-#[derive(Debug,	Control, Scroll, Selection)]
+#[derive(Debug, Control, Scroll, Selection)]
 pub struct TreeControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TreeControl {
@@ -614,12 +636,12 @@ impl Control for TreeControl {
 }
 
 /// Wrapper a TreeItem element as control. The control type of the element must be `UIA_TreeItemControlTypeId`.
-/// 
+///
 /// + Must support: `ExpandCollapse`
 /// + Conditional support: `Invoke`, `ScrollItem`, `SelectionItem`, `Toggle`
-#[derive(Debug,	Control, ExpandCollapse, Invoke, ScrollItem, SelectionItem, Toggle)]
+#[derive(Debug, Control, ExpandCollapse, Invoke, ScrollItem, SelectionItem, Toggle)]
 pub struct TreeItemControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl Control for TreeItemControl {
@@ -627,21 +649,19 @@ impl Control for TreeItemControl {
 }
 
 /// Wrapper a Window element as control. The control type of the element must be `UIA_WindowControlTypeId`.
-/// 
+///
 /// + Must support: `Transform`, `Window`
 /// + Conditional support: `Dock`
 #[derive(Debug, Control, Transform, Window, Dock)]
 pub struct WindowControl {
-    control: UIElement
+    control: UIElement,
 }
 
 impl WindowControl {
-    /// Brings the thread that created the specified window into the foreground and activates the window. 
+    /// Brings the thread that created the specified window into the foreground and activates the window.
     pub fn set_foregrand(&self) -> Result<bool> {
         let hwnd = self.control.get_native_window_handle()?;
-        let ret = unsafe {
-            SetForegroundWindow(hwnd.into())
-        };
+        let ret = unsafe { SetForegroundWindow(hwnd.into()) };
         Ok(ret.as_bool())
     }
 }

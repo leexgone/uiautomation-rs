@@ -1,11 +1,11 @@
 extern crate proc_macro;
 
-#[cfg(feature = "enum_derive")]
-mod enum_derives;
 #[cfg(feature = "action_derive")]
 mod action_derives;
 #[cfg(feature = "control_derive")]
 mod control_derives;
+#[cfg(feature = "enum_derive")]
+mod enum_derives;
 #[cfg(feature = "pattern_derive")]
 mod pattern_derivers;
 
@@ -13,12 +13,12 @@ use proc_macro::TokenStream;
 use syn::ItemEnum;
 use syn::Path;
 
-#[cfg(feature = "enum_derive")]
-use self::enum_derives::*;
 #[cfg(feature = "action_derive")]
 use self::action_derives::*;
 #[cfg(feature = "control_derive")]
 use self::control_derives::*;
+#[cfg(feature = "enum_derive")]
+use self::enum_derives::*;
 #[cfg(feature = "pattern_derive")]
 use self::pattern_derivers::*;
 
@@ -59,7 +59,7 @@ pub fn item_container_derive(input: TokenStream) -> TokenStream {
 pub fn derive_scroll_item(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
-    impl_scroll_item(&ast)    
+    impl_scroll_item(&ast)
 }
 
 #[cfg(feature = "action_derive")]
@@ -114,7 +114,7 @@ pub fn derive_grid(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Table)]
 pub fn derive_table(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    
+
     impl_table(&ast)
 }
 
@@ -171,7 +171,7 @@ pub fn derive_text(input: TokenStream) -> TokenStream {
 pub fn derive_range_value(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
-    impl_range_value(&ast)    
+    impl_range_value(&ast)
 }
 
 #[cfg(feature = "action_derive")]
@@ -179,12 +179,13 @@ pub fn derive_range_value(input: TokenStream) -> TokenStream {
 pub fn derive_dock(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
 
-    impl_dock(&ast)    
+    impl_dock(&ast)
 }
 
 #[proc_macro_derive(EnumConvert)]
 pub fn derive_enum_convert(input: TokenStream) -> TokenStream {
-    let enum_item = syn::parse::<ItemEnum>(input).expect("#[Derive(EnumConvert)] must be used on enums only");
+    let enum_item =
+        syn::parse::<ItemEnum>(input).expect("#[Derive(EnumConvert)] must be used on enums only");
 
     impl_enum_convert(enum_item)
 }
@@ -208,18 +209,19 @@ pub fn map_as(args: TokenStream, item: TokenStream) -> TokenStream {
 #[cfg(feature = "pattern_derive")]
 #[proc_macro_attribute]
 pub fn pattern_as(attr: TokenStream, item: TokenStream) -> TokenStream {
-    use syn::punctuated::Punctuated;
     use syn::ItemStruct;
     use syn::Token;
+    use syn::punctuated::Punctuated;
 
-    let struct_item: ItemStruct = syn::parse(item).expect("#[pattern_as()] must be used on struct only");
+    let struct_item: ItemStruct =
+        syn::parse(item).expect("#[pattern_as()] must be used on struct only");
 
     let parser = Punctuated::<syn::Path, Token![,]>::parse_terminated;
     let args = syn::parse_macro_input!(attr with parser);
     // let args: Vec<_> = types.into_iter().collect();
     // if args.len() != 2 {
     //     syn::Error::new(
-    //         proc_macro2::Span::call_site(), 
+    //         proc_macro2::Span::call_site(),
     //         "#[pattern_as()] requires both pattern type and interface"
     //     ).to_compile_error()
     //     .into()
@@ -227,13 +229,16 @@ pub fn pattern_as(attr: TokenStream, item: TokenStream) -> TokenStream {
     //     todo!()
     // }
     let mut arg_itr = args.into_iter();
-    let type_item = arg_itr.next().expect("#[pattern_as()] requires pattern type");
+    let type_item = arg_itr
+        .next()
+        .expect("#[pattern_as()] requires pattern type");
     // let pattern_item = arg_itr.next().expect("#[pattern_as()] requires pattern interface");
     if arg_itr.next().is_some() {
         return syn::Error::new(
-            proc_macro2::Span::call_site(), 
-            "#[pattern_as()] support only single parameter"
-        ).to_compile_error()
+            proc_macro2::Span::call_site(),
+            "#[pattern_as()] support only single parameter",
+        )
+        .to_compile_error()
         .into();
     }
 

@@ -3,11 +3,14 @@ use windows::core::*;
 use windows::Win32::UI::Accessibility::*;
 
 #[implement(IUIAutomationEventHandler)]
-pub struct MyEventHandler {
-}
+pub struct MyEventHandler {}
 
 impl IUIAutomationEventHandler_Impl for MyEventHandler_Impl {
-    fn HandleAutomationEvent(&self,sender:windows_core::Ref<'_, IUIAutomationElement>,eventid:UIA_EVENT_ID) -> windows::core::Result<()> {
+    fn HandleAutomationEvent(
+        &self,
+        sender: windows_core::Ref<'_, IUIAutomationElement>,
+        eventid: UIA_EVENT_ID,
+    ) -> windows::core::Result<()> {
         if let Some(element) = sender.as_ref() {
             let element = UIElement::from(element);
             println!("event: {}, element: {}", eventid.0, element);

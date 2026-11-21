@@ -1,23 +1,23 @@
-mod handlers;
 mod functions;
+mod handlers;
 
-use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
+use uiautomation_derive::map_as;
 use windows::Win32::UI::Accessibility::IUIAutomationEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationFocusChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationPropertyChangedEventHandler;
 use windows::Win32::UI::Accessibility::IUIAutomationStructureChangedEventHandler;
 use windows::core::Param;
 
+use crate::Result;
+use crate::UIElement;
 use crate::types::StructureChangeType;
 use crate::types::UIProperty;
 use crate::variants::SafeArray;
 use crate::variants::Variant;
-use crate::Result;
-use crate::UIElement;
 
 /// `UIEventType` is an enum wrapper for `windows::Win32::UI::Accessibility::UIA_EVENT_ID`.
-/// 
+///
 /// Describes  the named constants used to identify Microsoft UI Automation events.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -70,64 +70,64 @@ pub enum UIEventType {
     InputReachedOtherElement = 20021i32,
     /// Identifies the event that is raised when the specified input was discarded or otherwise failed to reach any element.
     InputDiscarded = 20022i32,
-    /// Identifies the event that is raised when a provider issues a system alert. 
-    /// 
+    /// Identifies the event that is raised when a provider issues a system alert.
+    ///
     /// Supported starting with Windows 8.
     SystemAlert = 20023i32,
-    /// Identifies the event that is raised when the content of a live region has changed. 
-    /// 
+    /// Identifies the event that is raised when the content of a live region has changed.
+    ///
     /// Supported starting with Windows 8.
     LiveRegionChanged = 20024i32,
-    /// Identifies the event that is raised when a change is made to the root node of a UI Automation fragment that is hosted in another element. 
-    /// 
+    /// Identifies the event that is raised when a change is made to the root node of a UI Automation fragment that is hosted in another element.
+    ///
     /// Supported starting with Windows 8.
     HostedFragmentRootsInvalidated = 20025i32,
-    /// Identifies the event that is raised when the user starts to drag an element. This event is raised by the element being dragged. 
-    /// 
+    /// Identifies the event that is raised when the user starts to drag an element. This event is raised by the element being dragged.
+    ///
     /// Supported starting with Windows 8.
     Drag_DragStart = 20026i32,
-    /// Identifies the event that is raised when the user ends a drag operation before dropping an element on a drop target. This event is raised by the element being dragged. 
-    /// 
+    /// Identifies the event that is raised when the user ends a drag operation before dropping an element on a drop target. This event is raised by the element being dragged.
+    ///
     /// Supported starting with Windows 8.
     Drag_DragCancel = 20027i32,
-    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the element being dragged. 
+    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the element being dragged.
     /// Supported starting with Windows 8.
     Drag_DragComplete = 20028i32,
-    /// Identifies the event that is raised when the user drags an element into a drop target's boundary. This event is raised by the drop target element. 
-    /// 
+    /// Identifies the event that is raised when the user drags an element into a drop target's boundary. This event is raised by the drop target element.
+    ///
     /// Supported starting with Windows 8.
     DropTarget_DragEnter = 20029i32,
-    /// Identifies the event that is raised when the user drags an element out of a drop target's boundary. This event is raised by the drop target element. 
-    /// 
+    /// Identifies the event that is raised when the user drags an element out of a drop target's boundary. This event is raised by the drop target element.
+    ///
     /// Supported starting with Windows 8.
     DropTarget_DragLeave = 20030i32,
-    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the drop target element. 
-    /// 
+    /// Identifies the event that is raised when the user drops an element on a drop target. This event is raised by the drop target element.
+    ///
     /// Supported starting with Windows 8.
     DropTarget_Dropped = 20031i32,
-    /// Identifies the event that is raised whenever text auto-correction is performed by a control. 
-    /// 
+    /// Identifies the event that is raised whenever text auto-correction is performed by a control.
+    ///
     /// Supported starting with Windows 8.1.
     TextEdit_TextChanged = 20032i32,
-    /// Identifies the event that is raised whenever a composition replacement is performed by a control. 
-    /// 
+    /// Identifies the event that is raised whenever a composition replacement is performed by a control.
+    ///
     /// Supported starting with Windows 8.1.
     TextEdit_ConversionTargetChanged = 20033i32,
     /// Identifies the event that is raised when a provider calls the UiaRaiseChangesEvent function.
     Changes = 20034i32,
     /// Identifies the event that is raised when a provider calls the UiaRaiseNotificationEvent method.
     Notification = 20035i32,
-    /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements 
+    /// Identifies the event that is raised when the active text position changes, indicated by a navigation event within or between read-only text elements
     /// (such as web browsers, PDF documents, or EPUB documents) using bookmarks (fragment identifiers that refer to a location within a resource).
     ActiveTextPositionChanged = 20036i32,
 }
 
-/// A wrapper for windows `IUIAutomationEventHandler` interface. 
-/// 
+/// A wrapper for windows `IUIAutomationEventHandler` interface.
+///
 /// Exposes a method to handle Microsoft UI Automation events.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UIEventHandler {
-    handler: IUIAutomationEventHandler
+    handler: IUIAutomationEventHandler,
 }
 
 impl UIEventHandler {
@@ -142,9 +142,7 @@ impl UIEventHandler {
 
 impl From<IUIAutomationEventHandler> for UIEventHandler {
     fn from(handler: IUIAutomationEventHandler) -> Self {
-        Self{
-            handler
-        }
+        Self { handler }
     }
 }
 
@@ -167,30 +165,39 @@ impl AsRef<IUIAutomationEventHandler> for UIEventHandler {
 }
 
 impl Param<IUIAutomationEventHandler> for UIEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> { unsafe {
-        self.handler.param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> {
+        unsafe { self.handler.param() }
+    }
 }
 
 impl Param<IUIAutomationEventHandler> for &UIEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> { unsafe {
-        (&self.handler).param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationEventHandler> {
+        unsafe { (&self.handler).param() }
+    }
 }
 
-/// A wrapper for windows `IUIAutomationPropertyChangedEventHandler` interface. 
-/// 
+/// A wrapper for windows `IUIAutomationPropertyChangedEventHandler` interface.
+///
 /// Exposes a method to handle Microsoft UI Automation events that occur when a property is changed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UIPropertyChangedEventHandler {
-    handler: IUIAutomationPropertyChangedEventHandler
+    handler: IUIAutomationPropertyChangedEventHandler,
 }
 
 impl UIPropertyChangedEventHandler {
     /// Handles a Microsoft UI Automation property-changed event.
-    pub fn handle_property_changed_event(&self, sender: &UIElement, property_id: UIProperty, new_value: Variant) -> Result<()> {
+    pub fn handle_property_changed_event(
+        &self,
+        sender: &UIElement,
+        property_id: UIProperty,
+        new_value: Variant,
+    ) -> Result<()> {
         unsafe {
-            self.handler.HandlePropertyChangedEvent(sender, property_id.into(), new_value.as_ref())?
+            self.handler.HandlePropertyChangedEvent(
+                sender,
+                property_id.into(),
+                new_value.as_ref(),
+            )?
         };
         Ok(())
     }
@@ -198,9 +205,7 @@ impl UIPropertyChangedEventHandler {
 
 impl From<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
     fn from(handler: IUIAutomationPropertyChangedEventHandler) -> Self {
-        Self { 
-            handler
-        }
+        Self { handler }
     }
 }
 
@@ -223,28 +228,33 @@ impl AsRef<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventH
 }
 
 impl Param<IUIAutomationPropertyChangedEventHandler> for UIPropertyChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> { unsafe {
-        self.handler.param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+        unsafe { self.handler.param() }
+    }
 }
 
 impl Param<IUIAutomationPropertyChangedEventHandler> for &UIPropertyChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> { unsafe {
-        (&self.handler).param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationPropertyChangedEventHandler> {
+        unsafe { (&self.handler).param() }
+    }
 }
 
-/// A wrapper for windows `IUIAutomationStructureChangedEventHandler` interface. 
-/// 
+/// A wrapper for windows `IUIAutomationStructureChangedEventHandler` interface.
+///
 /// Handles an event that is raised when the Microsoft UI Automation tree structure has changed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UIStructureChangeEventHandler {
-    handler: IUIAutomationStructureChangedEventHandler
+    handler: IUIAutomationStructureChangedEventHandler,
 }
 
 impl UIStructureChangeEventHandler {
     /// Handles an event that is raised when the Microsoft UI Automation tree structure has changed.
-    pub fn handle_structure_changed_event(&self, sender: &UIElement, change_type: StructureChangeType, runtime_id: Option<&[i32]>) -> Result<()> {
+    pub fn handle_structure_changed_event(
+        &self,
+        sender: &UIElement,
+        change_type: StructureChangeType,
+        runtime_id: Option<&[i32]>,
+    ) -> Result<()> {
         let runtime_id = if let Some(arr) = runtime_id {
             arr.try_into()?
         } else {
@@ -252,7 +262,11 @@ impl UIStructureChangeEventHandler {
         };
 
         unsafe {
-            self.handler.HandleStructureChangedEvent(sender, change_type.into(), runtime_id.get_array())?
+            self.handler.HandleStructureChangedEvent(
+                sender,
+                change_type.into(),
+                runtime_id.get_array(),
+            )?
         }
 
         Ok(())
@@ -261,9 +275,7 @@ impl UIStructureChangeEventHandler {
 
 impl From<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
     fn from(handler: IUIAutomationStructureChangedEventHandler) -> Self {
-        Self { 
-            handler 
-        }
+        Self { handler }
     }
 }
 
@@ -286,40 +298,36 @@ impl AsRef<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEvent
 }
 
 impl Param<IUIAutomationStructureChangedEventHandler> for UIStructureChangeEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> { unsafe {
-        self.handler.param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
+        unsafe { self.handler.param() }
+    }
 }
 
 impl Param<IUIAutomationStructureChangedEventHandler> for &UIStructureChangeEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> { unsafe {
-        (&self.handler).param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationStructureChangedEventHandler> {
+        unsafe { (&self.handler).param() }
+    }
 }
 
-/// A wrapper for windows `IUIAutomationFocusChangedEventHandler` interface. 
-/// 
+/// A wrapper for windows `IUIAutomationFocusChangedEventHandler` interface.
+///
 /// Exposes a method to handle events that are raised when the keyboard focus moves to another UI Automation element.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UIFocusChangedEventHandler {
-    handler: IUIAutomationFocusChangedEventHandler
+    handler: IUIAutomationFocusChangedEventHandler,
 }
 
 impl UIFocusChangedEventHandler {
     /// Handles the event raised when the keyboard focus moves to a different UI Automation element.
     pub fn handle_focus_changed_event(&self, sender: &UIElement) -> Result<()> {
-        unsafe {
-            self.handler.HandleFocusChangedEvent(sender)?
-        };
+        unsafe { self.handler.HandleFocusChangedEvent(sender)? };
         Ok(())
     }
 }
 
 impl From<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
     fn from(handler: IUIAutomationFocusChangedEventHandler) -> Self {
-        Self {
-            handler
-        }
+        Self { handler }
     }
 }
 
@@ -342,15 +350,15 @@ impl AsRef<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler
 }
 
 impl Param<IUIAutomationFocusChangedEventHandler> for UIFocusChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> { unsafe {
-        self.handler.param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> {
+        unsafe { self.handler.param() }
+    }
 }
 
 impl Param<IUIAutomationFocusChangedEventHandler> for &UIFocusChangedEventHandler {
-    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> { unsafe {
-        (&self.handler).param()
-    }}
+    unsafe fn param(self) -> windows::core::ParamValue<IUIAutomationFocusChangedEventHandler> {
+        unsafe { (&self.handler).param() }
+    }
 }
 
 /// Defines a custom handler for `IUIAutomationEventHandler`.
@@ -358,7 +366,10 @@ pub trait CustomEventHandler {
     fn handle(&self, sender: &UIElement, event_type: UIEventType) -> Result<()>;
 }
 
-impl <T> From<T> for UIEventHandler where T: CustomEventHandler + 'static {
+impl<T> From<T> for UIEventHandler
+where
+    T: CustomEventHandler + 'static,
+{
     fn from(value: T) -> Self {
         let handler = handlers::AutomationEventHandler::from(value);
         let handler: IUIAutomationEventHandler = handler.into();
@@ -382,7 +393,10 @@ pub trait CustomPropertyChangedEventHandler {
     fn handle(&self, sender: &UIElement, property: UIProperty, new_value: Variant) -> Result<()>;
 }
 
-impl <T> From<T> for UIPropertyChangedEventHandler where T: CustomPropertyChangedEventHandler + 'static {
+impl<T> From<T> for UIPropertyChangedEventHandler
+where
+    T: CustomPropertyChangedEventHandler + 'static,
+{
     fn from(value: T) -> Self {
         let handler = handlers::AutomationPropertyChangedHandler::from(value);
         let handler: IUIAutomationPropertyChangedEventHandler = handler.into();
@@ -391,7 +405,8 @@ impl <T> From<T> for UIPropertyChangedEventHandler where T: CustomPropertyChange
 }
 
 /// Defines a custom handler function for `IUIAutomationPropertyChangedEventHandler`.
-pub type CustomPropertyChangedEventHandlerFn = dyn Fn(&UIElement, UIProperty, Variant) -> Result<()>;
+pub type CustomPropertyChangedEventHandlerFn =
+    dyn Fn(&UIElement, UIProperty, Variant) -> Result<()>;
 
 impl From<Box<CustomPropertyChangedEventHandlerFn>> for UIPropertyChangedEventHandler {
     fn from(value: Box<CustomPropertyChangedEventHandlerFn>) -> Self {
@@ -403,10 +418,18 @@ impl From<Box<CustomPropertyChangedEventHandlerFn>> for UIPropertyChangedEventHa
 
 /// Defines a custom handler for `IUIAutomationStructureChangedEventHandler`.
 pub trait CustomStructureChangedEventHandler {
-    fn handle(&self, sender: &UIElement, change_type: StructureChangeType, runtime_id: Option<&[i32]>) -> Result<()>;
+    fn handle(
+        &self,
+        sender: &UIElement,
+        change_type: StructureChangeType,
+        runtime_id: Option<&[i32]>,
+    ) -> Result<()>;
 }
 
-impl <T> From<T> for UIStructureChangeEventHandler where T: CustomStructureChangedEventHandler + 'static {
+impl<T> From<T> for UIStructureChangeEventHandler
+where
+    T: CustomStructureChangedEventHandler + 'static,
+{
     fn from(value: T) -> Self {
         let handler = handlers::AutomationStructureChangedEventHandler::from(value);
         let handler: IUIAutomationStructureChangedEventHandler = handler.into();
@@ -415,7 +438,8 @@ impl <T> From<T> for UIStructureChangeEventHandler where T: CustomStructureChang
 }
 
 /// Defines a custom handler function for `IUIAutomationStructureChangedEventHandler`.
-pub type CustomStructureChangedEventHandlerFn = dyn Fn(&UIElement, StructureChangeType, Option<&[i32]>) -> Result<()>;
+pub type CustomStructureChangedEventHandlerFn =
+    dyn Fn(&UIElement, StructureChangeType, Option<&[i32]>) -> Result<()>;
 
 impl From<Box<CustomStructureChangedEventHandlerFn>> for UIStructureChangeEventHandler {
     fn from(value: Box<CustomStructureChangedEventHandlerFn>) -> Self {
@@ -430,7 +454,10 @@ pub trait CustomFocusChangedEventHandler {
     fn handle(&self, sender: &UIElement) -> Result<()>;
 }
 
-impl <T> From<T> for UIFocusChangedEventHandler where T: CustomFocusChangedEventHandler + 'static {
+impl<T> From<T> for UIFocusChangedEventHandler
+where
+    T: CustomFocusChangedEventHandler + 'static,
+{
     fn from(value: T) -> Self {
         let handler = handlers::AutomationFocusChangedEventHandler::from(value);
         let handler: IUIAutomationFocusChangedEventHandler = handler.into();
@@ -453,8 +480,8 @@ impl From<Box<CustomFocusChangedEventHandlerFn>> for UIFocusChangedEventHandler 
 mod tests {
     use windows::Win32::UI::Accessibility::UIA_DropTarget_DroppedEventId;
 
-    use crate::types::TreeScope;
     use crate::UIAutomation;
+    use crate::types::TreeScope;
 
     use super::CustomEventHandler;
     use super::CustomEventHandlerFn;
@@ -467,8 +494,7 @@ mod tests {
         assert_eq!(t, UIEventType::DropTarget_Dropped);
     }
 
-    struct MyEventHandler {
-    }
+    struct MyEventHandler {}
 
     impl CustomEventHandler for MyEventHandler {
         fn handle(&self, sender: &crate::UIElement, event_type: UIEventType) -> crate::Result<()> {
@@ -484,8 +510,18 @@ mod tests {
         let root = automation.get_root_element().unwrap();
 
         let handler = UIEventHandler::from(MyEventHandler {});
-        automation.add_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, TreeScope::Subtree, None, &handler).unwrap();
-        automation.remove_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, &handler).unwrap();
+        automation
+            .add_automation_event_handler(
+                UIEventType::TextEdit_TextChanged,
+                &root,
+                TreeScope::Subtree,
+                None,
+                &handler,
+            )
+            .unwrap();
+        automation
+            .remove_automation_event_handler(UIEventType::TextEdit_TextChanged, &root, &handler)
+            .unwrap();
 
         let handle_fn: Box<CustomEventHandlerFn> = Box::new(|sender, event_type| {
             println!("event: {:?}, element: {}", event_type, sender);
@@ -493,7 +529,17 @@ mod tests {
         });
 
         let handler = UIEventHandler::from(handle_fn);
-        automation.add_automation_event_handler(UIEventType::Text_TextChanged, &root, TreeScope::Subtree, None, &handler).unwrap();
-        automation.remove_automation_event_handler(UIEventType::Text_TextChanged, &root, &handler).unwrap();
+        automation
+            .add_automation_event_handler(
+                UIEventType::Text_TextChanged,
+                &root,
+                TreeScope::Subtree,
+                None,
+                &handler,
+            )
+            .unwrap();
+        automation
+            .remove_automation_event_handler(UIEventType::Text_TextChanged, &root, &handler)
+            .unwrap();
     }
 }

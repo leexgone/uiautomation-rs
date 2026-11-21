@@ -30,7 +30,7 @@ mod tests {
 
         // let var = Variant::from(Value::ArrayI4(runtime_id));
         // println!("new variant = {}", var);
-    
+
         // exit code: 0xc0000005, STATUS_ACCESS_VIOLATION occurs on next line
         let condition = automation
             .create_property_condition(
@@ -39,11 +39,11 @@ mod tests {
                 None,
             )
             .expect("Failed to create condition");
-    
+
         let element = root
             .find_first(TreeScope::Element, &condition)
             .expect("Failed to find element");
-    
+
         println!("{}", element.get_name().unwrap());
     }
 
@@ -51,15 +51,22 @@ mod tests {
     fn test_search_by_helptext() {
         let automation = UIAutomation::new().unwrap();
 
-        let matcher = automation.create_matcher().contains_name("Microsoft Edge");  // Find Edge window
+        let matcher = automation.create_matcher().contains_name("Microsoft Edge"); // Find Edge window
         if let Ok(edge) = matcher.find_first() {
-            let matcher = automation.create_matcher().from(edge).depth(10).filter_fn(Box::new(|e: &UIElement| {
-                // Search by help text. Change the search content according to the language you have localized.
-                Ok(e.get_help_text()? == "搜索或输入 Web 地址") 
-            }));
+            let matcher = automation
+                .create_matcher()
+                .from(edge)
+                .depth(10)
+                .filter_fn(Box::new(|e: &UIElement| {
+                    // Search by help text. Change the search content according to the language you have localized.
+                    Ok(e.get_help_text()? == "搜索或输入 Web 地址")
+                }));
 
             if let Ok(input) = matcher.find_first() {
-                println!("Found element with help text: {}", input.get_name().unwrap());
+                println!(
+                    "Found element with help text: {}",
+                    input.get_name().unwrap()
+                );
             } else {
                 println!("Element not found");
             }
@@ -71,7 +78,10 @@ mod tests {
         Process::create("notepad.exe").unwrap();
 
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().classname("Notepad").timeout(10000);
+        let matcher = automation
+            .create_matcher()
+            .classname("Notepad")
+            .timeout(10000);
         if let Ok(notepad) = matcher.find_first() {
             let text = "let text = r\"Customer ID: 98765
 Name: Globex Corporation
@@ -79,9 +89,12 @@ Order Total: $1,234.56
 Status: Pending Shipment
 Contact Email: procurement@globex.example.com\"";
             // notepad.send_keys(&text, 50).unwrap();
-            notepad.send_text(&text, 50).unwrap();
+            notepad.send_text(text, 50).unwrap();
 
-            let matcher = automation.create_matcher().from_ref(&notepad).control_type(ControlType::Document);
+            let matcher = automation
+                .create_matcher()
+                .from_ref(&notepad)
+                .control_type(ControlType::Document);
             let document = matcher.find_first().unwrap();
             let doc_ctrl = DocumentControl::try_from(document).unwrap();
             let content = doc_ctrl.get_value().unwrap();
@@ -100,7 +113,11 @@ Contact Email: procurement@globex.example.com\"";
         let notepad = WindowControl::try_from(notepad).unwrap();
         notepad.close().unwrap();
 
-        let matcher = automation.create_matcher().from_ref(notepad.as_ref()).name("不保存").timeout(1000);
+        let matcher = automation
+            .create_matcher()
+            .from_ref(notepad.as_ref())
+            .name("不保存")
+            .timeout(1000);
         if let Ok(ignore) = matcher.find_first() {
             ignore.click().unwrap();
         } else {
@@ -113,19 +130,32 @@ Contact Email: procurement@globex.example.com\"";
         let p = Process::create("notepad.exe").unwrap();
 
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher().classname("Notepad").process_id(p.get_id()).timeout(10000);
+        let matcher = automation
+            .create_matcher()
+            .classname("Notepad")
+            .process_id(p.get_id())
+            .timeout(10000);
 
         if let Ok(notepad) = matcher.find_first() {
             let rect = notepad.get_bounding_rectangle().unwrap();
             println!("Bounding rectangle - Normal: {:?}", rect);
 
-            assert!(rect.get_right() > rect.get_left() || rect.get_bottom() > rect.get_top(), "Bounding rectangle is empty");
+            assert!(
+                rect.get_right() > rect.get_left() || rect.get_bottom() > rect.get_top(),
+                "Bounding rectangle is empty"
+            );
 
             let window = WindowControl::try_from(notepad).unwrap();
-            println!("Window state: {:?}", window.get_window_visual_state().unwrap());
+            println!(
+                "Window state: {:?}",
+                window.get_window_visual_state().unwrap()
+            );
             window.minimize().unwrap();
             std::thread::sleep(std::time::Duration::from_secs(1));
-            println!("Window state after minimize: {:?}", window.get_window_visual_state().unwrap());
+            println!(
+                "Window state after minimize: {:?}",
+                window.get_window_visual_state().unwrap()
+            );
         } else {
             panic!("Notepad not found");
         }
@@ -134,7 +164,10 @@ Contact Email: procurement@globex.example.com\"";
             let rect = notepad.get_bounding_rectangle().unwrap();
             println!("Bounding rectangle - Minimized: {:?}", rect);
 
-            assert!(rect.get_right() == rect.get_left() && rect.get_bottom() == rect.get_top(), "Bounding rectangle is not empty");
+            assert!(
+                rect.get_right() == rect.get_left() && rect.get_bottom() == rect.get_top(),
+                "Bounding rectangle is not empty"
+            );
 
             let window = WindowControl::try_from(notepad).unwrap();
             window.close().unwrap();
@@ -153,8 +186,10 @@ Contact Email: procurement@globex.example.com\"";
         let rect = element.get_bounding_rectangle().unwrap();
         println!("Window Rect = {}", rect);
 
-        let val = element.get_property_value(uiautomation::types::UIProperty::BoundingRectangle).unwrap();
-        println!("Window Rect Prop = {}", val.to_string());
+        let val = element
+            .get_property_value(uiautomation::types::UIProperty::BoundingRectangle)
+            .unwrap();
+        println!("Window Rect Prop = {}", val);
         assert!(val.is_array());
 
         let arr = val.get_array().unwrap();
@@ -171,9 +206,15 @@ Contact Email: procurement@globex.example.com\"";
 
         clipboard.set_text("hello").unwrap();
         assert_eq!(clipboard.get_text().unwrap(), "hello");
-        assert!(clipboard.is_format_available(uiautomation::clipboards::ClipboardFormat::UNICODETEXT).unwrap());
-        assert!(!clipboard.is_format_available(uiautomation::clipboards::ClipboardFormat::TEXT).unwrap());
-        assert!(!clipboard.is_format_available(uiautomation::clipboards::ClipboardFormat::BITMAP).unwrap());
+        assert!(clipboard
+            .is_format_available(uiautomation::clipboards::ClipboardFormat::UNICODETEXT)
+            .unwrap());
+        assert!(!clipboard
+            .is_format_available(uiautomation::clipboards::ClipboardFormat::TEXT)
+            .unwrap());
+        assert!(!clipboard
+            .is_format_available(uiautomation::clipboards::ClipboardFormat::BITMAP)
+            .unwrap());
     }
 
     #[test]
@@ -208,10 +249,16 @@ Contact Email: procurement@globex.example.com\"";
     #[test]
     fn test_search_by_runtime_id() {
         let notepad_id = {
-            let proc = Process::new("notepad.exe").wait_for_idle(1000).run().unwrap();
+            let proc = Process::new("notepad.exe")
+                .wait_for_idle(1000)
+                .run()
+                .unwrap();
 
             let automation = UIAutomation::new().unwrap();
-            let matcher = automation.create_matcher().process_id(proc.get_id()).classname("Notepad");
+            let matcher = automation
+                .create_matcher()
+                .process_id(proc.get_id())
+                .classname("Notepad");
             let notepad = matcher.find_first().unwrap();
             notepad.get_runtime_id().unwrap()
         };
@@ -219,13 +266,18 @@ Contact Email: procurement@globex.example.com\"";
         println!("Notepad Runtime ID: {:?}", notepad_id);
 
         let automation = UIAutomation::new().unwrap();
-        let matcher = automation.create_matcher()
+        let matcher = automation
+            .create_matcher()
             .filter_fn(Box::new(move |e: &UIElement| {
-                e.get_runtime_id().map_or(Ok(false), |id| Ok(id == notepad_id))
+                e.get_runtime_id()
+                    .map_or(Ok(false), |id| Ok(id == notepad_id))
             }));
         let notepad = matcher.find_first().unwrap();
 
-        println!("Found Notepad by Runtime ID: {}", notepad.get_name().unwrap());
+        println!(
+            "Found Notepad by Runtime ID: {}",
+            notepad.get_name().unwrap()
+        );
 
         let notepad = WindowControl::try_from(notepad).unwrap();
         notepad.close().unwrap();
