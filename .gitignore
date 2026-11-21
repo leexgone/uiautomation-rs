@@ -17,3 +17,7 @@ Cargo.lock
 
 # Local Claude Code settings
 .claude/
+
+# Agent session process artifacts (specs, plans, SDD workspaces) - kept locally, never committed
+docs/superpowers/
+.superpowers/
