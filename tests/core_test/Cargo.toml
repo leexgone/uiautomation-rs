@@ -5,7 +5,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
+[dev-dependencies]
 
 uiautomation = { path = "../../crates/uiautomation", features = ["process", "clipboard", "input"] }
 windows = { workspace = true, features = ["Win32_UI_WindowsAndMessaging"]}
