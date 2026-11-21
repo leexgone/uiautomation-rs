@@ -1,352 +1,575 @@
-# uiautomation-rs changelogs
+# Changelog
 
-## v0.1.10
+All notable changes to this project are documented in this file.
 
-+ update `windows` to `v0.39.0`
-+ add `WindowCtroll.set_foregrand()`
+The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
+follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Only notable changes are listed;
+dependency-only maintenance releases may be omitted. Dates are the crates.io publish dates.
 
-## v0.1.11
+`uiautomation_derive` is released together with `uiautomation` and is pinned to an exact version,
+so changes to the derive crate are recorded under the corresponding `uiautomation` release.
 
-+ add `UIMatcher.filter_fn()`
+## Unreleased
 
-## v0.1.12
+## 0.25.2 - 2026-11-20
 
-+ add `UIElement.hold_send_keys()` to support holding and send keys.
+### Changed
 
-## v0.2.0
+- Updated `log` to `0.4.35` and `syn` to `3.0.10` (used by `uiautomation_derive`).
+- Pinned `uiautomation_derive` to the exact version `=0.7.10`.
 
-+ update to `windows-rs v0.41.0`
-+ refator `UIPattern` trait
+## 0.25.1 - 2026-09-04
 
-## v0.2.1
+### Changed
 
-+ update to `windows-rs v0.43.0`
+- Measured `UIMatcher` timeouts with a monotonic clock, so changing the system clock no longer
+  affects a running search. ([#127](https://github.com/leexgone/uiautomation-rs/pull/127))
 
-## v0.3.0
+## 0.25.0 - 2026-05-05
 
-+ redefine some automation types
+### Added
 
-## v0.3.1
+- Added the `screenshot` feature for capturing screens and regions as bitmaps and PNG files.
 
-+ update dependencies
+## 0.24.4 - 2026-03-02
 
-## v0.3.2
+### Changed
 
-+ update to windwos v0.44
+- Updated dependencies.
 
-## v0.3.3
+## 0.24.3 - 2026-01-12
 
-+ refactor enum types
+### Changed
 
-## v0.3.4
+- Updated dependencies.
 
-+ update dependencies
+## 0.24.2 - 2025-11-19
 
-## v0.3.6
+### Changed
 
-+ update to `windows v0.46`
+- Updated dependencies (Cargo 1.19.1).
 
-## v0.3.7
+## 0.24.1 - 2025-10-07
 
-+ update to `syn v2.0.2`
+### Changed
 
-## v0.3.8
+- Updated to `windows v0.62.2`.
 
-+ update to `syn v2.0.10` & `proc-macro2 v1.0.54`
+## 0.24.0 - 2025-09-20
 
-## v0.3.9
+### Added
 
-+ update to `syn v2.0.11` & `windows v0.47.0`
+- Added the repetition-count syntax for special keys in input strings.
+  ([#124](https://github.com/leexgone/uiautomation-rs/issues/124))
 
-## v0.3.10
+## 0.23.1 - 2025-09-05
 
-+ update to `syn v2.0.12` & `windows v0.48.0`
+### Changed
 
-## v0.4.0
+- Updated to `windows v0.62`.
 
-+ add dialogs support.
+## 0.23.0 - 2025-08-29
 
-## v0.4.1
+### Added
 
-+ update dependencies
-+ refactor `win-update` sample codes.
+- Added mouse drag support. ([#123](https://github.com/leexgone/uiautomation-rs/issues/123))
 
-## v0.4.2
+## 0.22.2 - 2025-08-02
 
-+ update dependencies
+### Added
 
-## v0.5.0
+- Added `Window::get_window_visual_state()` and `Window::set_window_visual_state()`.
+  ([#119](https://github.com/leexgone/uiautomation-rs/issues/119))
 
-+ fix variant array error. [issue-35](https://github.com/leexgone/uiautomation-rs/issues/35)
+## 0.22.1 - 2025-07-30
 
-## v0.5.1
+### Added
 
-+ add `UIAutomation::new_direct()` to create `UIAutomation` without initializing the COM library. [issue-37](https://github.com/leexgone/uiautomation-rs/issues/37)
+- Added `UITreeWalker::get_children()` and `UITreeWalker::get_children_build_cache()`.
+  ([#118](https://github.com/leexgone/uiautomation-rs/issues/118))
 
-## v0.5.2
+## 0.22.0 - 2025-07-12
 
-+ Update sample codes in README
+### Fixed
 
-## v0.5.3
+- Fixed clipboard crashes after repeated use.
+  ([#114](https://github.com/leexgone/uiautomation-rs/issues/114))
 
-+ update dependencies
+## 0.21.6 - 2025-07-07
 
-## v0.5.4
+### Added
 
-+ update dependencies
+- Added unicode input creation.
+  ([#113](https://github.com/leexgone/uiautomation-rs/pull/113), thanks
+  [@elsnerpaul](https://github.com/elsnerpaul))
 
-## v0.6.0
+## 0.21.5 - 2025-07-05
 
-+ update to `windows v0.51.0`
+### Fixed
 
-## v0.6.4
+- Fixed clipboard crashes. ([#111](https://github.com/leexgone/uiautomation-rs/issues/111))
 
-+ `Keyboard.begin_hold_keys()` & `Keyboard.end_hold_keys()` respond to `Keyboard.interval()` setting.
+## 0.21.4 - 2025-07-04
 
-## v0.7.0
+### Changed
 
-+ refactor `Process`, add more controls.
+- No longer focuses an element before clicking it.
+  ([#109](https://github.com/leexgone/uiautomation-rs/issues/109))
 
-## v0.7.2
+## 0.21.3 - 2025-06-25
 
-+ support converting `isize` to `Handle`. [issue-44](https://github.com/leexgone/uiautomation-rs/issues/44)
+### Changed
 
-## v0.7.3
+- Updated to `windows v0.61.3`.
 
-+ update to `widnows v0.52.0`
+## 0.21.2 - 2025-06-12
 
-## v0.8.0
+### Changed
 
-+ update to `windows v0.54.0`
+- Changed the documentation settings.
 
-## v0.8.3
+## 0.21.1 - 2025-06-12
 
-+ update to `windows v0.56.0`
+### Changed
 
-## v0.9.0
+- Updated to `windows v0.61.2`.
 
-+ support cache request.
+## 0.21.0 - 2025-06-10
 
-## v0.9.2
+### Added
 
-+ addd `UIMatcher::from_ref()`
+- Added the `clipboard` feature, including Windows clipboard support.
 
-## v0.9.3
+## 0.20.0 - 2025-06-01
 
-+ fix [issues-52](https://github.com/leexgone/uiautomation-rs/issues/52)
+### Changed
 
-## v0.10.0
+- Refactored `Process`.
 
-+ Fix typo in method names (ragne -> range) [#57](https://github.com/leexgone/uiautomation-rs/pull/57)
+## 0.19.2 - 2025-05-23
 
-## v0.11.0
+### Added
 
-+ Support event handler. [#59](https://github.com/leexgone/uiautomation-rs/issues/59)
+- Added more key names. ([#106](https://github.com/leexgone/uiautomation-rs/pull/106))
 
-## v0.11.1
+## 0.19.1 - 2025-05-20
 
-+ Support `UIElement::get_cached_children()` & `UIElement::get_cached_parent()`. [#63](https://github.com/leexgone/uiautomation-rs/issues/63)
+### Changed
 
-## v0.11.2
+- Updated `README.md`.
 
-+ Cache encoded string buffers so that they outlive PCWSTR and PWSTR pointers. [#65](https://github.com/leexgone/uiautomation-rs/issues/65)
-+ Update to `windows v0.57.0`
+## 0.19.0 - 2025-05-19
 
-## v0.11.3
+### Changed
 
-+ fixed `click` error between multi-monitors. [#62](https://github.com/leexgone/uiautomation-rs/issues/62)
+- Refactored the crate layout to support more features.
 
-## v0.11.4
+## 0.18.4 - 2025-05-16
 
-+ enum types support `Dispaly` trait.
+### Changed
 
-## v0.11.5
+- Updated to `windows v0.61.1`.
 
-+ Add log feature, show failed filter for debugging [#70](https://github.com/leexgone/uiautomation-rs/pull/70)
+## 0.18.2 - 2025-05-13
 
-## v0.12.0
+### Changed
 
-+ update to `windows v0.58.0`
+- Removed the `image-data` feature from the `arboard` dependency.
+  ([#105](https://github.com/leexgone/uiautomation-rs/issues/105))
 
-## v0.12.1
+## 0.18.1 - 2025-05-13
 
-+ Support `Window` pattern for `PaneControl` [#75](https://github.com/leexgone/uiautomation-rs/issues/75)
+### Added
 
-## v0.12.2
+- Added `UIElement::send_text_by_clipboard()` to send text through the clipboard.
+  ([#103](https://github.com/leexgone/uiautomation-rs/issues/103))
 
-+ Add cached versions for "get_xxx"/"is_xxx"/"can_xxx" for all patterns. [#79](https://github.com/leexgone/uiautomation-rs/pull/79)
+## 0.18.0 - 2025-04-10
 
-## v0.12.3
+### Added
 
-+ Use `OnceLock` instead of `phf` crate.
+- Added `UIMatcher::process_id()` to filter matches by process ID.
 
-## v0.13.0
+## 0.17.3 - 2025-03-29
 
-+ Support `i686-pc-windows-msvc` target. [#84](https://github.com/leexgone/uiautomation-rs/issues/84)
+### Added
 
-## v0.13.1
+- Made the input parser usable outside of the crate.
+  ([#97](https://github.com/leexgone/uiautomation-rs/pull/97))
 
-+ Add support for pressing CONTROL and ALT keys. [#86](https://github.com/leexgone/uiautomation-rs/pull/86)
+## 0.17.2 - 2025-03-19
 
-## v0.13.2
+### Changed
 
-+ Use SendInput({ MOUSEINPUT { ... } }) for simulating mouse movement. [#90](https://github.com/leexgone/uiautomation-rs/pull/90)
+- Updated to `windows v0.61.0`.
 
-## v0.13.3
+## 0.17.1 - 2025-03-06
 
-+ Add a wrapper for LegacyIAccessiblePattern. [#91](https://github.com/leexgone/uiautomation-rs/pull/91)
+### Changed
 
-## v0.13.4
+- Updated dependencies.
 
-+ Add get_(cached)_heading_level and is_(cached)_dialog. [#92](https://github.com/leexgone/uiautomation-rs/pull/92)
+## 0.17.0 - 2025-02-23
 
-## v0.14.0
+### Changed
 
-+ Update to `windows v0.59.0`.
+- Migrated to the Rust 2024 edition.
+- Updated to `windows v0.60.0`.
 
-## v0.15.0
+## 0.16.1 - 2025-02-18
 
-+ Add `Keyboard.ignore_parse_err()` option to ignore parsing error.
-+ Add `UIElement.send_text()` method to output the literal content of the text.
+### Added
 
-## v0.15.1
+- Added the `Control` derive macro.
 
-+ Update deps & append docs.
+## 0.16.0 - 2025-01-17
 
-## v0.16.0
+### Changed
 
-+ Impl `TryFrom` for enum types, instead of `From`.
+- Implemented `TryFrom` for the enum types instead of `From`.
 
-## v0.16.1
+## 0.15.1 - 2025-01-15
 
-+ Add `Control` derive.
+### Changed
 
-## v0.17.0
+- Updated dependencies and documentation.
 
-+ Migrating to `Rust edition 2024`.
-+ Update to `windows v0.60.0`.
+## 0.15.0 - 2025-01-12
 
-## v0.17.1
+### Added
 
-+ Update deps.
+- Added the `Keyboard::ignore_parse_err()` option to ignore parsing errors.
+- Added `UIElement::send_text()` to send the literal content of a text.
 
-## v0.17.2
+## 0.14.0 - 2025-01-08
 
-+ update to `windows v0.61.0`.
+### Changed
 
-## v0.17.3
+- Updated to `windows v0.59.0`.
 
-+ Allow using the input parser outside of `uiautomation-rs`. [#97](https://github.com/leexgone/uiautomation-rs/pull/97)
+## 0.13.4 - 2024-12-10
 
-## v0.18.0
+### Added
 
-+ Add `UIMatcher.process_id()` to support filter by process id.
+- Added `UIElement::get_heading_level()`, `UIElement::get_cached_heading_level()`,
+  `UIElement::is_dialog()` and `UIElement::is_cached_dialog()`.
+  ([#92](https://github.com/leexgone/uiautomation-rs/pull/92))
 
-## v0.18.1
+## 0.13.3 - 2024-12-09
 
-+ Add `UIElement.send_text_by_clipboard()` to support sending text by clipboard. [#103](https://github.com/leexgone/uiautomation-rs/issues/103)
+### Added
 
-## v0.18.2
+- Added a wrapper for `LegacyIAccessiblePattern`.
+  ([#91](https://github.com/leexgone/uiautomation-rs/pull/91))
 
-+ Remove `image-data` feature from `arboard` crate. [#105](https://github.com/leexgone/uiautomation-rs/issues/105)
+## 0.13.2 - 2024-12-02
 
-## v0.18.4
+### Changed
 
-+ Update to `windows v0.61.1`.
+- Simulated mouse movement with `SendInput` and `MOUSEINPUT`.
+  ([#90](https://github.com/leexgone/uiautomation-rs/pull/90))
 
-## v0.19.0
+## 0.13.1 - 2024-11-28
 
-+ Refactor to support more features.
+### Added
 
-## v0.19.1
+- Added support for the CONTROL and ALT keys.
+  ([#86](https://github.com/leexgone/uiautomation-rs/pull/86))
 
-+ Update `README.md`.
+## 0.13.0 - 2024-10-31
 
-## v0.19.2
+### Added
 
-+ Add more key names. [#106](https://github.com/leexgone/uiautomation-rs/pull/106)
+- Added support for the `i686-pc-windows-msvc` target.
+  ([#84](https://github.com/leexgone/uiautomation-rs/issues/84))
 
-## v0.20.0
+## 0.12.3 - 2024-08-31
 
-+ Refactor `process`.
+### Changed
 
-## v0.21.0
+- Replaced the `phf` crate with `OnceLock`.
 
-+ Add `clipboard` feature, support windows clipboard.
+## 0.12.2 - 2024-08-17
 
-## v0.21.1
+### Added
 
-+ Update to `windows v0.61.2`
+- Added cached variants of the `get_*`, `is_*` and `can_*` methods for all patterns.
+  ([#79](https://github.com/leexgone/uiautomation-rs/pull/79))
 
-## v0.21.2
+## 0.12.1 - 2024-08-01
 
-+ Change docs settings.
+### Added
 
-## v0.21.3
+- Added `Window` pattern support for `PaneControl`.
+  ([#75](https://github.com/leexgone/uiautomation-rs/issues/75))
 
-+ Update to `windows v0.61.3`
+## 0.12.0 - 2024-07-11
 
-## v0.21.4
+### Changed
 
-+ Do not try to `focus` before any `click` operation. [#109](https://github.com/leexgone/uiautomation-rs/issues/109)
+- Updated to `windows v0.58.0`.
 
-## v0.21.5
+## 0.11.5 - 2024-07-10
 
-+ Fix clipboard crashes. [#111](https://github.com/leexgone/uiautomation-rs/issues/111)
+### Added
 
-## v0.21.6
+- Added the `log` feature, which logs failed filters for debugging.
+  ([#70](https://github.com/leexgone/uiautomation-rs/pull/70))
 
-+ add unicode input creation. @elsnerpaul [#113](https://github.com/leexgone/uiautomation-rs/pull/113)
+## 0.11.4 - 2024-06-29
 
-## v0.22.0
+### Added
 
-+ Fix clipboard crashes after many usages. [#114](https://github.com/leexgone/uiautomation-rs/issues/114)
+- Implemented `Display` for the enum types.
 
-## v0.22.1
+## 0.11.3 - 2024-06-25
 
-+ Add `UITreeWalker.get_children()` & `UITreeWalker.get_children_build_cache()`. [#118](https://github.com/leexgone/uiautomation-rs/issues/118)
+### Fixed
 
-## v0.22.2
+- Fixed `click` errors between multiple monitors.
+  ([#62](https://github.com/leexgone/uiautomation-rs/issues/62))
 
-+ Add `Window.get_window_visual_state()` & `Window.set_window_visual_state()`. [#119](https://github.com/leexgone/uiautomation-rs/issues/119)
+## 0.11.2 - 2024-06-10
 
-## v0.23.0
+### Changed
 
-+ Support mouse drag operation. [#123](https://github.com/leexgone/uiautomation-rs/issues/123)
+- Updated to `windows v0.57.0`.
 
-## v0.23.1
+### Fixed
 
-+ Update to `windows v0.62`.
+- Fixed the lifetime of the encoded string buffers used by `PCWSTR` and `PWSTR` pointers.
+  ([#65](https://github.com/leexgone/uiautomation-rs/issues/65))
 
-## v0.24.0
+## 0.11.1 - 2024-06-07
 
-+ Support additional key syntax for repetition count for special keys. [#124](https://github.com/leexgone/uiautomation-rs/issues/124)
+### Added
 
-## v0.24.1
+- Added `UIElement::get_cached_children()` and `UIElement::get_cached_parent()`.
+  ([#63](https://github.com/leexgone/uiautomation-rs/issues/63))
 
-+ Update to `windows v0.62.2`.
+## 0.11.0 - 2024-06-01
 
-## v0.24.2
+### Added
 
-+ Update deps & `cargo v1.19.1`.
+- Added event handler support.
+  ([#59](https://github.com/leexgone/uiautomation-rs/issues/59))
 
-## v0.24.3
+## 0.10.0 - 2024-04-27
 
-+ Update deps.
+### Fixed
 
-## v0.24.4
+- Fixed typos in method names (`ragne` → `range`).
+  ([#57](https://github.com/leexgone/uiautomation-rs/pull/57))
 
-+ Update deps.
+## 0.9.3 - 2024-04-26
 
-## v0.25.0
+### Fixed
 
-+ Support `screenshot` feature.
+- Fixed the bug reported in [#52](https://github.com/leexgone/uiautomation-rs/issues/52).
 
-## v0.25.1
+## 0.9.2 - 2024-04-25
 
-+ Use a monotonic clock for matcher timeouts. [#127](https://github.com/leexgone/uiautomation-rs/pull/127)
+### Added
 
-## v0.25.2
+- Added `UIMatcher::from_ref()`.
 
-+ Update dependencies (`log` to `0.4.35`, `syn` to `3.0.10` for `uiautomation_derive`).
-+ Pin `uiautomation_derive` to the exact version `=0.7.10`.
+## 0.9.0 - 2024-04-14
+
+### Added
+
+- Added cache request support.
+
+## 0.8.3 - 2024-04-14
+
+### Changed
+
+- Updated to `windows v0.56.0`.
+
+## 0.8.0 - 2024-03-14
+
+### Changed
+
+- Updated to `windows v0.54.0`.
+
+## 0.7.3 - 2023-11-16
+
+### Changed
+
+- Updated to `windows v0.52.0`.
+
+## 0.7.2 - 2023-11-11
+
+### Added
+
+- Implemented `From<isize>` for `Handle`.
+  ([#44](https://github.com/leexgone/uiautomation-rs/issues/44))
+
+## 0.7.0 - 2023-10-20
+
+### Added
+
+- Added more control wrappers.
+
+### Changed
+
+- Refactored `Process`.
+
+## 0.6.4 - 2023-10-02
+
+### Changed
+
+- `Keyboard::begin_hold_keys()` and `Keyboard::end_hold_keys()` now honor the
+  `Keyboard::interval()` setting.
+
+## 0.6.0 - 2023-08-16
+
+### Changed
+
+- Updated to `windows v0.51.0`.
+
+## 0.5.4 - 2023-05-16
+
+### Changed
+
+- Updated dependencies.
+
+## 0.5.3 - 2023-05-11
+
+### Changed
+
+- Updated dependencies.
+
+## 0.5.2 - 2023-04-24
+
+### Changed
+
+- Updated the sample code in `README.md`.
+
+## 0.5.1 - 2023-04-21
+
+### Added
+
+- Added `UIAutomation::new_direct()` to create a `UIAutomation` without initializing COM.
+  ([#37](https://github.com/leexgone/uiautomation-rs/issues/37))
+
+## 0.5.0 - 2023-04-20
+
+### Fixed
+
+- Fixed a `VARIANT` array error.
+  ([#35](https://github.com/leexgone/uiautomation-rs/issues/35))
+
+## 0.4.2 - 2023-04-15 (unpublished)
+
+### Changed
+
+- Updated dependencies.
+- This version was never published on crates.io; `0.5.0` superseded it.
+
+## 0.4.1 - 2023-04-07
+
+### Changed
+
+- Updated dependencies.
+- Refactored the `win-update` sample.
+
+## 0.4.0 - 2023-04-05
+
+### Added
+
+- Added dialog support.
+
+## 0.3.10 - 2023-04-01
+
+### Changed
+
+- Updated to `syn v2.0.12` and `windows v0.48.0`.
+
+## 0.3.9 - 2023-03-29
+
+### Changed
+
+- Updated to `syn v2.0.11` and `windows v0.47.0`.
+
+## 0.3.8 - 2023-03-27
+
+### Changed
+
+- Updated to `syn v2.0.10` and `proc-macro2 v1.0.54`.
+
+## 0.3.7 - 2023-03-19
+
+### Changed
+
+- Updated to `syn v2.0.2`.
+
+## 0.3.6 - 2023-03-16
+
+### Changed
+
+- Updated to `windows v0.46`.
+
+## 0.3.4 - 2023-02-12
+
+### Changed
+
+- Updated dependencies.
+
+## 0.3.3 - 2023-02-05
+
+### Changed
+
+- Refactored the enum types.
+
+## 0.3.2 - 2023-02-04
+
+### Changed
+
+- Updated to `windows v0.44`.
+
+## 0.3.1 - 2023-01-02
+
+### Changed
+
+- Updated dependencies.
+
+## 0.3.0 - 2022-11-11
+
+### Changed
+
+- Redefined some automation types.
+
+## 0.2.1 - 2022-10-28
+
+### Changed
+
+- Updated to `windows v0.43.0`.
+
+## 0.2.0 - 2022-09-24
+
+### Changed
+
+- Updated to `windows v0.41.0`.
+- Refactored the `UIPattern` trait.
+
+## 0.1.12 - 2022-09-23
+
+### Added
+
+- Added `UIElement::hold_send_keys()` to hold keys while sending text.
+
+## 0.1.11 - 2022-08-23
+
+### Added
+
+- Added `UIMatcher::filter_fn()`.
+
+## 0.1.10 - 2022-08-03
+
+### Added
+
+- Added `WindowControl::set_foregrand()`.
+
+### Changed
+
+- Updated to `windows v0.39.0`.
