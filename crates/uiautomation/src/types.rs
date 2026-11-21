@@ -4,11 +4,11 @@ use std::fmt::Display;
 
 use uiautomation_derive::EnumConvert;
 use uiautomation_derive::map_as;
-use windows::core::Free;
 use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
+use windows::core::Free;
 
 /// A Point type stores the x and y position.
 #[derive(Clone, Copy, PartialEq, Default)]
@@ -17,10 +17,7 @@ pub struct Point(POINT);
 impl Point {
     /// Creates a new position.
     pub fn new(x: i32, y: i32) -> Self {
-        Self(POINT {
-            x,
-            y
-        })
+        Self(POINT { x, y })
     }
 
     /// Retrievies the x position.
@@ -50,12 +47,14 @@ impl Point {
     }
 }
 
-impl Eq for Point {
-}
+impl Eq for Point {}
 
 impl Debug for Point {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Point").field("x", &self.0.x).field("y", &self.0.y).finish()
+        f.debug_struct("Point")
+            .field("x", &self.0.x)
+            .field("y", &self.0.y)
+            .finish()
     }
 }
 
@@ -100,7 +99,7 @@ impl Rect {
             left,
             top,
             right,
-            bottom
+            bottom,
         })
     }
 
@@ -165,19 +164,26 @@ impl Rect {
     }
 }
 
-impl Eq for Rect {
-    
-}
+impl Eq for Rect {}
 
 impl Debug for Rect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Rect").field("left", &self.0.left).field("top", &self.0.top).field("right", &self.0.right).field("bottom", &self.0.bottom).finish()
+        f.debug_struct("Rect")
+            .field("left", &self.0.left)
+            .field("top", &self.0.top)
+            .field("right", &self.0.right)
+            .field("bottom", &self.0.bottom)
+            .finish()
     }
 }
 
 impl Display for Rect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[({}, {}), ({}, {})]", self.0.left, self.0.top, self.0.right, self.0.bottom)
+        write!(
+            f,
+            "[({}, {}), ({}, {})]",
+            self.0.left, self.0.top, self.0.right, self.0.bottom
+        )
     }
 }
 
@@ -293,7 +299,7 @@ impl From<Handle> for isize {
 // }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_PROPERTY_ID`.
-/// 
+///
 /// Describes the named constants that identify the properties of Microsoft UI Automation elements.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -305,7 +311,7 @@ pub enum UIProperty {
     BoundingRectangle = 30001i32,
     /// Identifies the ProcessId property, which is an integer representing the process identifier (ID) of the automation element.
     ProcessId = 30002i32,
-    /// Identifies the ControlType property, which is a class that identifies the type of the automation element. 
+    /// Identifies the ControlType property, which is a class that identifies the type of the automation element.
     ControlType = 30003i32,
     /// Identifies the LocalizedControlType property, which is a text string describing the type of control that the automation element represents.
     LocalizedControlType = 30004i32,
@@ -327,7 +333,7 @@ pub enum UIProperty {
     ClassName = 30012i32,
     /// Identifies the HelpText property, which is a help text string associated with the automation element.
     HelpText = 30013i32,
-    /// Identifies the ClickablePoint property, which is a point on the automation element that can be clicked. 
+    /// Identifies the ClickablePoint property, which is a point on the automation element that can be clicked.
     ClickablePoint = 30014i32,
     /// Identifies the Culture property, which contains a locale identifier for the automation element.
     Culture = 30015i32,
@@ -343,7 +349,7 @@ pub enum UIProperty {
     NativeWindowHandle = 30020i32,
     /// Identifies the ItemType property, which is a text string describing the type of the automation element.
     ItemType = 30021i32,
-    /// Identifies the IsOffscreen property, which is a Boolean value that indicates whether the automation element is entirely scrolled out of view (for example, an item in a list box that is outside the viewport of the container object) or collapsed out of view (for example, an item in a tree view or menu, or in a minimized window). 
+    /// Identifies the IsOffscreen property, which is a Boolean value that indicates whether the automation element is entirely scrolled out of view (for example, an item in a list box that is outside the viewport of the container object) or collapsed out of view (for example, an item in a tree view or menu, or in a minimized window).
     IsOffscreen = 30022i32,
     /// Identifies the Orientation property, which indicates the orientation of the control represented by the automation element. The property is expressed as a value from the OrientationType enumerated type.
     Orientation = 30023i32,
@@ -371,7 +377,7 @@ pub enum UIProperty {
     IsScrollPatternAvailable = 30034i32,
     /// Identifies the IsScrollItemPatternAvailable property, which indicates whether the ScrollItem control pattern is available for the automation element.
     IsScrollItemPatternAvailable = 30035i32,
-    /// Identifies the IsSelectionItemPatternAvailable property, which indicates whether the SelectionItem control pattern is available for the automation element. 
+    /// Identifies the IsSelectionItemPatternAvailable property, which indicates whether the SelectionItem control pattern is available for the automation element.
     IsSelectionItemPatternAvailable = 30036i32,
     /// Identifies the IsSelectionPatternAvailable property, which indicates whether the Selection control pattern is available for the automation element.
     IsSelectionPatternAvailable = 30037i32,
@@ -501,11 +507,11 @@ pub enum UIProperty {
     LegacyIAccessibleSelection = 30099i32,
     /// Identifies the DefaultAction property of the LegacyIAccessible control pattern.
     LegacyIAccessibleDefaultAction = 30100i32,
-    /// Identifies the AriaRole property, which is a string containing the Accessible Rich Internet Application (ARIA) role information for the automation element. 
+    /// Identifies the AriaRole property, which is a string containing the Accessible Rich Internet Application (ARIA) role information for the automation element.
     AriaRole = 30101i32,
-    /// Identifies the AriaProperties property, which is a formatted string containing the Accessible Rich Internet Application (ARIA) property information for the automation element. 
+    /// Identifies the AriaProperties property, which is a formatted string containing the Accessible Rich Internet Application (ARIA) property information for the automation element.
     AriaProperties = 30102i32,
-    /// Identifies the IsDataValidForForm property, which is a Boolean value that indicates whether the entered or selected value is valid for the form rule associated with the automation element. 
+    /// Identifies the IsDataValidForForm property, which is a Boolean value that indicates whether the entered or selected value is valid for the form rule associated with the automation element.
     IsDataValidForForm = 30103i32,
     /// Identifies the ControllerFor property, which is an array of automation elements that are manipulated by the automation element that supports this property.
     ControllerFor = 30104i32,
@@ -617,7 +623,7 @@ pub enum UIProperty {
     LandmarkType = 30157i32,
     /// Identifies the LocalizedLandmarkType, which is a text string describing the type of landmark that the automation element represents.
     LocalizedLandmarkType = 30158i32,
-    /// The FullDescription property exposes a localized string which can contain extended description text for an element. 
+    /// The FullDescription property exposes a localized string which can contain extended description text for an element.
     FullDescription = 30159i32,
     /// Identifies the FillColor property, which specifies the color used to fill the automation element.
     FillColor = 30160i32,
@@ -629,7 +635,7 @@ pub enum UIProperty {
     VisualEffects = 30163i32,
     /// Identifies the OutlineThickness property, which specifies the width for the outline of the automation element.
     OutlineThickness = 30164i32,
-    /// Identifies the CenterPoint property, which specifies the center X and Y point coordinates of the automation element. 
+    /// Identifies the CenterPoint property, which specifies the center X and Y point coordinates of the automation element.
     CenterPoint = 30165i32,
     /// Identifies the Rotation property, which specifies the angle of rotation in unspecified units.
     Rotation = 30166i32,
@@ -647,19 +653,19 @@ pub enum UIProperty {
     Selection2ItemCount = 30172i32,
     /// Identifies the HeadingLevel property, which indicates the heading level of a UI Automation element.
     HeadingLevel = 30173i32,
-    /// Identifies the IsDialog property, which is a Boolean value that indicates whether the automation element is a dialog window. 
+    /// Identifies the IsDialog property, which is a Boolean value that indicates whether the automation element is a dialog window.
     IsDialog = 30174i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::WindowInteractionState`.
-/// 
+///
 /// Contains values that specify the current state of the window for purposes of user interaction.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
 #[map_as(windows::Win32::UI::Accessibility::WindowInteractionState)]
 pub enum WindowInteractionState {
     /// The window is running. This does not guarantee that the window is ready for user interaction or is responding.
-    Running = 0i32, 
+    Running = 0i32,
     /// The window is closing.
     Closing = 1i32,
     /// The window is ready for user interaction.
@@ -667,11 +673,11 @@ pub enum WindowInteractionState {
     /// The window is blocked by a modal window.
     BlockedByModalWindow = 3i32,
     /// The window is not responding.
-    NotResponding = 4i32
+    NotResponding = 4i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::DockPosition`.
-/// 
+///
 /// Contains values that specify the dock position of an object, represented by a DockPattern, within a docking container.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -692,7 +698,7 @@ pub enum DockPosition {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::ExpandCollapseState`.
-/// 
+///
 /// Contains values that specify the ExpandCollapseState automation property value of a UI Automation element.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -705,11 +711,11 @@ pub enum ExpandCollapseState {
     /// Some, but not all, child nodes, controls, or content of the UI Automation element are displayed.
     PartiallyExpanded = 2i32,
     /// The UI Automation element has no child nodes, controls, or content to display.
-    LeafNode = 3i32
+    LeafNode = 3i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::NavigateDirection`.
-/// 
+///
 /// Contains values used to specify the direction of navigation within the Microsoft UI Automation tree.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -724,11 +730,11 @@ pub enum NavigateDirection {
     /// The navigation direction is to the first child.
     FirstChild = 3i32,
     /// The navigation direction is to the last child.
-    LastChild = 4i32
+    LastChild = 4i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::RowOrColumnMajor`.
-/// 
+///
 /// Contains values that specify whether data in a table should be read primarily by row or by column.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -739,17 +745,17 @@ pub enum RowOrColumnMajor {
     /// Data in the table should be read column by column.
     ColumnMajor = 1i32,
     /// The best way to present the data is indeterminate.
-    Indeterminate = 2i32
+    Indeterminate = 2i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::ScrollAmount`.
-/// 
+///
 /// Contains values that specify the direction and distance to scroll.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
 #[map_as(windows::Win32::UI::Accessibility::ScrollAmount)]
 pub enum ScrollAmount {
-    /// Scrolling is done in large decrements, equivalent to pressing the PAGE UP key or clicking on a blank part of a scroll bar. 
+    /// Scrolling is done in large decrements, equivalent to pressing the PAGE UP key or clicking on a blank part of a scroll bar.
     /// If one page up is not a relevant amount for the control and no scroll bar exists, the value represents an amount equal to the current visible window.
     LargeDecrement = 0i32,
     /// Scrolling is done in small decrements, equivalent to pressing an arrow key or clicking the arrow button on a scroll bar.
@@ -760,11 +766,11 @@ pub enum ScrollAmount {
     /// If one page is not a relevant amount for the control and no scroll bar exists, the value represents an amount equal to the current visible window.
     LargeIncrement = 3i32,
     /// Scrolling is done in small increments, equivalent to pressing an arrow key or clicking the arrow button on a scroll bar.
-    SmallIncrement = 4i32
+    SmallIncrement = 4i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::SupportedTextSelection`.
-/// 
+///
 /// Contains values that specify the supported text selection attribute.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -779,7 +785,7 @@ pub enum SupportedTextSelection {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::ToggleState`.
-/// 
+///
 /// Contains values that specify the toggle state of a Microsoft UI Automation element that implements the Toggle control pattern.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -790,17 +796,17 @@ pub enum ToggleState {
     /// The UI Automation element is selected, checked, marked or otherwise activated.
     On = 1i32,
     /// The UI Automation element is in an indeterminate state.
-    /// 
+    ///
     /// The Indeterminate property can be used to indicate whether the user has acted on a control. For example, a check box can appear checked and dimmed, indicating an indeterminate state.
-    /// 
-    /// Creating an indeterminate state is different from disabling the control. 
-    /// Consequently, a check box in the indeterminate state can still receive the focus. 
+    ///
+    /// Creating an indeterminate state is different from disabling the control.
+    /// Consequently, a check box in the indeterminate state can still receive the focus.
     /// When the user clicks an indeterminate control the ToggleState cycles to its next value.
     Indeterminate = 2i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::ZoomUnit`.
-/// 
+///
 /// Contains possible values for the IUIAutomationTransformPattern2::ZoomByUnit method, which zooms the viewport of a control by the specified unit.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -819,7 +825,7 @@ pub enum ZoomUnit {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::WindowVisualState`.
-/// 
+///
 /// Contains values that specify the visual state of a window for the IWindowProvider pattern.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -830,11 +836,11 @@ pub enum WindowVisualState {
     /// Specifies that the window is maximized.
     Maximized = 1i32,
     /// Specifies that the window is minimized.
-    Minimized = 2i32
+    Minimized = 2i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::TextUnit`.
-/// 
+///
 /// Contains values that specify units of text for the purposes of navigation.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -857,7 +863,7 @@ pub enum TextUnit {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::TextPatternRangeEndpoint`.
-/// 
+///
 /// Contains values that specify the endpoints of a text range.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -870,7 +876,7 @@ pub enum TextPatternRangeEndpoint {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::OrientationType`.
-/// 
+///
 /// Contains values that specify the orientation of a control.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -881,11 +887,11 @@ pub enum OrientationType {
     /// The control has horizontal orientation.
     Horizontal = 1i32,
     /// The control has vertical orientation.
-    Vertical = 2i32
+    Vertical = 2i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::PropertyConditionFlags`.
-/// 
+///
 /// Contains values used in creating property conditions.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -898,11 +904,11 @@ pub enum PropertyConditionFlags {
     /// Comparison of substring properties is enabled.
     MatchSubstring = 2i32,
     /// Combines `IgnoreCase` and `MatchSubstring` flags.
-    All = 3i32
+    All = 3i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::TreeScope`.
-/// 
+///
 /// Contains values that specify the scope of various operations in the Microsoft UI Automation tree.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -921,11 +927,11 @@ pub enum TreeScope {
     /// The scope includes the parent and more distant ancestors of the element.
     Ancestors = 16i32,
     /// The scope includes the element and all its descendants. This flag is a combination of the TreeScope_Element and TreeScope_Descendants values.
-    Subtree = 7i32
+    Subtree = 7i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_ANNOTATIONTYPE`.
-/// 
+///
 /// This type describes the named constants that are used to identify types of annotations in a document.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -997,11 +1003,11 @@ pub enum HeadingLevel {
     HeadingLevel6 = 80056i32,
     HeadingLevel7 = 80057i32,
     HeadingLevel8 = 80058i32,
-    HeadingLevel9 = 80059i32
+    HeadingLevel9 = 80059i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_STYLE_ID`.
-/// 
+///
 /// This set of constants describes the named constants used to identify the visual style of text in a document.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -1044,7 +1050,7 @@ pub enum StyleType {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_TEXTATTRIBUTE_ID`.
-/// 
+///
 /// This type describes the named constants used to identify text attributes of a Microsoft UI Automation text range.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -1139,7 +1145,7 @@ pub enum TextAttribute {
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::AutomationElementMode`.
-/// 
+///
 /// Contains values that specify the type of reference to use when returning UI Automation elements.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -1148,11 +1154,11 @@ pub enum ElementMode {
     /// Specifies that returned elements have no reference to the underlying UI and contain only cached information.
     None = 0i32,
     /// Specifies that returned elements have a full reference to the underlying UI.
-    Full = 1i32
+    Full = 1i32,
 }
 
 /// `StructureChangeType` is an enum wrapper for `windows::Win32::UI::Accessibility::StructureChangeType`.
-/// 
+///
 /// Contains values that specify the type of change in the Microsoft UI Automation tree structure.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -1162,10 +1168,10 @@ pub enum StructureChangeType {
     ChildAdded = 0i32,
     /// A child element was removed from the UI Automation element tree.
     ChildRemoved = 1i32,
-    /// Child elements were invalidated in the UI Automation element tree. 
-    /// This might mean that one or more child elements were added or removed, or a combination of both. 
-    /// This value can also indicate that one subtree in the UI was substituted for another. 
-    /// For example, the entire contents of a dialog box changed at once, or the view of a list changed because an Explorer-type application navigated to another location. 
+    /// Child elements were invalidated in the UI Automation element tree.
+    /// This might mean that one or more child elements were added or removed, or a combination of both.
+    /// This value can also indicate that one subtree in the UI was substituted for another.
+    /// For example, the entire contents of a dialog box changed at once, or the view of a list changed because an Explorer-type application navigated to another location.
     /// The exact meaning depends on the UI Automation provider implementation.
     ChildrenInvalidated = 2i32,
     /// Child elements were added in bulk to the UI Automation element tree.
@@ -1173,11 +1179,11 @@ pub enum StructureChangeType {
     /// Child elements were removed in bulk from the UI Automation element tree.
     ChildrenBulkRemoved = 4i32,
     /// The order of child elements has changed in the UI Automation element tree. Child elements may or may not have been added or removed.
-    ChildrenReordered = 5i32
+    ChildrenReordered = 5i32,
 }
 
 /// Defines enum for `windows::Win32::UI::Accessibility::UIA_CONTROLTYPE_ID`.
-/// 
+///
 /// Contains the named constants used to identify Microsoft UI Automation control types.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -1264,7 +1270,7 @@ pub enum ControlType {
     /// Identifies the SemanticZoom control type. Supported starting with Windows 8.
     SemanticZoom = 50039i32,
     /// Identifies the AppBar control type. Supported starting with Windows 8.1.
-    AppBar = 50040i32    
+    AppBar = 50040i32,
 }
 
 #[cfg(test)]
@@ -1275,14 +1281,28 @@ mod tests {
 
     #[test]
     fn test_window_interaction_state() {
-        assert_eq!(Ok(WindowInteractionState::Running), WindowInteractionState::try_from(0));
-        assert_eq!(Ok(WindowInteractionState::NotResponding), WindowInteractionState::try_from(4));
+        assert_eq!(
+            Ok(WindowInteractionState::Running),
+            WindowInteractionState::try_from(0)
+        );
+        assert_eq!(
+            Ok(WindowInteractionState::NotResponding),
+            WindowInteractionState::try_from(4)
+        );
         assert!(WindowInteractionState::try_from(100).is_err());
-        
+
         assert_eq!(1i32, WindowInteractionState::Closing as i32);
 
-        assert_eq!(Accessibility::WindowInteractionState_ReadyForUserInteraction, WindowInteractionState::ReadyForUserInteraction.into());
-        assert_eq!(WindowInteractionState::Running, Accessibility::WindowInteractionState_Running.try_into().unwrap());
+        assert_eq!(
+            Accessibility::WindowInteractionState_ReadyForUserInteraction,
+            WindowInteractionState::ReadyForUserInteraction.into()
+        );
+        assert_eq!(
+            WindowInteractionState::Running,
+            Accessibility::WindowInteractionState_Running
+                .try_into()
+                .unwrap()
+        );
 
         let running = format!("{}", WindowInteractionState::Running);
         assert_eq!(running, "Running");
@@ -1292,6 +1312,9 @@ mod tests {
     fn test_handle() {
         let handle = crate::types::Handle::from(0x001);
         // assert_eq!(windows::Win32::Foundation::HWND(unsafe { std::mem::transmute(0x001isize) } ), handle.into());
-        assert_eq!(windows::Win32::Foundation::HWND(std::ptr::with_exposed_provenance_mut(0x001usize)), handle.into());
+        assert_eq!(
+            windows::Win32::Foundation::HWND(std::ptr::with_exposed_provenance_mut(0x001usize)),
+            handle.into()
+        );
     }
 }

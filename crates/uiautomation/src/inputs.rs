@@ -16,9 +16,9 @@ use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use crate::log_error;
 
-use super::errors::{ERR_FORMAT, ERR_INVALID_ARG};
 use super::Error;
 use super::Result;
+use super::errors::{ERR_FORMAT, ERR_INVALID_ARG};
 use super::types::Point;
 
 const KEYEVENTF_KEYDOWN: KEYBD_EVENT_FLAGS = KEYBD_EVENT_FLAGS(0);
@@ -72,10 +72,9 @@ fn init_virtual_keys() -> HashMap<String, VIRTUAL_KEY> {
 
 fn init_hold_keys() -> HashSet<String> {
     set![
-        "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL",
-        "ALT", "MENU", "LALT", "LMENU", "RALT", "RMENU",
-        "SHIFT", "LSHIFT", "RSHIFT",
-        "WIN", "WINDOWS", "LWIN", "LWINDOWS", "RWIN", "RWINDOWS"
+        "CONTROL", "CTRL", "LCONTROL", "LCTRL", "RCONTROL", "RCTRL", "ALT", "MENU", "LALT",
+        "LMENU", "RALT", "RMENU", "SHIFT", "LSHIFT", "RSHIFT", "WIN", "WINDOWS", "LWIN",
+        "LWINDOWS", "RWIN", "RWINDOWS"
     ]
 }
 
@@ -159,15 +158,16 @@ impl Input {
                         inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYDOWN));
                         inputs.push(Self::create_virtual_key(*key, KEYEVENTF_KEYUP));
                     }
-                },
+                }
                 InputItem::Character(ch) => {
                     let mut buffer = [0; 2];
                     let chars = ch.encode_utf16(&mut buffer);
                     for ch_u16 in chars {
-                        let keys = Self::create_char_key(*ch_u16, self.has_holdkey(), force_unicode);
+                        let keys =
+                            Self::create_char_key(*ch_u16, self.has_holdkey(), force_unicode);
                         inputs.extend(keys);
                     }
-                },
+                }
                 _ => (),
             }
         }
@@ -202,8 +202,9 @@ impl Input {
         } else {
             -1
         };
-        
-        if vk == -1 {   // Unicode
+
+        if vk == -1 {
+            // Unicode
             vec![
                 INPUT {
                     r#type: INPUT_KEYBOARD,
@@ -214,9 +215,10 @@ impl Input {
                             dwFlags: KEYEVENTF_UNICODE,
                             time: 0,
                             dwExtraInfo: 0,
-                            },
-                        }
-                }, INPUT {
+                        },
+                    },
+                },
+                INPUT {
                     r#type: INPUT_KEYBOARD,
                     Anonymous: INPUT_0 {
                         ki: KEYBDINPUT {
@@ -226,10 +228,11 @@ impl Input {
                             time: 0,
                             dwExtraInfo: 0,
                         },
-                    }
-                }
+                    },
+                },
             ]
-        } else {        // ASCII
+        } else {
+            // ASCII
             let key: VIRTUAL_KEY = VIRTUAL_KEY((vk & 0xFF) as _);
             if hold_mode {
                 vec![
@@ -242,9 +245,10 @@ impl Input {
                                 dwFlags: KEYEVENTF_KEYDOWN,
                                 time: 0,
                                 dwExtraInfo: 0,
-                                },
-                            }
-                    }, INPUT {
+                            },
+                        },
+                    },
+                    INPUT {
                         r#type: INPUT_KEYBOARD,
                         Anonymous: INPUT_0 {
                             ki: KEYBDINPUT {
@@ -254,9 +258,9 @@ impl Input {
                                 time: 0,
                                 dwExtraInfo: 0,
                             },
-                        }
-                    }
-                ]    
+                        },
+                    },
+                ]
             } else {
                 let mut shift: bool = (vk & 0x0100) != 0;
                 let ctrl: bool = (vk & 0x0200) != 0;
@@ -264,132 +268,119 @@ impl Input {
                 // Do not press shift if CAPSLOCK is on.
                 let state = unsafe { GetKeyState(VK_CAPITAL.0 as _) };
                 if (state & 0x01) != 0
-                    && ((ch >= 'a' as u16 && ch <= 'z' as u16) || (ch >= 'A' as u16 && ch <= 'Z' as u16)) {
-                        shift = !shift;
-                    };
+                    && ((ch >= 'a' as u16 && ch <= 'z' as u16)
+                        || (ch >= 'A' as u16 && ch <= 'Z' as u16))
+                {
+                    shift = !shift;
+                };
                 let mut char_inputs: Vec<INPUT> = Vec::new();
                 if shift {
-                    char_inputs.push(
-                        INPUT {
-                            r#type: INPUT_KEYBOARD,
-                            Anonymous: INPUT_0 {
-                                ki: KEYBDINPUT {
-                                    wVk: VK_SHIFT,
-                                    wScan: 0,
-                                    dwFlags: KEYEVENTF_KEYDOWN,
-                                    time: 0,
-                                    dwExtraInfo: 0,
-                                    },
-                                }
-                        }
-                    );
-                }
-                if ctrl {
-                    char_inputs.push(
-                        INPUT {
-                            r#type: INPUT_KEYBOARD,
-                            Anonymous: INPUT_0 {
-                                ki: KEYBDINPUT {
-                                    wVk: VK_CONTROL,
-                                    wScan: 0,
-                                    dwFlags: KEYEVENTF_KEYDOWN,
-                                    time: 0,
-                                    dwExtraInfo: 0,
-                                    },
-                                }
-                        }
-                    );
-                }
-                if alt {
-                    char_inputs.push(
-                        INPUT {
-                            r#type: INPUT_KEYBOARD,
-                            Anonymous: INPUT_0 {
-                                ki: KEYBDINPUT {
-                                    wVk: VK_MENU,
-                                    wScan: 0,
-                                    dwFlags: KEYEVENTF_KEYDOWN,
-                                    time: 0,
-                                    dwExtraInfo: 0,
-                                    },
-                                }
-                        }
-                    );
-                }
-                char_inputs.push(
-                    INPUT {
+                    char_inputs.push(INPUT {
                         r#type: INPUT_KEYBOARD,
                         Anonymous: INPUT_0 {
                             ki: KEYBDINPUT {
-                                wVk: key,
+                                wVk: VK_SHIFT,
                                 wScan: 0,
                                 dwFlags: KEYEVENTF_KEYDOWN,
                                 time: 0,
                                 dwExtraInfo: 0,
-                                },
-                            }
-                    }
-                );
-                char_inputs.push(INPUT {
+                            },
+                        },
+                    });
+                }
+                if ctrl {
+                    char_inputs.push(INPUT {
                         r#type: INPUT_KEYBOARD,
                         Anonymous: INPUT_0 {
                             ki: KEYBDINPUT {
-                                wVk: key,
+                                wVk: VK_CONTROL,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYDOWN,
+                                time: 0,
+                                dwExtraInfo: 0,
+                            },
+                        },
+                    });
+                }
+                if alt {
+                    char_inputs.push(INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: VK_MENU,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYDOWN,
+                                time: 0,
+                                dwExtraInfo: 0,
+                            },
+                        },
+                    });
+                }
+                char_inputs.push(INPUT {
+                    r#type: INPUT_KEYBOARD,
+                    Anonymous: INPUT_0 {
+                        ki: KEYBDINPUT {
+                            wVk: key,
+                            wScan: 0,
+                            dwFlags: KEYEVENTF_KEYDOWN,
+                            time: 0,
+                            dwExtraInfo: 0,
+                        },
+                    },
+                });
+                char_inputs.push(INPUT {
+                    r#type: INPUT_KEYBOARD,
+                    Anonymous: INPUT_0 {
+                        ki: KEYBDINPUT {
+                            wVk: key,
+                            wScan: 0,
+                            dwFlags: KEYEVENTF_KEYUP,
+                            time: 0,
+                            dwExtraInfo: 0,
+                        },
+                    },
+                });
+                if alt {
+                    char_inputs.push(INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: VK_MENU,
                                 wScan: 0,
                                 dwFlags: KEYEVENTF_KEYUP,
                                 time: 0,
                                 dwExtraInfo: 0,
                             },
-                        }
-                    }
-                );
-                if alt {
-                    char_inputs.push(
-                        INPUT {
-                            r#type: INPUT_KEYBOARD,
-                            Anonymous: INPUT_0 {
-                                ki: KEYBDINPUT {
-                                    wVk: VK_MENU,
-                                    wScan: 0,
-                                    dwFlags: KEYEVENTF_KEYUP,
-                                    time: 0,
-                                    dwExtraInfo: 0,
-                                },
-                            }
-                        }
-                    );
+                        },
+                    });
                 }
                 if ctrl {
-                    char_inputs.push(
-                        INPUT {
-                            r#type: INPUT_KEYBOARD,
-                            Anonymous: INPUT_0 {
-                                ki: KEYBDINPUT {
-                                    wVk: VK_CONTROL,
-                                    wScan: 0,
-                                    dwFlags: KEYEVENTF_KEYUP,
-                                    time: 0,
-                                    dwExtraInfo: 0,
-                                },
-                            }
-                        }
-                    );
+                    char_inputs.push(INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: VK_CONTROL,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYUP,
+                                time: 0,
+                                dwExtraInfo: 0,
+                            },
+                        },
+                    });
                 }
                 if shift {
-                    char_inputs.push(
-                        INPUT {
-                            r#type: INPUT_KEYBOARD,
-                            Anonymous: INPUT_0 {
-                                ki: KEYBDINPUT {
-                                    wVk: VK_SHIFT,
-                                    wScan: 0,
-                                    dwFlags: KEYEVENTF_KEYUP,
-                                    time: 0,
-                                    dwExtraInfo: 0,
-                                    },
-                                }
-                        }
-                    );
+                    char_inputs.push(INPUT {
+                        r#type: INPUT_KEYBOARD,
+                        Anonymous: INPUT_0 {
+                            ki: KEYBDINPUT {
+                                wVk: VK_SHIFT,
+                                wScan: 0,
+                                dwFlags: KEYEVENTF_KEYUP,
+                                time: 0,
+                                dwExtraInfo: 0,
+                            },
+                        },
+                    });
                 };
                 char_inputs
             }
@@ -411,12 +402,21 @@ impl Parser {
         let mut inputs: Vec<Input> = Vec::new();
 
         let mut expr = expression.chars();
-        while let Some((items, is_holdkey)) = self.next_input(&mut expr, if let Some(p) = inputs.last() { p.is_holdkey_only() } else { false })? {
+        while let Some((items, is_holdkey)) = self.next_input(
+            &mut expr,
+            if let Some(p) = inputs.last() {
+                p.is_holdkey_only()
+            } else {
+                false
+            },
+        )? {
             if let Some(prev) = inputs.last_mut()
-                && ((is_holdkey && !prev.has_items()) || (!is_holdkey && (!prev.has_holdkey() || prev.is_holdkey_only()))) { 
-                    prev.push_all(&items);
-                    continue;
-                }
+                && ((is_holdkey && !prev.has_items())
+                    || (!is_holdkey && (!prev.has_holdkey() || prev.is_holdkey_only())))
+            {
+                prev.push_all(&items);
+                continue;
+            }
 
             let mut input = Input::new();
             input.push_all(&items);
@@ -427,7 +427,11 @@ impl Parser {
         Ok(inputs)
     }
 
-    fn next_input(&self, expr: &mut Chars<'_>, is_holding: bool) -> Result<Option<(Vec<InputItem>, bool)>> {
+    fn next_input(
+        &self,
+        expr: &mut Chars<'_>,
+        is_holding: bool,
+    ) -> Result<Option<(Vec<InputItem>, bool)>> {
         if let Some(ch) = expr.next() {
             let next = match ch {
                 '{' => {
@@ -440,7 +444,7 @@ impl Parser {
                             Some((vec![InputItem::Character(ch)], false))
                         }
                     } else {
-                        let item =  self.read_special_item(expr)?;
+                        let item = self.read_special_item(expr)?;
                         Some((vec![item], item.is_holdkey()))
                     }
                 }
@@ -484,9 +488,9 @@ impl Parser {
             if token == "(" || token == ")" || token == "{" || token == "}" {
                 Ok(InputItem::Character(token.chars().nth(0).unwrap()))
             } else {
-                let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys); 
+                let vkeys = VIRTUAL_KEYS.get_or_init(init_virtual_keys);
                 let hkeys = HOLD_KEYS.get_or_init(init_hold_keys);
-                
+
                 // let token = token.to_uppercase();
                 let mut itr = token.split_whitespace();
                 let expr = itr.next().unwrap().to_uppercase();
@@ -511,7 +515,9 @@ impl Parser {
         let mut items: Vec<InputItem> = Vec::new();
         let mut matched = false;
 
-        while let Some((next, _)) = self.next_input(expr, matches!(items.last(), Some(&InputItem::HoldKey(_))))? {
+        while let Some((next, _)) =
+            self.next_input(expr, matches!(items.last(), Some(&InputItem::HoldKey(_))))?
+        {
             if next.len() == 1 && next[0] == InputItem::Character(')') {
                 matched = true;
                 break;
@@ -547,9 +553,9 @@ impl Keyboard {
     }
 
     /// Set the interval time between keys.
-    /// 
+    ///
     /// `interval` is the time number of milliseconds, `50` is default value.
-    /// 
+    ///
     /// When inputting long texts, if the `interval` value is set too low, input loss may occur during the input process.
     pub fn interval(mut self, interval: u64) -> Self {
         self.interval = interval;
@@ -557,9 +563,9 @@ impl Keyboard {
     }
 
     /// Set whether ignore parse error.
-    /// 
+    ///
     /// `ignore_parse_err` is the flag to ignore parse error, `false` is default value.
-    /// 
+    ///
     /// If `ignore_parse_err` is `true`, the parser will ignore parse error and allow `{` & `(` as regular inputs.
     /// For example: `{Hi},(rust)!` types `{Hi},(rust)!`.
     pub fn ignore_parse_err(mut self, ignore_parse_err: bool) -> Self {
@@ -568,15 +574,15 @@ impl Keyboard {
     }
 
     /// Simulates typing `keys` on keyboard.
-    /// 
+    ///
     /// `{}` is used for some special keys. For example: `{ctrl}{alt}{delete}`, `{shift}{home}`.
-    /// 
+    ///
     /// Special keys can specify the number of repetitions. For example: '{enter 3}' means pressing the Enter key three times.
-    /// 
+    ///
     /// `()` is used for group keys. The '(' symbol only takes effect after the '{}' symbol. For example: `{ctrl}(AB)` types `Ctrl+A+B`.
-    /// 
+    ///
     /// `{` `}` `(` `)` can be quoted by `{}`. For example: `{{}Hi,{(}rust!{)}{}}` types `{Hi,(rust)}`.
-    /// 
+    ///
     ///  When `ignore_parse_err` is `false`, the parser will throw an error if the input format is incorrect.
     ///  When `ignore_parse_err` is `true`, the parser will ignore parse error and try to allow `{` & `(` as regular inputs.
     pub fn send_keys(&self, keys: &str) -> Result<()> {
@@ -591,15 +597,13 @@ impl Keyboard {
     }
 
     /// Simulates typing `text` on keyboard without any special keys.
-    /// 
+    ///
     /// This method will only output the literal content of the text.
     pub fn send_text(&self, text: &str) -> Result<()> {
-        let inputs = vec![
-            Input {
-                holdkeys: Vec::new(),
-                items: text.chars().map(InputItem::Character).collect(),
-            }
-        ];
+        let inputs = vec![Input {
+            holdkeys: Vec::new(),
+            items: text.chars().map(InputItem::Character).collect(),
+        }];
 
         for ref input in inputs {
             let input_keys = input.create_inputs()?;
@@ -607,11 +611,10 @@ impl Keyboard {
         }
 
         Ok(())
-        
     }
 
     /// Simulates starting to hold `keys` on keyboard. Only holdkeys are allowed.
-    /// 
+    ///
     /// The `keys` will be released when `end_hold_keys()` is invoked.
     pub fn begin_hold_keys(&mut self, keys: &str) -> Result<()> {
         let mut holdkeys: Vec<VIRTUAL_KEY> = Vec::new();
@@ -640,8 +643,8 @@ impl Keyboard {
 
         Ok(())
     }
-    
-    /// Stop holding keys on keyboard. 
+
+    /// Stop holding keys on keyboard.
     pub fn end_hold_keys(&mut self) -> Result<()> {
         if self.holdkeys.is_empty() {
             Ok(())
@@ -672,7 +675,6 @@ impl Keyboard {
             Ok(())
         }
     }
-
 
     fn wait(&self) {
         if self.interval > 0 {
@@ -706,7 +708,7 @@ pub enum MouseButton {
     /// middle button
     MIDDLE,
     /// X button
-    X
+    X,
 }
 
 impl MouseButton {
@@ -735,16 +737,16 @@ pub struct Mouse {
     interval: u64,
     move_time: u64,
     auto_move: bool,
-    holdkeys: Vec<VIRTUAL_KEY>
+    holdkeys: Vec<VIRTUAL_KEY>,
 }
 
 impl Default for Mouse {
     fn default() -> Self {
-        Self { 
-            interval: 100, 
+        Self {
+            interval: 100,
             move_time: 500,
             auto_move: true,
-            holdkeys: Vec::new()
+            holdkeys: Vec::new(),
         }
     }
 }
@@ -756,7 +758,7 @@ impl Mouse {
     }
 
     /// Sets the interval time between events.
-    /// 
+    ///
     /// `interval` is the time number of milliseconds, `100` is default value.
     pub fn interval(mut self, interval: u64) -> Self {
         self.interval = interval;
@@ -776,13 +778,15 @@ impl Mouse {
     }
 
     /// Sets the holdkeys when mouse clicks.
-    /// 
+    ///
     /// The holdkeys is quoted by `{}`. For example: `{Shift}`, `{Ctrl}{Alt}`.
     pub fn holdkeys(mut self, holdkeys: &str) -> Self {
         self.holdkeys.clear();
 
         let mut expr = holdkeys.chars();
-        while let Some((items, is_holdkey)) = Parser::new(false).next_input(&mut expr, true).unwrap() {
+        while let Some((items, is_holdkey)) =
+            Parser::new(false).next_input(&mut expr, true).unwrap()
+        {
             if is_holdkey {
                 for item in items {
                     if let InputItem::HoldKey(key) = item {
@@ -791,7 +795,7 @@ impl Mouse {
                 }
             }
         }
-            
+
         self
     }
 
@@ -802,20 +806,20 @@ impl Mouse {
         Ok(pos)
     }
 
-    /// Moves the cursor to the specified screen coordinates. 
+    /// Moves the cursor to the specified screen coordinates.
     pub fn set_cursor_pos(pos: &Point) -> Result<()> {
         unsafe { SetCursorPos(pos.get_x(), pos.get_y())? };
         Ok(())
     }
 
     /// Moves the cursor from current position to the `target` position.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use uiautomation::inputs::Mouse;
     /// use uiautomation::types::Point;
-    /// 
+    ///
     /// let mouse = Mouse::new().move_time(800);
     /// mouse.move_to(&Point::new(10, 20)).unwrap();
     /// mouse.move_to(&Point::new(1000,400)).unwrap();
@@ -833,10 +837,7 @@ impl Mouse {
                 let step_y = delta_y / steps;
                 let interval = Duration::from_millis(self.move_time / steps as u64);
                 for i in 1..steps {
-                    let pos = Point::new(
-                        source.get_x() + step_x * i, 
-                        source.get_y() + step_y * i
-                    );
+                    let pos = Point::new(source.get_x() + step_x * i, source.get_y() + step_y * i);
                     Self::mouse_move_event(&pos)?;
                     sleep(interval);
                 }
@@ -848,13 +849,13 @@ impl Mouse {
 
     /// Simulates a mouse click event with the specified button.
     /// This will click at the current cursor position.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```no_run
     /// use uiautomation::inputs::{Mouse, MouseButton};
     /// use uiautomation::types::Point;
-    /// 
+    ///
     /// let mouse = Mouse::new();
     /// mouse.move_to(&Point::new(200, 300)).unwrap();
     /// mouse.click_button(MouseButton::LEFT).unwrap();
@@ -872,12 +873,12 @@ impl Mouse {
 
     /// Simulates a mouse double click event with the specified button.
     /// This will double click at the current cursor position.
-    /// 
+    ///
     /// # Examples
     /// ```no_run
     /// use uiautomation::inputs::{Mouse, MouseButton};
     /// use uiautomation::types::Point;
-    /// 
+    ///
     /// let mouse = Mouse::new();
     /// mouse.move_to(&Point::new(200, 300)).unwrap();
     /// mouse.double_click_button(MouseButton::LEFT).unwrap();
@@ -901,11 +902,11 @@ impl Mouse {
     }
 
     /// Simulates a mouse click event.
-    /// 
+    ///
     /// # Examples
     /// ```no_run
     /// use uiautomation::inputs::Mouse;
-    /// 
+    ///
     /// let mouse = Mouse::new();
     /// let pos = Mouse::get_cursor_pos().unwrap();
     /// mouse.click(&pos).unwrap();
@@ -920,13 +921,13 @@ impl Mouse {
         self.move_to(pos)?;
         self.click_button(MouseButton::LEFT)
     }
-    
+
     /// Simulates a mouse double click event.
-    /// 
+    ///
     /// # Examples
     /// ```no_run
     /// use uiautomation::inputs::Mouse;
-    /// 
+    ///
     /// let mouse = Mouse::new();
     /// let pos = Mouse::get_cursor_pos().unwrap();
     /// mouse.double_click(&pos).unwrap();
@@ -956,11 +957,11 @@ impl Mouse {
     }
 
     /// Simulates a right mouse click event.
-    /// 
+    ///
     /// # Examples
     /// ```no_run
     /// use uiautomation::inputs::Mouse;
-    /// 
+    ///
     /// let mouse = Mouse::new();
     /// let pos = Mouse::get_cursor_pos().unwrap();
     /// mouse.right_click(&pos).unwrap();
@@ -1039,16 +1040,16 @@ impl Mouse {
     fn mouse_click_event(&self, flags: MOUSE_EVENT_FLAGS) -> Result<()> {
         let input = [INPUT {
             r#type: INPUT_MOUSE,
-            Anonymous: INPUT_0 { 
-                mi: MOUSEINPUT { 
+            Anonymous: INPUT_0 {
+                mi: MOUSEINPUT {
                     dx: 0,
                     dy: 0,
-                    mouseData: 0, 
-                    dwFlags: flags, 
-                    time: 0, 
-                    dwExtraInfo: 0 
-                }
-            }
+                    mouseData: 0,
+                    dwFlags: flags,
+                    time: 0,
+                    dwExtraInfo: 0,
+                },
+            },
         }];
         send_input(&input)?;
         self.wait();
@@ -1093,10 +1094,10 @@ struct MouseGuard<'a> {
 
 impl<'a> MouseGuard<'a> {
     fn new(mouse: &'a Mouse) -> Self {
-        Self { 
-            mouse, 
-            holding: false, 
-            button: None 
+        Self {
+            mouse,
+            holding: false,
+            button: None,
         }
     }
 }
@@ -1135,9 +1136,7 @@ pub fn get_screen_size() -> Result<(i32, i32)> {
 }
 
 fn send_input(inputs: &[INPUT]) -> Result<()> {
-    let sent = unsafe {
-        SendInput(inputs, mem::size_of::<INPUT>() as _)
-    };
+    let sent = unsafe { SendInput(inputs, mem::size_of::<INPUT>() as _) };
 
     if sent == inputs.len() as u32 {
         Ok(())
@@ -1152,13 +1151,13 @@ mod tests {
 
     use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
-    use crate::inputs::get_screen_size;
-    use crate::inputs::init_virtual_keys;
-    use crate::inputs::Keyboard;
     use crate::inputs::Input;
     use crate::inputs::InputItem;
+    use crate::inputs::Keyboard;
     use crate::inputs::Parser;
     use crate::inputs::VIRTUAL_KEYS;
+    use crate::inputs::get_screen_size;
+    use crate::inputs::init_virtual_keys;
 
     #[test]
     fn test_virtual_keys() {
@@ -1174,7 +1173,7 @@ mod tests {
         kb.send_keys("{win}D").unwrap();
 
         std::thread::sleep(std::time::Duration::from_millis(500));
-        
+
         kb.send_keys("{ALT}{TAB}").unwrap();
     }
 
@@ -1192,7 +1191,9 @@ mod tests {
     #[test]
     fn test_parse_input_2() {
         assert_eq!(
-            Parser::new(false).parse_input("{ctrl}{alt}{delete}").unwrap(),
+            Parser::new(false)
+                .parse_input("{ctrl}{alt}{delete}")
+                .unwrap(),
             vec![Input {
                 holdkeys: vec![VK_CONTROL, VK_MENU],
                 items: vec![InputItem::VirtualKey(VK_DELETE, 1)]
@@ -1215,30 +1216,39 @@ mod tests {
     fn test_parse_input_4() {
         assert_eq!(
             Parser::new(false).parse_input("{{}{}}{(}{)}").unwrap(),
-            vec![
-                Input {
-                    holdkeys: Vec::new(),
-                    items: vec![InputItem::Character('{'), InputItem::Character('}'), InputItem::Character('('), InputItem::Character(')')]
-                }
-            ]
+            vec![Input {
+                holdkeys: Vec::new(),
+                items: vec![
+                    InputItem::Character('{'),
+                    InputItem::Character('}'),
+                    InputItem::Character('('),
+                    InputItem::Character(')')
+                ]
+            }]
         )
     }
 
     #[test]
     fn test_parse_input_5() {
-        assert!(Parser::new(false).parse_input("Hello,Rust UIAutomation!{enter}").is_ok());
+        assert!(
+            Parser::new(false)
+                .parse_input("Hello,Rust UIAutomation!{enter}")
+                .is_ok()
+        );
     }
 
     #[test]
     fn test_parse_input_6() {
         assert_eq!(
             Parser::new(false).parse_input("你好！").unwrap(),
-            vec![
-                Input {
-                    holdkeys: Vec::new(),
-                    items: vec![InputItem::Character('你'), InputItem::Character('好'), InputItem::Character('！')]
-                }
-            ]
+            vec![Input {
+                holdkeys: Vec::new(),
+                items: vec![
+                    InputItem::Character('你'),
+                    InputItem::Character('好'),
+                    InputItem::Character('！')
+                ]
+            }]
         )
     }
 
@@ -1246,33 +1256,25 @@ mod tests {
     fn test_parse_input_7() {
         assert_eq!(
             Parser::new(true).parse_input("{").unwrap(),
-            vec![
-                Input {
-                    holdkeys: Vec::new(),
-                    items: vec![InputItem::Character('{')]
-                }
-            ]
+            vec![Input {
+                holdkeys: Vec::new(),
+                items: vec![InputItem::Character('{')]
+            }]
         );
-        assert!(
-            Parser::new(false).parse_input("{").is_err()
-        );
+        assert!(Parser::new(false).parse_input("{").is_err());
         assert_eq!(
             Parser::new(true).parse_input("{ctrl}{").unwrap(),
-            vec![
-                Input {
-                    holdkeys: vec![VK_CONTROL],
-                    items: vec![InputItem::Character('{')]
-                }
-            ]
+            vec![Input {
+                holdkeys: vec![VK_CONTROL],
+                items: vec![InputItem::Character('{')]
+            }]
         );
         assert_eq!(
             Parser::new(true).parse_input("{}").unwrap(),
-            vec![
-                Input {
-                    holdkeys: Vec::new(),
-                    items: vec![InputItem::Character('{'), InputItem::Character('}')]
-                }
-            ]
+            vec![Input {
+                holdkeys: Vec::new(),
+                items: vec![InputItem::Character('{'), InputItem::Character('}')]
+            }]
         );
     }
 
@@ -1280,16 +1282,12 @@ mod tests {
     fn test_parse_input_8() {
         assert_eq!(
             Parser::new(true).parse_input("(").unwrap(),
-            vec![
-                Input {
-                    holdkeys: Vec::new(),
-                    items: vec![InputItem::Character('(')]
-                }
-            ]
+            vec![Input {
+                holdkeys: Vec::new(),
+                items: vec![InputItem::Character('(')]
+            }]
         );
-        assert!(
-            Parser::new(false).parse_input("(").is_ok()
-        );
+        assert!(Parser::new(false).parse_input("(").is_ok());
         assert_eq!(
             Parser::new(true).parse_input("({ctrl}()").unwrap(),
             vec![
@@ -1326,20 +1324,16 @@ mod tests {
         );
         assert_eq!(
             Parser::new(true).parse_input("()").unwrap(),
-            vec![
-                Input {
-                    holdkeys: Vec::new(),
-                    items: vec![InputItem::Character('('), InputItem::Character(')')]
-                }
-            ]
+            vec![Input {
+                holdkeys: Vec::new(),
+                items: vec![InputItem::Character('('), InputItem::Character(')')]
+            }]
         );
     }
 
     #[test]
     fn test_parse_input_9() {
-        assert!(
-            Parser::new(true).parse_input(" {None} (Keys).").is_ok()
-        );
+        assert!(Parser::new(true).parse_input(" {None} (Keys).").is_ok());
     }
 
     #[test]

@@ -7,22 +7,30 @@ use syn::ItemEnum;
 use syn::Path;
 use syn::parse_quote;
 
-const REPR_TYPES: [&str; 10] = ["u8", "u16", "u32", "u64", "usize", "i8", "i16", "i32", "i64", "isize"];
+const REPR_TYPES: [&str; 10] = [
+    "u8", "u16", "u32", "u64", "usize", "i8", "i16", "i32", "i64", "isize",
+];
 
 pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
     let enum_name = &enum_item.ident;
-    let enum_type = get_repr_type(&enum_item).unwrap_or_else(|| panic!("#[EnumConvert] support #[repr({})] only", REPR_TYPES.join(" | ")));
+    let enum_type = get_repr_type(&enum_item).unwrap_or_else(|| {
+        panic!(
+            "#[EnumConvert] support #[repr({})] only",
+            REPR_TYPES.join(" | ")
+        )
+    });
     let (enum_names, var_exprs) = get_variants(&enum_item);
 
     let enum_name_upper = enum_name.to_string().to_uppercase();
-    let var_names: Vec<Ident> = enum_names.iter().map(|n| {
-        format_ident!("_{}_{}_", enum_name_upper, n.to_string().to_uppercase())
-    }).collect();
+    let var_names: Vec<Ident> = enum_names
+        .iter()
+        .map(|n| format_ident!("_{}_{}_", enum_name_upper, n.to_string().to_uppercase()))
+        .collect();
 
     let r#gen = quote! {
         impl TryFrom<#enum_type> for #enum_name {
             type Error = crate::errors::Error;
-        
+
             fn try_from(value: #enum_type) -> core::result::Result<Self, Self::Error> {
                 #( const #var_names: #enum_type = #var_exprs; )*
 
@@ -39,47 +47,57 @@ pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
                     #( Self::#enum_names => write!(f, stringify!(#enum_names)), )*
                 }
             }
-        }     
+        }
     };
 
     r#gen.into()
 }
 
 fn get_repr_type(enum_item: &syn::ItemEnum) -> Option<Ident> {
-    enum_item.attrs.iter().filter_map(|attr| {
-        if attr.path().is_ident("repr") {
-            if let Ok(ident) = attr.parse_args::<Ident>() {
-                let type_name = ident.to_string();
-                if REPR_TYPES.iter().any(|t| *t == type_name) {
-                    Some(ident)
+    enum_item
+        .attrs
+        .iter()
+        .filter_map(|attr| {
+            if attr.path().is_ident("repr") {
+                if let Ok(ident) = attr.parse_args::<Ident>() {
+                    let type_name = ident.to_string();
+                    if REPR_TYPES.iter().any(|t| *t == type_name) {
+                        Some(ident)
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
             } else {
                 None
             }
-        } else {
-            None
-        }
-    }).next()
+        })
+        .next()
 }
 
 fn get_variants(enum_item: &ItemEnum) -> (Vec<Ident>, Vec<Expr>) {
     let mut prev_expr: Option<Expr> = None;
-    enum_item.variants.iter().map(|v| {
-        let expr = match v.discriminant { Some((_, ref expr)) => {
-            expr.clone()
-        } _ => {
-            match prev_expr { Some(ref prev_expr) => {
-                parse_quote!(#prev_expr + 1)
-            } _ => {
-                parse_quote!(0)
-            }}
-        }};
-        prev_expr = Some(expr.clone());
+    enum_item
+        .variants
+        .iter()
+        .map(|v| {
+            let expr = match v.discriminant {
+                Some((_, ref expr)) => expr.clone(),
+                _ => match prev_expr {
+                    Some(ref prev_expr) => {
+                        parse_quote!(#prev_expr + 1)
+                    }
+                    _ => {
+                        parse_quote!(0)
+                    }
+                },
+            };
+            prev_expr = Some(expr.clone());
 
-        (v.ident.clone(), expr)
-    }).unzip()
+            (v.ident.clone(), expr)
+        })
+        .unzip()
 }
 
 pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
@@ -99,7 +117,7 @@ pub(crate) fn impl_map_as(type_path: Path, enum_item: ItemEnum) -> TokenStream {
             fn into(self) -> #type_path {
                 #type_path(self as _)
             }
-        }        
+        }
     };
 
     r#gen.into()

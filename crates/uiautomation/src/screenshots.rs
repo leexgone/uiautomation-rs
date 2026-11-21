@@ -1,21 +1,19 @@
 use std::path::Path;
 
 use windows::Win32::Graphics::Gdi::{
-    BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, CreateDCW,
-    DeleteDC, DeleteObject, GetDIBits, GetObjectW, SelectObject,
-    BITMAP, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, SRCCOPY,
+    BITMAP, BITMAPINFO, BITMAPINFOHEADER, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC,
+    CreateDCW, DIB_RGB_COLORS, DeleteDC, DeleteObject, GetDIBits, GetObjectW, SRCCOPY,
+    SelectObject,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
-    GetSystemMetrics,
-    SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN,
-    SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
+    GetSystemMetrics, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
 };
 use windows_core::w;
 
-use crate::types::Rect;
-use crate::errors::ERR_INVALID_ARG;
 use crate::Error;
 use crate::Result;
+use crate::errors::ERR_INVALID_ARG;
+use crate::types::Rect;
 
 use super::UIElement;
 
@@ -69,7 +67,10 @@ impl Screenshot {
         let height = rect.get_bottom() - rect.get_top();
 
         if width <= 0 || height <= 0 {
-            return Err(Error::new(ERR_INVALID_ARG, "screenshot rect has zero or negative size"));
+            return Err(Error::new(
+                ERR_INVALID_ARG,
+                "screenshot rect has zero or negative size",
+            ));
         }
 
         let width = width as u32;
@@ -83,14 +84,19 @@ impl Screenshot {
 
         let hdc_mem = unsafe { CreateCompatibleDC(Some(hdc_screen)) };
         if hdc_mem.is_invalid() {
-            unsafe { let _ = DeleteDC(hdc_screen); }
+            unsafe {
+                let _ = DeleteDC(hdc_screen);
+            }
             return Err(Error::last_os_error());
         }
 
         // Create a compatible bitmap
         let hbitmap = unsafe { CreateCompatibleBitmap(hdc_screen, width as i32, height as i32) };
         if hbitmap.is_invalid() {
-            unsafe { let _ = DeleteDC(hdc_mem); let _ = DeleteDC(hdc_screen); }
+            unsafe {
+                let _ = DeleteDC(hdc_mem);
+                let _ = DeleteDC(hdc_screen);
+            }
             return Err(Error::last_os_error());
         }
 
@@ -100,21 +106,32 @@ impl Screenshot {
         let result = unsafe {
             BitBlt(
                 hdc_mem,
-                0, 0,
-                width as i32, height as i32,
+                0,
+                0,
+                width as i32,
+                height as i32,
                 Some(hdc_screen),
-                rect.get_left(), rect.get_top(),
+                rect.get_left(),
+                rect.get_top(),
                 SRCCOPY,
             )
         };
 
         // Select the old object back and clean up
-        unsafe { let _ = SelectObject(hdc_mem, h_old); }
-        unsafe { let _ = DeleteDC(hdc_mem); }
-        unsafe { let _ = DeleteDC(hdc_screen); }
+        unsafe {
+            let _ = SelectObject(hdc_mem, h_old);
+        }
+        unsafe {
+            let _ = DeleteDC(hdc_mem);
+        }
+        unsafe {
+            let _ = DeleteDC(hdc_screen);
+        }
 
         if result.is_err() {
-            unsafe { let _ = DeleteObject(hbitmap.into()); }
+            unsafe {
+                let _ = DeleteObject(hbitmap.into());
+            }
             return Err(Error::last_os_error());
         }
 
@@ -122,7 +139,9 @@ impl Screenshot {
         let pixels = read_bitmap(hbitmap, width, height)?;
 
         // Clean up the bitmap handle
-        unsafe { let _ = DeleteObject(hbitmap.into()); }
+        unsafe {
+            let _ = DeleteObject(hbitmap.into());
+        }
 
         Ok(Screenshot {
             pixels,
@@ -180,9 +199,9 @@ impl Screenshot {
                 let dst_idx = dst_row + x * 4;
 
                 // BGRA -> RGBA (swap B and R)
-                rgba[dst_idx] = self.pixels[src_idx + 2];     // R
+                rgba[dst_idx] = self.pixels[src_idx + 2]; // R
                 rgba[dst_idx + 1] = self.pixels[src_idx + 1]; // G
-                rgba[dst_idx + 2] = self.pixels[src_idx];     // B
+                rgba[dst_idx + 2] = self.pixels[src_idx]; // B
                 rgba[dst_idx + 3] = self.pixels[src_idx + 3]; // A
             }
         }
@@ -198,7 +217,8 @@ impl Screenshot {
     /// Saves the screenshot as a BMP file.
     pub fn save_bmp(&self, path: impl AsRef<Path>) -> Result<()> {
         let bmp_data = self.to_bmp_bytes();
-        std::fs::write(path, &bmp_data).map_err(|e| Error::from(format!("Failed to write BMP file: {}", e)))
+        std::fs::write(path, &bmp_data)
+            .map_err(|e| Error::from(format!("Failed to write BMP file: {}", e)))
     }
 
     /// Converts the screenshot to BMP file bytes.
@@ -215,23 +235,23 @@ impl Screenshot {
         let mut data = Vec::with_capacity(file_size as usize);
 
         // BMP File Header (14 bytes)
-        data.extend_from_slice(b"BM");                       // Signature
-        data.extend_from_slice(&file_size.to_le_bytes());    // File size
-        data.extend_from_slice(&0u32.to_le_bytes());         // Reserved
-        data.extend_from_slice(&54u32.to_le_bytes());        // Pixel data offset
+        data.extend_from_slice(b"BM"); // Signature
+        data.extend_from_slice(&file_size.to_le_bytes()); // File size
+        data.extend_from_slice(&0u32.to_le_bytes()); // Reserved
+        data.extend_from_slice(&54u32.to_le_bytes()); // Pixel data offset
 
         // BITMAPINFOHEADER (40 bytes)
-        data.extend_from_slice(&40u32.to_le_bytes());        // Header size
-        data.extend_from_slice(&width.to_le_bytes());        // Width
-        data.extend_from_slice(&height.to_le_bytes());       // Height (positive = bottom-up)
-        data.extend_from_slice(&1u16.to_le_bytes());         // Color planes
-        data.extend_from_slice(&32u16.to_le_bytes());        // Bits per pixel
-        data.extend_from_slice(&0u32.to_le_bytes());         // Compression (BI_RGB)
+        data.extend_from_slice(&40u32.to_le_bytes()); // Header size
+        data.extend_from_slice(&width.to_le_bytes()); // Width
+        data.extend_from_slice(&height.to_le_bytes()); // Height (positive = bottom-up)
+        data.extend_from_slice(&1u16.to_le_bytes()); // Color planes
+        data.extend_from_slice(&32u16.to_le_bytes()); // Bits per pixel
+        data.extend_from_slice(&0u32.to_le_bytes()); // Compression (BI_RGB)
         data.extend_from_slice(&(image_size as u32).to_le_bytes()); // Image size
-        data.extend_from_slice(&0i32.to_le_bytes());         // X pixels per meter
-        data.extend_from_slice(&0i32.to_le_bytes());         // Y pixels per meter
-        data.extend_from_slice(&0u32.to_le_bytes());         // Colors used
-        data.extend_from_slice(&0u32.to_le_bytes());         // Important colors
+        data.extend_from_slice(&0i32.to_le_bytes()); // X pixels per meter
+        data.extend_from_slice(&0i32.to_le_bytes()); // Y pixels per meter
+        data.extend_from_slice(&0u32.to_le_bytes()); // Colors used
+        data.extend_from_slice(&0u32.to_le_bytes()); // Important colors
 
         // Pixel data (bottom-up for BMP, which matches GDI's native format)
         data.extend_from_slice(&self.pixels);
@@ -257,13 +277,16 @@ impl Screenshot {
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
 
-        let mut png_writer = encoder.write_header()
+        let mut png_writer = encoder
+            .write_header()
             .map_err(|e| Error::from(format!("Failed to write PNG header: {}", e)))?;
 
-        png_writer.write_image_data(&rgba.pixels)
+        png_writer
+            .write_image_data(&rgba.pixels)
             .map_err(|e| Error::from(format!("Failed to write PNG data: {}", e)))?;
 
-        png_writer.finish()
+        png_writer
+            .finish()
             .map_err(|e| Error::from(format!("Failed to finalize PNG: {}", e)))?;
 
         Ok(())
@@ -271,10 +294,20 @@ impl Screenshot {
 }
 
 /// Reads the pixel data from a GDI bitmap handle.
-fn read_bitmap(hbitmap: windows::Win32::Graphics::Gdi::HBITMAP, width: u32, height: u32) -> Result<Vec<u8>> {
+fn read_bitmap(
+    hbitmap: windows::Win32::Graphics::Gdi::HBITMAP,
+    width: u32,
+    height: u32,
+) -> Result<Vec<u8>> {
     // Get bitmap info to determine stride
     let mut bmp: BITMAP = BITMAP::default();
-    let got = unsafe { GetObjectW(hbitmap.into(), std::mem::size_of::<BITMAP>() as i32, Some(&mut bmp as *mut _ as *mut _)) };
+    let got = unsafe {
+        GetObjectW(
+            hbitmap.into(),
+            std::mem::size_of::<BITMAP>() as i32,
+            Some(&mut bmp as *mut _ as *mut _),
+        )
+    };
     if got == 0 {
         return Err(Error::last_os_error());
     }
@@ -322,7 +355,9 @@ fn read_bitmap(hbitmap: windows::Win32::Graphics::Gdi::HBITMAP, width: u32, heig
         )
     };
 
-    unsafe { let _ = DeleteDC(hdc); }
+    unsafe {
+        let _ = DeleteDC(hdc);
+    }
 
     if got == 0 {
         return Err(Error::last_os_error());
@@ -365,7 +400,11 @@ mod tests {
         assert!(screenshot.width() > 0);
         assert!(screenshot.height() > 0);
         assert!(!screenshot.pixels().is_empty());
-        println!("Desktop screenshot: {}x{}", screenshot.width(), screenshot.height());
+        println!(
+            "Desktop screenshot: {}x{}",
+            screenshot.width(),
+            screenshot.height()
+        );
     }
 
     #[test]

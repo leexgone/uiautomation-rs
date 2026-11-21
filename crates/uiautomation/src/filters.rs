@@ -10,7 +10,7 @@ use std::fmt::Debug;
 // use windows::Win32::System::Diagnostics::ToolHelp::TH32CS_SNAPPROCESS;
 #[cfg(feature = "process")]
 use windows::Win32::System::Diagnostics::ToolHelp::{
-    CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS
+    CreateToolhelp32Snapshot, PROCESSENTRY32, Process32First, Process32Next, TH32CS_SNAPPROCESS,
 };
 
 // use crate::controls::ControlType;
@@ -27,15 +27,12 @@ pub trait MatcherFilter {
 
 pub struct AndFilter {
     pub left: Box<dyn MatcherFilter>,
-    pub right: Box<dyn MatcherFilter>
+    pub right: Box<dyn MatcherFilter>,
 }
 
 impl AndFilter {
     pub fn new(left: Box<dyn MatcherFilter>, right: Box<dyn MatcherFilter>) -> Self {
-        Self {
-            left,
-            right
-        }
+        Self { left, right }
     }
 }
 
@@ -49,15 +46,12 @@ impl MatcherFilter for AndFilter {
 
 pub struct OrFilter {
     pub left: Box<dyn MatcherFilter>,
-    pub right: Box<dyn MatcherFilter>
+    pub right: Box<dyn MatcherFilter>,
 }
 
 impl OrFilter {
     pub fn new(left: Box<dyn MatcherFilter>, right: Box<dyn MatcherFilter>) -> Self {
-        Self {
-            left,
-            right
-        }
+        Self { left, right }
     }
 }
 
@@ -72,7 +66,7 @@ impl MatcherFilter for OrFilter {
 pub struct NameFilter {
     pub value: String,
     pub casesensitive: bool,
-    pub partial: bool
+    pub partial: bool,
 }
 
 impl MatcherFilter for NameFilter {
@@ -81,30 +75,28 @@ impl MatcherFilter for NameFilter {
         let element_name = element_name.as_str();
         let condition_name = self.value.as_str();
 
-        Ok(
-            if self.partial {
-                if self.casesensitive {
-                    element_name.contains(condition_name)
-                } else {
-                    let element_name = element_name.to_lowercase();
-                    let condition_name = condition_name.to_lowercase();
-
-                    element_name.contains(&condition_name)
-                }
+        Ok(if self.partial {
+            if self.casesensitive {
+                element_name.contains(condition_name)
             } else {
-                if self.casesensitive {
-                    element_name == condition_name
-                } else {
-                    element_name.eq_ignore_ascii_case(condition_name)
-                }
+                let element_name = element_name.to_lowercase();
+                let condition_name = condition_name.to_lowercase();
+
+                element_name.contains(&condition_name)
             }
-        )
+        } else {
+            if self.casesensitive {
+                element_name == condition_name
+            } else {
+                element_name.eq_ignore_ascii_case(condition_name)
+            }
+        })
     }
 }
 
 #[derive(Debug, Default)]
 pub struct ClassNameFilter {
-    pub classname: String
+    pub classname: String,
 }
 
 impl MatcherFilter for ClassNameFilter {
@@ -116,7 +108,7 @@ impl MatcherFilter for ClassNameFilter {
 
 #[derive(Debug)]
 pub struct ControlTypeFilter {
-    pub control_type: ControlType
+    pub control_type: ControlType,
 }
 
 impl MatcherFilter for ControlTypeFilter {
@@ -127,11 +119,17 @@ impl MatcherFilter for ControlTypeFilter {
     }
 }
 
-pub struct FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
-    pub filter: Box<F>
+pub struct FnFilter<F>
+where
+    F: Fn(&UIElement) -> Result<bool>,
+{
+    pub filter: Box<F>,
 }
 
-impl<F> MatcherFilter for FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
+impl<F> MatcherFilter for FnFilter<F>
+where
+    F: Fn(&UIElement) -> Result<bool>,
+{
     fn judge(&self, element: &UIElement) -> Result<bool> {
         (self.filter)(element)
     }
@@ -142,16 +140,16 @@ impl<F> MatcherFilter for FnFilter<F> where F: Fn(&UIElement) -> Result<bool> {
 pub struct ProcessIdFilter {
     pub pid: u32,
     pub sub_progress: bool,
-    progresses: RefCell<Option<Vec<u32>>>
+    progresses: RefCell<Option<Vec<u32>>>,
 }
 
 #[cfg(feature = "process")]
 impl Default for ProcessIdFilter {
     fn default() -> Self {
-        Self { 
-            pid: Default::default(), 
-            sub_progress: true, 
-            progresses: Default::default() 
+        Self {
+            pid: Default::default(),
+            sub_progress: true,
+            progresses: Default::default(),
         }
     }
 }
@@ -162,7 +160,7 @@ impl ProcessIdFilter {
         Self {
             pid,
             sub_progress,
-            progresses: RefCell::new(None)
+            progresses: RefCell::new(None),
         }
     }
 
@@ -211,7 +209,7 @@ impl ProcessIdFilter {
     fn get_sub_processes(&self) -> Result<Vec<(u32, u32)>> {
         let mut ids = Vec::new();
 
-        unsafe  {
+        unsafe {
             let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)?;
 
             let mut proc_entry = PROCESSENTRY32 {

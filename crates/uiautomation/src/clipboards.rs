@@ -1,5 +1,5 @@
-use uiautomation_derive::map_as;
 use uiautomation_derive::EnumConvert;
+use uiautomation_derive::map_as;
 use windows::Win32::Foundation::GlobalFree;
 use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::HGLOBAL;
@@ -10,20 +10,20 @@ use windows::Win32::System::DataExchange::GetClipboardData;
 use windows::Win32::System::DataExchange::IsClipboardFormatAvailable;
 use windows::Win32::System::DataExchange::OpenClipboard;
 use windows::Win32::System::DataExchange::SetClipboardData;
+use windows::Win32::System::Memory::GHND;
 use windows::Win32::System::Memory::GlobalAlloc;
 use windows::Win32::System::Memory::GlobalLock;
 use windows::Win32::System::Memory::GlobalSize;
 use windows::Win32::System::Memory::GlobalUnlock;
-use windows::Win32::System::Memory::GHND;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow;
 use windows::Win32::UI::WindowsAndMessaging::GetDesktopWindow;
 use windows::core::HRESULT;
 use windows::core::PWSTR;
 
-use crate::log_error;
-use crate::types::Handle;
 use crate::Error;
 use crate::Result;
+use crate::log_error;
+use crate::types::Handle;
 
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumConvert)]
@@ -86,11 +86,19 @@ pub enum ClipboardFormat {
 // const HANDLE_FORMATS: [ClipboardFormat; 10] = [ClipboardFormat::BITMAP, ClipboardFormat::DSPBITMAP, ClipboardFormat::ENHMETAFILE,
 //     ClipboardFormat::DSPENHMETAFILE, ClipboardFormat::DSPMETAFILEPICT, ClipboardFormat::DSPTEXT, ClipboardFormat::HDROP, ClipboardFormat::METAFILEPICT,
 //     ClipboardFormat::PALETTE, ClipboardFormat::PENDATA];
-const SNAPABLE_FORMATS: [ClipboardFormat; 8] = [ClipboardFormat::TEXT, ClipboardFormat::UNICODETEXT, ClipboardFormat::OEMTEXT, ClipboardFormat::DIB, ClipboardFormat::DIBV5,
-    ClipboardFormat::RIFF, ClipboardFormat::TIFF, ClipboardFormat::WAVE];
+const SNAPABLE_FORMATS: [ClipboardFormat; 8] = [
+    ClipboardFormat::TEXT,
+    ClipboardFormat::UNICODETEXT,
+    ClipboardFormat::OEMTEXT,
+    ClipboardFormat::DIB,
+    ClipboardFormat::DIBV5,
+    ClipboardFormat::RIFF,
+    ClipboardFormat::TIFF,
+    ClipboardFormat::WAVE,
+];
 
 /// Windows clipboard wrapper.
-/// 
+///
 /// ```
 /// let clipboard = uiautomation::clipboards::Clipboard::open().unwrap();
 /// clipboard.set_text("hello").unwrap();
@@ -98,8 +106,7 @@ const SNAPABLE_FORMATS: [ClipboardFormat; 8] = [ClipboardFormat::TEXT, Clipboard
 /// assert_eq!(text, "hello");
 /// ```
 #[derive(Debug)]
-pub struct Clipboard {
-}
+pub struct Clipboard {}
 
 impl Clipboard {
     const MAX_OPEN_TIMES: u32 = 10;
@@ -166,9 +173,7 @@ impl Clipboard {
 
     /// Determines whether the clipboard contains data in the specified format.
     pub fn is_format_available(&self, format: ClipboardFormat) -> Result<bool> {
-        let result = unsafe {
-            IsClipboardFormatAvailable(format as _)   
-        };
+        let result = unsafe { IsClipboardFormatAvailable(format as _) };
 
         match result {
             Ok(_) => Ok(true),
@@ -182,9 +187,9 @@ impl Clipboard {
         }
     }
 
-    /// Retrieves data from the clipboard in a string format. 
+    /// Retrieves data from the clipboard in a string format.
     pub fn get_text(&self) -> Result<String> {
-        let text = unsafe { 
+        let text = unsafe {
             IsClipboardFormatAvailable(ClipboardFormat::UNICODETEXT as _)?;
 
             let data = GetClipboardData(ClipboardFormat::UNICODETEXT as _)?;
@@ -205,7 +210,7 @@ impl Clipboard {
     pub fn set_text(&self, text: &str) -> Result<()> {
         let data: Vec<u16> = text.encode_utf16().chain(std::iter::once(0u16)).collect();
         let data = PWSTR::from_raw(data.as_ptr() as *mut u16);
-        let data_len = unsafe { data.len() } + 1;   // sizeof `u16`
+        let data_len = unsafe { data.len() } + 1; // sizeof `u16`
         let mut memory = GlobalData::alloc(data_len * 2)?;
         let ret = unsafe {
             let lock_data = memory.lock()?;
@@ -217,7 +222,7 @@ impl Clipboard {
         if ret.is_invalid() {
             Err(Error::last_os_error())
         } else {
-            memory.forget();    // move ownership into clipboard if succeed.
+            memory.forget(); // move ownership into clipboard if succeed.
             Ok(())
         }
     }
@@ -238,14 +243,21 @@ impl Clipboard {
             if format == 0 {
                 break;
             } else if SNAPABLE_FORMATS.iter().any(|f| format == *f as _)    // only snapshot specified standard formats
-                    || (try_all_formats && (0xC000..=0xFFFF).contains(&format)) {   // try registered formats if `try_all_formats` is true
-                if format == ClipboardFormat::DIB as _ || format == ClipboardFormat::DIBV5 as _ {    // image data
+                    || (try_all_formats && (0xC000..=0xFFFF).contains(&format))
+            {
+                // try registered formats if `try_all_formats` is true
+                if format == ClipboardFormat::DIB as _ || format == ClipboardFormat::DIBV5 as _ {
+                    // image data
                     if has_image {
                         continue;
                     } else {
                         has_image = true;
                     }
-                } else if format == ClipboardFormat::TEXT as _ || format == ClipboardFormat::UNICODETEXT as _ || format == ClipboardFormat::OEMTEXT as _ {    // text data
+                } else if format == ClipboardFormat::TEXT as _
+                    || format == ClipboardFormat::UNICODETEXT as _
+                    || format == ClipboardFormat::OEMTEXT as _
+                {
+                    // text data
                     if has_text {
                         continue;
                     } else {
@@ -290,15 +302,16 @@ impl Drop for Clipboard {
 #[derive(Debug, Default)]
 pub(crate) struct GlobalData {
     memory: HGLOBAL,
-    owned: bool
+    owned: bool,
 }
 
 impl GlobalData {
     pub fn alloc(size: usize) -> Result<Self> {
-        let data = unsafe {
-            GlobalAlloc(GHND, size)?
-        };
-        Ok(Self { memory: data, owned: true })
+        let data = unsafe { GlobalAlloc(GHND, size)? };
+        Ok(Self {
+            memory: data,
+            owned: true,
+        })
     }
 
     // pub fn get(&self) -> HGLOBAL {
@@ -314,9 +327,7 @@ impl GlobalData {
     }
 
     pub fn size(&self) -> usize {
-        unsafe {
-            GlobalSize(self.memory)
-        }
+        unsafe { GlobalSize(self.memory) }
     }
 
     pub fn lock(&self) -> Result<GlobalGuard> {
@@ -326,7 +337,7 @@ impl GlobalData {
         } else {
             Ok(GlobalGuard {
                 memory: self.memory,
-                data
+                data,
             })
         }
     }
@@ -339,7 +350,7 @@ impl GlobalData {
         if self.memory.is_invalid() {
             Ok(Self {
                 memory: self.memory,
-                owned: false
+                owned: false,
             })
         } else {
             let src = self.lock()?;
@@ -355,7 +366,10 @@ impl GlobalData {
 
 impl From<HGLOBAL> for GlobalData {
     fn from(data: HGLOBAL) -> Self {
-        Self { memory: data, owned: false }
+        Self {
+            memory: data,
+            owned: false,
+        }
     }
 }
 
@@ -407,28 +421,29 @@ impl AsMut<HGLOBAL> for GlobalData {
 
 impl Drop for GlobalData {
     fn drop(&mut self) {
-        if self.owned && !self.memory.is_invalid() { 
+        if self.owned && !self.memory.is_invalid() {
             let _ = unsafe { GlobalFree(Some(self.memory)) };
             self.owned = false
         }
     }
 }
 
-pub(crate) struct GlobalGuard{
+pub(crate) struct GlobalGuard {
     memory: HGLOBAL,
-    pub data: *mut core::ffi::c_void
+    pub data: *mut core::ffi::c_void,
 }
 
 impl Drop for GlobalGuard {
     fn drop(&mut self) {
         if let Err(e) = unsafe { GlobalUnlock(self.memory) }
-            && e.code() != HRESULT(0) {
-                log_error!("Failed to unlock global memory: {}", e);
-            }
+            && e.code() != HRESULT(0)
+        {
+            log_error!("Failed to unlock global memory: {}", e);
+        }
     }
 }
 
 #[derive(Debug, Default)]
 pub struct Snapshot {
-    datas: Vec<(u32, GlobalData)>
+    datas: Vec<(u32, GlobalData)>,
 }

@@ -21,11 +21,15 @@ mod tests {
             let handler: IUIAutomationEventHandler = handler.into();
 
             unsafe {
-                auto_ref.AddAutomationEventHandler(UIA_Text_TextChangedEventId, 
-                    &notepad, 
-                    TreeScope_Subtree, 
-                    None, 
-                    &handler).unwrap();
+                auto_ref
+                    .AddAutomationEventHandler(
+                        UIA_Text_TextChangedEventId,
+                        &notepad,
+                        TreeScope_Subtree,
+                        None,
+                        &handler,
+                    )
+                    .unwrap();
             }
 
             sleep(Duration::from_secs(1));

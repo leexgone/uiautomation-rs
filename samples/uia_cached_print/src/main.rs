@@ -1,11 +1,11 @@
-use uiautomation::controls::ControlType;
-use uiautomation::core::UICacheRequest;
-use uiautomation::types::UIProperty;
-use uiautomation::variants::Variant;
 use uiautomation::Result;
 use uiautomation::UIAutomation;
 use uiautomation::UIElement;
 use uiautomation::UITreeWalker;
+use uiautomation::controls::ControlType;
+use uiautomation::core::UICacheRequest;
+use uiautomation::types::UIProperty;
+use uiautomation::variants::Variant;
 
 fn main() {
     let automation = UIAutomation::new().unwrap();
