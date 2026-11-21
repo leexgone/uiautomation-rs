@@ -19,6 +19,8 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - name: Cargo cache
         uses: Swatinem/rust-cache@v2
@@ -34,6 +36,14 @@ jobs:
       - name: Verify crate version dependency consistency
         shell: pwsh
         run: ./scripts/check-versions.ps1
+
+      - name: Check formatting
+        shell: pwsh
+        run: cargo fmt --all --check
+
+      - name: Run clippy and deny warnings
+        shell: pwsh
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
       - name: Check the whole workspace (samples and test programs included)
         shell: pwsh
