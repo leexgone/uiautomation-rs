@@ -152,8 +152,7 @@ mod tests {
         let rect = Rect::new(-100, -100, 200, 200);
         let result = Screenshot::capture_rect(rect);
         // This should succeed on multi-monitor setups where negative coords are valid
-        if result.is_ok() {
-            let shot = result.unwrap();
+        if let Ok(shot) = result {
             assert_eq!(shot.width(), 300);
             assert_eq!(shot.height(), 300);
         }

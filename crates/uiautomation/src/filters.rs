@@ -181,7 +181,7 @@ impl ProcessIdFilter {
 
     fn is_valid(&self) -> bool {
         if let Some(ids) = self.progresses.borrow().as_ref() {
-            ids.get(0) == Some(&self.pid)
+            ids.first() == Some(&self.pid)
         } else {
             false
         }
@@ -214,8 +214,10 @@ impl ProcessIdFilter {
         unsafe  {
             let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)?;
 
-            let mut proc_entry = PROCESSENTRY32::default();
-            proc_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as _;
+            let mut proc_entry = PROCESSENTRY32 {
+                dwSize: std::mem::size_of::<PROCESSENTRY32>() as _,
+                ..Default::default()
+            };
 
             let mut found = Process32First(snapshot, &mut proc_entry);
             while found.is_ok() {

@@ -65,7 +65,7 @@ pub(crate) fn impl_pattern_as(struct_item: ItemStruct, type_item: Path) -> Token
     }.into()
 }
 
-fn get_pattern_type<'a>(struct_item: &'a ItemStruct) -> Option<&'a Type> {
+fn get_pattern_type(struct_item: &ItemStruct) -> Option<&Type> {
     if let Fields::Named(fields) = &struct_item.fields {
         fields.named.iter().find_map(|field| {
             if let Some(ref field_name) = field.ident {
@@ -83,7 +83,7 @@ fn get_pattern_type<'a>(struct_item: &'a ItemStruct) -> Option<&'a Type> {
     }
 }
 
-fn get_pattern_inherits<'a>(struct_item: &'a ItemStruct) -> (Vec<&'a proc_macro2::Ident>, Vec<&'a Type>) {
+fn get_pattern_inherits(struct_item: &ItemStruct) -> (Vec<&proc_macro2::Ident>, Vec<&Type>) {
     if let Fields::Named(fields) = &struct_item.fields {
         fields.named.iter().filter_map(|field| {
             if let Some(ref field_name) = field.ident {

@@ -50,7 +50,7 @@ fn print_element(
         element.get_cached_name()?
     );
 
-    if let Ok(child) = walker.get_first_child_build_cache(&element, cache_request) {
+    if let Ok(child) = walker.get_first_child_build_cache(element, cache_request) {
         print_element(walker, &child, cache_request, level + 1)?;
 
         let mut next = child;

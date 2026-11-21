@@ -79,7 +79,7 @@ Order Total: $1,234.56
 Status: Pending Shipment
 Contact Email: procurement@globex.example.com\"";
             // notepad.send_keys(&text, 50).unwrap();
-            notepad.send_text(&text, 50).unwrap();
+            notepad.send_text(text, 50).unwrap();
 
             let matcher = automation.create_matcher().from_ref(&notepad).control_type(ControlType::Document);
             let document = matcher.find_first().unwrap();
@@ -154,7 +154,7 @@ Contact Email: procurement@globex.example.com\"";
         println!("Window Rect = {}", rect);
 
         let val = element.get_property_value(uiautomation::types::UIProperty::BoundingRectangle).unwrap();
-        println!("Window Rect Prop = {}", val.to_string());
+        println!("Window Rect Prop = {}", val);
         assert!(val.is_array());
 
         let arr = val.get_array().unwrap();

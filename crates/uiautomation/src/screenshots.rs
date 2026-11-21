@@ -172,7 +172,7 @@ impl Screenshot {
         let row_bytes = (self.width as usize) * 4;
 
         for y in 0..self.height as usize {
-            let src_row = ((self.height as usize - 1 - y)) * row_bytes;
+            let src_row = (self.height as usize - 1 - y) * row_bytes;
             let dst_row = y * row_bytes;
 
             for x in 0..self.width as usize {

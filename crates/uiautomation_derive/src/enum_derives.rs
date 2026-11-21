@@ -11,7 +11,7 @@ const REPR_TYPES: [&str; 10] = ["u8", "u16", "u32", "u64", "usize", "i8", "i16",
 
 pub(crate) fn impl_enum_convert(enum_item: ItemEnum) -> TokenStream {
     let enum_name = &enum_item.ident;
-    let enum_type = get_repr_type(&enum_item).expect(&format!("#[EnumConvert] support #[repr({})] only", REPR_TYPES.join(" | ")));
+    let enum_type = get_repr_type(&enum_item).unwrap_or_else(|| panic!("#[EnumConvert] support #[repr({})] only", REPR_TYPES.join(" | ")));
     let (enum_names, var_exprs) = get_variants(&enum_item);
 
     let enum_name_upper = enum_name.to_string().to_uppercase();

@@ -101,7 +101,7 @@ impl Display for Value {
     }
 }
 
-fn fmt_array<D: Display>(f: &mut std::fmt::Formatter<'_>, arr: &Vec<D>) -> std::fmt::Result {
+fn fmt_array<D: Display>(f: &mut std::fmt::Formatter<'_>, arr: &[D]) -> std::fmt::Result {
     write!(f, "ARRAY(")?;
     for (i, v) in arr.iter().enumerate() {
         if i > 0 {
@@ -122,8 +122,10 @@ pub struct Variant {
 impl Variant {
     /// Create a null variant.
     fn new_null(vt: VARENUM) -> Variant {
-        let mut val = VARIANT_0_0::default();
-        val.vt = vt;
+        let val = VARIANT_0_0 {
+            vt,
+            ..Default::default()
+        };
         let val = VARIANT {
             Anonymous: VARIANT_0 {
                 Anonymous: ManuallyDrop::new(val)
@@ -362,9 +364,9 @@ impl From<&VARIANT> for Variant {
     }
 }
 
-impl Into<VARIANT> for Variant {
-    fn into(self) -> VARIANT {
-        self.value
+impl From<Variant> for VARIANT {
+    fn from(val: Variant) -> Self {
+        val.value
     }
 }
 
@@ -595,15 +597,8 @@ impl TryInto<Value> for &Variant {
                 Value::NULL
             }};
             Ok(val)
-        } else if vt == VT_ERROR {
-            let val = unsafe {
-                self.get_data().intVal
-            };
-            Ok(Value::HRESULT(HRESULT(val)))
-        } else if vt == VT_HRESULT {
-            let val = unsafe {
-                self.get_data().intVal
-            };
+        } else if vt == VT_ERROR || vt == VT_HRESULT {
+            let val = unsafe { self.get_data().intVal };
             Ok(Value::HRESULT(HRESULT(val)))
         } else if vt == VT_BOOL {
             let val = unsafe {
@@ -621,7 +616,7 @@ impl TryInto<Value> for &Variant {
             Ok(Value::DECIMAL(val))
         } else if vt == VT_SAFEARRAY {
             let arr = unsafe {
-                self.get_data().parray.clone()
+                self.get_data().parray
             };
             Ok(Value::SAFEARRAY(SafeArray::from(arr)))
         } else {
@@ -1410,16 +1405,16 @@ impl SafeArray {
     }
 
     /// Creates a `SafeArray` value from `Vec<T>`.
-    pub fn from_vector<T: Default>(var_type: VARENUM, src: &Vec<T>) -> Result<SafeArray> {
-        Self::from_slice(var_type, &src)
+    pub fn from_vector<T: Default>(var_type: VARENUM, src: &[T]) -> Result<SafeArray> {
+        Self::from_slice(var_type, src)
     }
 
     /// Creates a `SafeArray` value from `[T]`.
     pub fn from_slice<T: Default>(var_type: VARENUM, src: &[T]) -> Result<SafeArray> {
         let arr = Self::new_vector(var_type, src.len() as _)?;
-        for i in 0..src.len() {
+        for (i, v) in src.iter().enumerate() {
             let indices: [i32; 1] = [i as _];
-            let v_ref: *const T = &src[i];
+            let v_ref: *const T = v;
             unsafe {
                 SafeArrayPutElement(arr.array, indices.as_ptr(), v_ref as _)?
             };
@@ -1428,7 +1423,7 @@ impl SafeArray {
     }
 
     /// Creates a `SafeArray` value from string vec.
-    pub fn from_string_vector<T: AsRef<str>>(src: &Vec<T>) -> Result<SafeArray> {
+    pub fn from_string_vector<T: AsRef<str>>(src: &[T]) -> Result<SafeArray> {
         let bstrs: Vec<BSTR> = src.iter().map(|s| s.as_ref().into()).collect();
         Self::from_vector(VT_BSTR, &bstrs)
     }
@@ -1454,9 +1449,7 @@ impl From<*mut SAFEARRAY> for SafeArray {
 
 impl From<*const SAFEARRAY> for SafeArray {
     fn from(value: *const SAFEARRAY) -> Self {
-        let array: *mut SAFEARRAY = unsafe {
-            std::mem::transmute(value)
-        };
+        let array = value as *mut SAFEARRAY;
         Self {
             array,
             owned: false
@@ -1464,10 +1457,10 @@ impl From<*const SAFEARRAY> for SafeArray {
     }
 }
 
-impl Into<*mut SAFEARRAY> for SafeArray {
-    fn into(mut self) -> *mut SAFEARRAY {
-        self.owned = false;
-        self.array
+impl From<SafeArray> for *mut SAFEARRAY {
+    fn from(mut val: SafeArray) -> Self {
+        val.owned = false;
+        val.array
     }
 }
 

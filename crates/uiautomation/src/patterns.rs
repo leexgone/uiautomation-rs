@@ -412,15 +412,17 @@ pub struct UIExpandCollapsePattern {
 
 impl UIExpandCollapsePattern {
     pub fn expand(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Expand()?
-        })
+        };
+        Ok(())
     }
 
     pub fn collapse(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Collapse()?
-        })
+        };
+        Ok(())
     }
 
     pub fn get_state(&self) -> Result<ExpandCollapseState> {
@@ -575,16 +577,19 @@ pub struct UILegacyIAccessiblePattern {
 
 impl UILegacyIAccessiblePattern {
     pub fn select(&self, flags: i32) -> Result<()> {
-        Ok(unsafe { self.pattern.Select(flags)? })
+        let _: () = unsafe { self.pattern.Select(flags)? };
+        Ok(())
     }
 
     pub fn do_default_action(&self) -> Result<()> {
-        Ok(unsafe { self.pattern.DoDefaultAction()? })
+        let _: () = unsafe { self.pattern.DoDefaultAction()? };
+        Ok(())
     }
 
     pub fn set_value(&self, value: &str) -> Result<()> {
         let value = BSTR::from(value);
-        Ok(unsafe { self.pattern.SetValue(&value)? })
+        let _: () = unsafe { self.pattern.SetValue(&value)? };
+        Ok(())
     }
 
     pub fn get_child_id(&self) -> Result<i32> {
@@ -715,9 +720,10 @@ impl UIMultipleViewPattern {
     }
 
     pub fn set_current_view(&self, view: i32) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.SetCurrentView(view)?
-        })
+        };
+        Ok(())
     }
 
     pub fn get_current_view(&self) -> Result<i32> {
@@ -741,9 +747,10 @@ pub struct UIRangeValuePattern {
 
 impl UIRangeValuePattern {
     pub fn set_value(&self, value: f64) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.SetValue(value)?
-        })
+        };
+        Ok(())
     }
 
     pub fn get_value(&self) -> Result<f64> {
@@ -829,15 +836,17 @@ pub struct UIScrollPattern {
 
 impl UIScrollPattern {
     pub fn scroll(&self, horizontal_amount: ScrollAmount, vertical_amount: ScrollAmount) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Scroll(horizontal_amount.into(), vertical_amount.into())?
-        })
+        };
+        Ok(())
     }
 
     pub fn set_scroll_percent(&self, horizontal_percent: f64, vertical_percent: f64) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.SetScrollPercent(horizontal_percent, vertical_percent)?
-        })
+        };
+        Ok(())
     }
 
     pub fn get_horizontal_scroll_percent(&self) -> Result<f64> {
@@ -960,9 +969,10 @@ pub struct UIScrollItemPattern {
 
 impl UIScrollItemPattern {
     pub fn scroll_into_view(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.ScrollIntoView()?
-        })
+        };
+        Ok(())
     }
 }
 
@@ -1092,21 +1102,24 @@ pub struct UISelectionItemPattern {
 
 impl UISelectionItemPattern {
     pub fn select(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Select()?
-        })
+        };
+        Ok(())
     }
 
     pub fn add_to_selection(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.AddToSelection()?
-        })
+        };
+        Ok(())
     }
 
     pub fn remove_from_selection(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.RemoveFromSelection()?
-        })
+        };
+        Ok(())
     }
 
     pub fn is_selected(&self) -> Result<bool> {
@@ -1320,15 +1333,17 @@ pub struct UISynchronizedInputPattern {
 
 impl UISynchronizedInputPattern {
     pub fn start_listening(&self, input_type: SynchronizedInputType) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.StartListening(input_type)?
-        })
+        };
+        Ok(())
     }
 
     pub fn cancel(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Cancel()?
-        })
+        };
+        Ok(())
     }
 }
 
@@ -1574,9 +1589,10 @@ impl UITextRange {
     }
 
     pub fn expand_to_enclosing_unit(&self, text_unit: TextUnit) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.range.ExpandToEnclosingUnit(text_unit.into())?
-        })
+        };
+        Ok(())
     }
 
     pub fn find_attribute(&self, attr: TextAttribute, value: Variant, backward: bool) -> Result<UITextRange> {
@@ -1628,33 +1644,38 @@ impl UITextRange {
     }
 
     pub fn move_endpoint_by_range(&self, src_endpoint: TextPatternRangeEndpoint, range: &UITextRange, target_endpoint: TextPatternRangeEndpoint) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.range.MoveEndpointByRange(src_endpoint.into(), range.as_ref(), target_endpoint.into())?
-        })
+        };
+        Ok(())
     }
 
     pub fn select(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.range.Select()?
-        })
+        };
+        Ok(())
     }
 
     pub fn add_to_selection(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.range.AddToSelection()?
-        })
+        };
+        Ok(())
     }
 
     pub fn remove_from_selection(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.range.RemoveFromSelection()?
-        })
+        };
+        Ok(())
     }
 
     pub fn scroll_into_view(&self, align_to_top: bool) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.range.ScrollIntoView(align_to_top)?
-        })
+        };
+        Ok(())
     }
 
     pub fn get_children(&self) -> Result<Vec<UIElement>> {
@@ -1667,9 +1688,10 @@ impl UITextRange {
 
     pub fn show_context_menu(&self) -> Result<()> {
         let range2: IUIAutomationTextRange2 = self.range.cast()?;
-        Ok(unsafe {
+        let _: () = unsafe {
             range2.ShowContextMenu()?
-        })
+        };
+        Ok(())
     }
 
     /// Convert `IUIAutomationTextRangeArray` to `Vec<UITextRange>`.
@@ -1695,9 +1717,9 @@ impl From<IUIAutomationTextRange> for UITextRange {
     }
 }
 
-impl Into<IUIAutomationTextRange> for UITextRange {
-    fn into(self) -> IUIAutomationTextRange {
-        self.range
+impl From<UITextRange> for IUIAutomationTextRange {
+    fn from(val: UITextRange) -> Self {
+        val.range
     }
 }
 
@@ -1732,9 +1754,10 @@ impl UITogglePattern {
     }
 
     pub fn toggle(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Toggle()?
-        })
+        };
+        Ok(())
     }
 }
 
@@ -1761,9 +1784,10 @@ impl UITransformPattern {
     }
 
     pub fn move_to(&self, x: f64, y: f64) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Move(x, y)?
-        })
+        };
+        Ok(())
     }
 
     pub fn can_resize(&self) -> Result<bool> {
@@ -1781,9 +1805,10 @@ impl UITransformPattern {
     }
 
     pub fn resize(&self, width: f64, height: f64) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Resize(width, height)?
-        })
+        };
+        Ok(())
     }
 
     pub fn can_rotate(&self) -> Result<bool> {
@@ -1801,9 +1826,10 @@ impl UITransformPattern {
     }
 
     pub fn rotate(&self, degrees: f64) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Rotate(degrees)?
-        })
+        };
+        Ok(())
     }
 
     pub fn can_zoom(&self) -> Result<bool> {
@@ -1866,16 +1892,18 @@ impl UITransformPattern {
 
     pub fn zoom(&self, zoom_value: f64) -> Result<()> {
         let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
-        Ok(unsafe {
+        let _: () = unsafe {
             pattern2.Zoom(zoom_value)?
-        })
+        };
+        Ok(())
     }
 
     pub fn zoom_by_unit(&self, zoom_unit: ZoomUnit) -> Result<()> {
         let pattern2: IUIAutomationTransformPattern2 = self.pattern.cast()?;
-        Ok(unsafe {
+        let _: () = unsafe {
             pattern2.ZoomByUnit(zoom_unit.into())?
-        })
+        };
+        Ok(())
     }
 }
 
@@ -1889,9 +1917,10 @@ pub struct UIValuePattern {
 impl UIValuePattern {
     pub fn set_value(&self, value: &str) -> Result<()> {
         let value = BSTR::from(value);
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.SetValue(&value)?
-        })
+        };
+        Ok(())
     }
 
     pub fn get_value(&self) -> Result<String> {
@@ -1933,9 +1962,10 @@ pub struct UIVirtualizedItemPattern {
 
 impl UIVirtualizedItemPattern {
     pub fn realize(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Realize()?
-        })
+        };
+        Ok(())
     }
 }
 
@@ -1948,9 +1978,10 @@ pub struct UIWindowPattern {
 
 impl UIWindowPattern {
     pub fn close(&self) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.Close()?
-        })
+        };
+        Ok(())
     }
 
     pub fn wait_for_input_idle(&self, milliseconds: i32) -> Result<bool> {
@@ -1976,9 +2007,10 @@ impl UIWindowPattern {
     }
 
     pub fn set_window_visual_state(&self, state: WindowVisualState) -> Result<()> {
-        Ok(unsafe {
+        let _: () = unsafe {
             self.pattern.SetWindowVisualState(state.into())?
-        })
+        };
+        Ok(())
     }
 
     pub fn can_maximize(&self) -> Result<bool> {

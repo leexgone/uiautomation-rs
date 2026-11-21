@@ -82,12 +82,12 @@ impl From<windows::core::Error> for Error {
     }
 }
 
-impl Into<windows::core::Error> for Error {
-    fn into(self) -> windows::core::Error {
-        if let Some(result) = self.result() {
+impl From<Error> for windows::core::Error {
+    fn from(val: Error) -> Self {
+        if let Some(result) = val.result() {
             windows::core::Error::from_hresult(result)
         } else {
-            windows::core::Error::new(E_FAIL, self.message)
+            windows::core::Error::new(E_FAIL, val.message)
         }
     }
 }

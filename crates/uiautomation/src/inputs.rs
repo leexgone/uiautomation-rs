@@ -88,10 +88,7 @@ pub enum InputItem {
 
 impl InputItem {
     pub fn is_holdkey(&self) -> bool {
-        match self {
-            Self::HoldKey(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::HoldKey(_))
     }
 }
 /// Represents an input item, which can be a hold key, a virtual key, or a character.
@@ -175,7 +172,7 @@ impl Input {
             }
         }
 
-        for holdkey in (&self.holdkeys).iter().rev() {
+        for holdkey in self.holdkeys.iter().rev() {
             let input = Self::create_virtual_key(*holdkey, KEYEVENTF_KEYUP);
             inputs.push(input);
         }
@@ -266,11 +263,10 @@ impl Input {
                 let alt: bool = (vk & 0x0400) != 0;
                 // Do not press shift if CAPSLOCK is on.
                 let state = unsafe { GetKeyState(VK_CAPITAL.0 as _) };
-                if (state & 0x01) != 0 {
-                    if (ch >= 'a' as u16 && ch <= 'z' as u16) || (ch >= 'A' as u16 && ch <= 'Z' as u16) {
+                if (state & 0x01) != 0
+                    && ((ch >= 'a' as u16 && ch <= 'z' as u16) || (ch >= 'A' as u16 && ch <= 'Z' as u16)) {
                         shift = !shift;
-                    }
-                };
+                    };
                 let mut char_inputs: Vec<INPUT> = Vec::new();
                 if shift {
                     char_inputs.push(
@@ -416,12 +412,11 @@ impl Parser {
 
         let mut expr = expression.chars();
         while let Some((items, is_holdkey)) = self.next_input(&mut expr, if let Some(p) = inputs.last() { p.is_holdkey_only() } else { false })? {
-            if let Some(prev) = inputs.last_mut() {
-                if (is_holdkey && !prev.has_items()) || (!is_holdkey && (!prev.has_holdkey() || prev.is_holdkey_only())) { 
+            if let Some(prev) = inputs.last_mut()
+                && ((is_holdkey && !prev.has_items()) || (!is_holdkey && (!prev.has_holdkey() || prev.is_holdkey_only()))) { 
                     prev.push_all(&items);
                     continue;
                 }
-            }
 
             let mut input = Input::new();
             input.push_all(&items);
@@ -476,7 +471,7 @@ impl Parser {
     fn read_special_item(&self, expr: &mut Chars<'_>) -> Result<InputItem> {
         let mut token = String::new();
         let mut matched = false;
-        while let Some(ch) = expr.next() {
+        for ch in expr.by_ref() {
             if ch == '}' && !token.is_empty() {
                 matched = true;
                 break;
@@ -516,7 +511,7 @@ impl Parser {
         let mut items: Vec<InputItem> = Vec::new();
         let mut matched = false;
 
-        while let Some((next, _)) = self.next_input(expr, if let Some(&InputItem::HoldKey(_)) = items.last() { true } else { false })? {
+        while let Some((next, _)) = self.next_input(expr, matches!(items.last(), Some(&InputItem::HoldKey(_))))? {
             if next.len() == 1 && next[0] == InputItem::Character(')') {
                 matched = true;
                 break;
@@ -602,7 +597,7 @@ impl Keyboard {
         let inputs = vec![
             Input {
                 holdkeys: Vec::new(),
-                items: text.chars().map(|ch| InputItem::Character(ch)).collect(),
+                items: text.chars().map(InputItem::Character).collect(),
             }
         ];
 
@@ -668,7 +663,7 @@ impl Keyboard {
             send_input(input_keys)
         } else {
             for input_key in input_keys {
-                let input_key_slice: [INPUT; 1] = [input_key.clone()];
+                let input_key_slice: [INPUT; 1] = [*input_key];
                 send_input(&input_key_slice)?;
 
                 self.wait();
@@ -694,7 +689,7 @@ impl Drop for Keyboard {
                 holdkey_inputs.push(Input::create_virtual_key(*holdkey, KEYEVENTF_KEYUP));
             }
 
-            if send_input(&holdkey_inputs.as_slice()).is_ok() {
+            if send_input(holdkey_inputs.as_slice()).is_ok() {
                 self.holdkeys.clear();
             }
         }
@@ -848,7 +843,7 @@ impl Mouse {
             }
         }
 
-        Self::mouse_move_event(&target)
+        Self::mouse_move_event(target)
     }
 
     /// Simulates a mouse click event with the specified button.

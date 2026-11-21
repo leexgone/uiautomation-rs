@@ -114,7 +114,7 @@ impl Clipboard {
 
         loop {
             let result = Self::create(owner);
-            if result.is_ok() || times <= 0 {
+            if result.is_ok() || times == 0 {
                 break result;
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(5));
@@ -238,7 +238,7 @@ impl Clipboard {
             if format == 0 {
                 break;
             } else if SNAPABLE_FORMATS.iter().any(|f| format == *f as _)    // only snapshot specified standard formats
-                    || (try_all_formats && format >= 0xC000 && format <= 0xFFFF) {   // try registered formats if `try_all_formats` is true
+                    || (try_all_formats && (0xC000..=0xFFFF).contains(&format)) {   // try registered formats if `try_all_formats` is true
                 if format == ClipboardFormat::DIB as _ || format == ClipboardFormat::DIBV5 as _ {    // image data
                     if has_image {
                         continue;
@@ -309,7 +309,7 @@ impl GlobalData {
         if self.memory.is_invalid() {
             None
         } else {
-            Some(unsafe { std::mem::transmute(self.memory) })
+            Some(HANDLE(self.memory.0))
         }
     }
 
@@ -326,7 +326,7 @@ impl GlobalData {
         } else {
             Ok(GlobalGuard {
                 memory: self.memory,
-                data: data as *mut core::ffi::c_void
+                data
             })
         }
     }
@@ -359,9 +359,9 @@ impl From<HGLOBAL> for GlobalData {
     }
 }
 
-impl Into<HGLOBAL> for GlobalData {
-    fn into(self) -> HGLOBAL {
-        let mut gd = self;
+impl From<GlobalData> for HGLOBAL {
+    fn from(val: GlobalData) -> Self {
+        let mut gd = val;
         gd.owned = false;
         gd.memory
     }
@@ -421,11 +421,10 @@ pub(crate) struct GlobalGuard{
 
 impl Drop for GlobalGuard {
     fn drop(&mut self) {
-        if let Err(e) = unsafe { GlobalUnlock(self.memory) } {
-            if e.code() != HRESULT(0) {
+        if let Err(e) = unsafe { GlobalUnlock(self.memory) }
+            && e.code() != HRESULT(0) {
                 log_error!("Failed to unlock global memory: {}", e);
             }
-        }
     }
 }
 

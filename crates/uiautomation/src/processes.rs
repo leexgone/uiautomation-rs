@@ -35,11 +35,11 @@ pub struct Process {
     proc_info: PROCESS_INFORMATION
 }
 
-struct WSTR {
+struct Wstr {
     data: Option<Vec<u16>>,
 }
 
-impl WSTR {
+impl Wstr {
     fn new(s: Option<&str>) -> Self {
         Self {
             data: s.map(|s| s.encode_utf16().chain(once(0)).collect()),
@@ -50,14 +50,14 @@ impl WSTR {
         self.data
             .as_ref()
             .map(|s| PCWSTR::from_raw(s.as_ptr()))
-            .unwrap_or_else(|| PCWSTR::null())
+            .unwrap_or_else(PCWSTR::null)
     }
 
-    fn to_pwstr(&mut self) -> PWSTR {
+    fn as_pwstr(&mut self) -> PWSTR {
         self.data
             .as_mut()
             .map(|s| PWSTR::from_raw(s.as_mut_ptr()))
-            .unwrap_or_else(|| PWSTR::null())
+            .unwrap_or_else(PWSTR::null)
     }
 }
 
@@ -89,9 +89,10 @@ impl Process {
 
     #[inline]
     fn startupinfo() -> STARTUPINFOW {
-        let mut si = STARTUPINFOW::default();
-        si.cb = mem::size_of::<STARTUPINFOW>() as _;
-        si
+        STARTUPINFOW {
+            cb: mem::size_of::<STARTUPINFOW>() as _,
+            ..Default::default()
+        }
     }
 
     /// Create a process by `command`. This process will not startup until it is called by `run()`. 
@@ -144,14 +145,14 @@ impl Process {
         if !self.proc_info.hProcess.is_invalid() {
             Err(Error::new(ERR_ALREADY_RUNNING, "process is already started"))
         } else {
-            let app = WSTR::new(self.application.as_deref());
-            let mut cmd = WSTR::new(self.command.as_deref());
-            let cur_dir = WSTR::new(self.cur_dir.as_deref());
+            let app = Wstr::new(self.application.as_deref());
+            let mut cmd = Wstr::new(self.command.as_deref());
+            let cur_dir = Wstr::new(self.cur_dir.as_deref());
 
             unsafe {
                 CreateProcessW(
                     app.to_pcwstr(),
-                    Some(cmd.to_pwstr()),
+                    Some(cmd.as_pwstr()),
                     None,
                     None,
                     true,

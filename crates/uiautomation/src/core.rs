@@ -425,9 +425,9 @@ impl From<IUIAutomation> for UIAutomation {
     }
 }
 
-impl Into<IUIAutomation> for UIAutomation {
-    fn into(self) -> IUIAutomation {
-        self.automation
+impl From<UIAutomation> for IUIAutomation {
+    fn from(val: UIAutomation) -> Self {
+        val.automation
     }
 }
 
@@ -1379,9 +1379,9 @@ impl From<&IUIAutomationElement> for UIElement {
     }
 }
 
-impl Into<IUIAutomationElement> for UIElement {
-    fn into(self) -> IUIAutomationElement {
-        self.element
+impl From<UIElement> for IUIAutomationElement {
+    fn from(val: UIElement) -> Self {
+        val.element
     }
 }
 
@@ -1514,9 +1514,9 @@ impl From<IUIAutomationCacheRequest> for UICacheRequest {
     }
 }
 
-impl Into<IUIAutomationCacheRequest> for UICacheRequest {
-    fn into(self) -> IUIAutomationCacheRequest {
-        self.request
+impl From<UICacheRequest> for IUIAutomationCacheRequest {
+    fn from(val: UICacheRequest) -> Self {
+        val.request
     }
 }
 
@@ -1701,9 +1701,9 @@ impl From<IUIAutomationTreeWalker> for UITreeWalker {
     }
 }
 
-impl Into<IUIAutomationTreeWalker> for UITreeWalker {
-    fn into(self) -> IUIAutomationTreeWalker {
-        self.tree_walker
+impl From<UITreeWalker> for IUIAutomationTreeWalker {
+    fn from(val: UITreeWalker) -> Self {
+        val.tree_walker
     }
 }
 
@@ -1936,7 +1936,7 @@ impl UIMatcher {
             let (root, walker) = self.prepare()?;
             self.search(&walker, &root, &mut elements, 1, first_only)?;
 
-            if !elements.is_empty() || self.timeout <= 0 {
+            if !elements.is_empty() || self.timeout == 0 {
                 break;
             }
 
@@ -1991,11 +1991,10 @@ impl UIMatcher {
     }
 
     fn is_matched(&self, element: &UIElement) -> Result<bool> {
-        if let Some(ref root) = self.from {
-            if self.automation.compare_elements(root, element)? {
+        if let Some(ref root) = self.from
+            && self.automation.compare_elements(root, element)? {
                 return Ok(false);
             }
-        }
 
         // let ret = if let Some(ref condition) = self.condition {
         //     condition.judge(element)?
@@ -2089,9 +2088,9 @@ impl From<IUIAutomationCondition> for UICondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UICondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0
+impl From<UICondition> for IUIAutomationCondition {
+    fn from(val: UICondition) -> Self {
+        val.0
     }
 }
 
@@ -2135,9 +2134,9 @@ impl From<IUIAutomationBoolCondition> for UIBoolCondition {
     }
 }
 
-impl Into<IUIAutomationBoolCondition> for UIBoolCondition {
-    fn into(self) -> IUIAutomationBoolCondition {
-        self.0
+impl From<UIBoolCondition> for IUIAutomationBoolCondition {
+    fn from(val: UIBoolCondition) -> Self {
+        val.0
     }
 }
 
@@ -2156,9 +2155,9 @@ impl TryFrom<IUIAutomationCondition> for UIBoolCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIBoolCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIBoolCondition> for IUIAutomationCondition {
+    fn from(val: UIBoolCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2170,9 +2169,9 @@ impl TryFrom<UICondition> for UIBoolCondition {
     }
 }
 
-impl Into<UICondition> for UIBoolCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UIBoolCondition> for UICondition {
+    fn from(val: UIBoolCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2200,9 +2199,9 @@ impl From<IUIAutomationNotCondition> for UINotCondition {
     }
 }
 
-impl Into<IUIAutomationNotCondition> for UINotCondition {
-    fn into(self) -> IUIAutomationNotCondition {
-        self.0
+impl From<UINotCondition> for IUIAutomationNotCondition {
+    fn from(val: UINotCondition) -> Self {
+        val.0
     }
 }
 
@@ -2221,9 +2220,9 @@ impl TryFrom<IUIAutomationCondition> for UINotCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UINotCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UINotCondition> for IUIAutomationCondition {
+    fn from(val: UINotCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2235,9 +2234,9 @@ impl TryFrom<UICondition> for UINotCondition {
     }
 }
 
-impl Into<UICondition> for UINotCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UINotCondition> for UICondition {
+    fn from(val: UINotCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2276,9 +2275,9 @@ impl From<IUIAutomationAndCondition> for UIAndCondition {
     }
 }
 
-impl Into<IUIAutomationAndCondition> for UIAndCondition {
-    fn into(self) -> IUIAutomationAndCondition {
-        self.0
+impl From<UIAndCondition> for IUIAutomationAndCondition {
+    fn from(val: UIAndCondition) -> Self {
+        val.0
     }
 }
 
@@ -2297,9 +2296,9 @@ impl TryFrom<IUIAutomationCondition> for UIAndCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIAndCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIAndCondition> for IUIAutomationCondition {
+    fn from(val: UIAndCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2311,9 +2310,9 @@ impl TryFrom<UICondition> for UIAndCondition {
     }
 }
 
-impl Into<UICondition> for UIAndCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UIAndCondition> for UICondition {
+    fn from(val: UIAndCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }
@@ -2351,9 +2350,9 @@ impl From<IUIAutomationOrCondition> for UIOrCondition {
     }
 }
 
-impl Into<IUIAutomationOrCondition> for UIOrCondition {
-    fn into(self) -> IUIAutomationOrCondition {
-        self.0
+impl From<UIOrCondition> for IUIAutomationOrCondition {
+    fn from(val: UIOrCondition) -> Self {
+        val.0
     }
 }
 
@@ -2372,9 +2371,9 @@ impl TryFrom<IUIAutomationCondition> for UIOrCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIOrCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIOrCondition> for IUIAutomationCondition {
+    fn from(val: UIOrCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2387,9 +2386,9 @@ impl TryFrom<UICondition> for UIOrCondition {
     }
 }
 
-impl Into<UICondition> for UIOrCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.into();
+impl From<UIOrCondition> for UICondition {
+    fn from(val: UIOrCondition) -> Self {
+        let condition: IUIAutomationCondition = val.into();
         condition.into()
     }
 }
@@ -2435,9 +2434,9 @@ impl From<IUIAutomationPropertyCondition> for UIPropertyCondition {
     }
 }
 
-impl Into<IUIAutomationPropertyCondition> for UIPropertyCondition {
-    fn into(self) -> IUIAutomationPropertyCondition {
-        self.0
+impl From<UIPropertyCondition> for IUIAutomationPropertyCondition {
+    fn from(val: UIPropertyCondition) -> Self {
+        val.0
     }
 }
 
@@ -2456,9 +2455,9 @@ impl TryFrom<IUIAutomationCondition> for UIPropertyCondition {
     }
 }
 
-impl Into<IUIAutomationCondition> for UIPropertyCondition {
-    fn into(self) -> IUIAutomationCondition {
-        self.0.cast().unwrap()
+impl From<UIPropertyCondition> for IUIAutomationCondition {
+    fn from(val: UIPropertyCondition) -> Self {
+        val.0.cast().unwrap()
     }
 }
 
@@ -2470,9 +2469,9 @@ impl TryFrom<UICondition> for UIPropertyCondition {
     }
 }
 
-impl Into<UICondition> for UIPropertyCondition {
-    fn into(self) -> UICondition {
-        let condition: IUIAutomationCondition = self.0.cast().unwrap();
+impl From<UIPropertyCondition> for UICondition {
+    fn from(val: UIPropertyCondition) -> Self {
+        let condition: IUIAutomationCondition = val.0.cast().unwrap();
         condition.into()
     }
 }

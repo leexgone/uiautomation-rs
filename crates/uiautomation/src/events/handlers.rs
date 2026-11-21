@@ -86,17 +86,11 @@ impl IUIAutomationStructureChangedEventHandler_Impl for AutomationStructureChang
         if let Some(e) = sender.as_ref() {
             let element = UIElement::from(e);
             let arr = SafeArray::from(runtimeid);
-            let change_type: StructureChangeType = match changetype.try_into() {
-                Ok(change_type) => change_type,
-                Err(e) => return Err(e.into())
-            };
+            let change_type: StructureChangeType = changetype.try_into()?;
             let ret = if arr.is_null() {
                 self.handler.handle(&element, change_type, None)
             } else {
-                let runtime_id: Vec<i32> = match arr.try_into() {
-                    Ok(arr) => arr,
-                    Err(e) => return  Err(e.into())
-                };
+                let runtime_id: Vec<i32> = arr.try_into()?;
                 self.handler.handle(&element, change_type, Some(&runtime_id))
             };
             ret.map_err(|e| e.into())

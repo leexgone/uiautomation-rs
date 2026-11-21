@@ -317,7 +317,7 @@ impl Control for ListControl {
 /// Wrapper a ListItem element as control. The control type of the element must be `UIA_ListItemControlTypeId`.
 /// 
 /// + Must support: `SelectionItem`
-/// + Conditional support: 	`CustomNavigation`, `ExpandCollapse`, `GridItem`, `Invoke`, `ScrollItem`, `Toggle`, `Value`
+/// + Conditional support: `CustomNavigation`, `ExpandCollapse`, `GridItem`, `Invoke`, `ScrollItem`, `Toggle`, `Value`
 #[derive(Debug, Control, SelectionItem, CustomNavigation, ExpandCollapse, GridItem, Invoke, ScrollItem, Toggle, Value)]
 pub struct ListItemControl {
     control: UIElement

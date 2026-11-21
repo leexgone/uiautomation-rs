@@ -85,12 +85,12 @@ fn auto_update() -> Result<()> {
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    } _ => { match automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).timeout(1000).find_first() { Ok(taskbar) => { // Win10
+    } _ => { if let Ok(taskbar) = automation.create_matcher().name("运行中的应用程序").control_type(ToolBarControl::TYPE).timeout(1000).find_first() { // Win10
         let matcher = automation.create_matcher().from(taskbar).contains_name("设置").control_type(ButtonControl::TYPE);
         if let Ok(settings_button) = matcher.find_first() {
             settings_button.click()?;
         }
-    } _ => {}}}}}}
+    }}}}}
 
     Ok(())
 }

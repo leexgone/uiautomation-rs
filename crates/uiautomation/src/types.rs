@@ -71,9 +71,9 @@ impl From<POINT> for Point {
     }
 }
 
-impl Into<POINT> for Point {
-    fn into(self) -> POINT {
-        self.0
+impl From<Point> for POINT {
+    fn from(val: Point) -> Self {
+        val.0
     }
 }
 
@@ -187,9 +187,9 @@ impl From<RECT> for Rect {
     }
 }
 
-impl Into<RECT> for Rect {
-    fn into(self) -> RECT {
-        self.0
+impl From<Rect> for RECT {
+    fn from(val: Rect) -> Self {
+        val.0
     }
 }
 
@@ -223,9 +223,7 @@ impl Handle {
 
 impl Debug for Handle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let v: isize = unsafe {
-            std::mem::transmute(self.0.0)
-        };
+        let v: isize = self.0.0 as isize;
         write!(f, "Handle(0x{:X})", v)
     }
 }
@@ -242,9 +240,9 @@ impl From<HWND> for Handle {
     }
 }
 
-impl Into<HWND> for Handle {
-    fn into(self) -> HWND {
-        HWND(self.0.0)
+impl From<Handle> for HWND {
+    fn from(val: Handle) -> Self {
+        HWND(val.0.0)
     }
 }
 
@@ -254,9 +252,9 @@ impl From<HANDLE> for Handle {
     }
 }
 
-impl Into<HANDLE> for Handle {
-    fn into(self) -> HANDLE {
-        self.0
+impl From<Handle> for HANDLE {
+    fn from(val: Handle) -> Self {
+        val.0
     }
 }
 
@@ -282,11 +280,9 @@ impl From<isize> for Handle {
     }
 }
 
-impl Into<isize> for Handle {
-    fn into(self) -> isize {
-        unsafe {
-            std::mem::transmute(self.0.0)
-        }
+impl From<Handle> for isize {
+    fn from(val: Handle) -> Self {
+        val.0.0 as isize
     }
 }
 
