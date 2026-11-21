@@ -58,7 +58,7 @@ cargo clippy -p uiautomation --all-features
 
 **Important:** This crate is Windows-only. It depends on `windows` crate Win32 APIs and will not compile on Linux/macOS. The docs.rs target is `x86_64-pc-windows-msvc`; all CI jobs run on `windows-latest`.
 
-Tests require a real interactive desktop (Session 1). Many bundled tests are demos that open Notepad, send keystrokes, or rely on the Chinese input method, and a few use hard-coded window handles; they are **not** run in CI. CI currently performs build checks and the release-script offline tests only.
+Tests require a real interactive desktop (Session 1). Many bundled tests are demos that open Notepad, send keystrokes, or rely on the Chinese input method, and a few use hard-coded window handles; they are **not** run in CI. CI performs formatting, linting, compile checks and the release-script offline tests only.
 
 ## Architecture
 
@@ -127,7 +127,9 @@ GitHub Actions workflows live in `.github/workflows/` and run on `windows-latest
 - **`ci.yml`** - runs on pushes to `main` and on pull requests targeting `main`:
   1. release-script offline tests;
   2. version dependency consistency check (`scripts/check-versions.ps1`);
-  3. `cargo check --workspace --all-targets --all-features`.
+  3. `cargo fmt --all --check`;
+  4. `cargo clippy --workspace --all-targets --all-features -- -D warnings`;
+  5. `cargo check --workspace --all-targets --all-features`.
 - **`release.yml`** - runs only on `v*` tags; see Release below.
 
 Release-script helper files in `scripts/`:
@@ -166,11 +168,6 @@ Prerequisite: a crates.io publish-scoped token stored as the repository secret `
 
 ## Known Tooling Debt
 
-CI runs compile checks but not `rustfmt` or clippy yet, because the current tree predates newer toolchain defaults. A dedicated cleanup PR should address:
+`cargo fmt --all --check` and `cargo clippy --workspace --all-targets --all-features -- -D warnings` are now enforced in CI, and the whole tree is formatted and clippy-clean. Keep both gates green: run `cargo fmt` before committing, and prefer `cargo clippy --fix` for new lints.
 
-- **`cargo fmt --check` fails across the tree** (1000+ diff hunks under current rustfmt style). Run `cargo fmt` workspace-wide, review the result, and then add a format step to `ci.yml`.
-- **Clippy deny-level lints on newer Rust (1.100+)**:
-  - `clippy::not_unsafe_ptr_arg_deref` - public function dereferencing a raw pointer without `unsafe` in `crates/uiautomation/src/variants.rs` (the `from_ptr`-style helper around line 1458);
-  - `clippy::absurd_extreme_comparisons` - `timeout <= 0` / `times <= 0` on `u64` fields in `crates/uiautomation/src/core.rs` (the `UIMatcher::find` guard) and `crates/uiautomation/src/clipboards.rs`; use `== 0`.
-  After fixing, add `cargo clippy --workspace --all-targets --all-features -- -D warnings` (or a curated deny list) to `ci.yml`.
-- Many remaining clippy warnings are stylistic (`from_over_into`, `unit_arg`, `ptr_arg`, ...) and can be cleaned opportunistically.
+Remaining item: the interactive UI tests still cannot run in CI (see the note above). Adding headless smoke tests and marking the desktop-dependent cases `#[ignore]` is tracked separately (see `docs/superpowers/specs/2026-11-20-ci-release-pipeline-design.md`, section 6).

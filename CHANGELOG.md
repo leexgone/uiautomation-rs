@@ -341,3 +341,12 @@
 ## v0.25.0
 
 + Support `screenshot` feature.
+
+## v0.25.1
+
++ Use a monotonic clock for matcher timeouts. [#127](https://github.com/leexgone/uiautomation-rs/pull/127)
+
+## v0.25.2
+
++ Update dependencies (`log` to `0.4.35`, `syn` to `3.0.10` for `uiautomation_derive`).
++ Pin `uiautomation_derive` to the exact version `=0.7.10`.
