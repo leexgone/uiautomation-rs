@@ -11,6 +11,17 @@ so changes to the derive crate are recorded under the corresponding `uiautomatio
 
 ## Unreleased
 
+## 0.25.3 - 2026-11-21
+
+### Changed
+
+- Formatted the whole workspace with `rustfmt` and fixed all `clippy` lints; CI now enforces
+  `cargo fmt --check` and `cargo clippy -- -D warnings`.
+- Replaced `impl Into<...>` with `impl From<...>`; `.into()` call sites remain compatible.
+- `SafeArray::from_vector()` and `SafeArray::from_string_vector()` now accept slices (`&[T]`).
+- Moved the test crates' `uiautomation` and `windows` dependencies to `[dev-dependencies]`.
+- Pinned `uiautomation_derive` to the exact version `=0.7.11`.
+
 ## 0.25.2 - 2026-11-20
 
 ### Changed
